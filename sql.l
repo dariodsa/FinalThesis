@@ -1,12 +1,9 @@
 
 %{
+#include "y.tab.h"
 #include <string.h>
-#include "const.h"
-int lineno = 1;
-void yyerror(char *s);
 %}
 
-%e 1200
 %%
 
 SELECT { return SELECT; }
@@ -36,9 +33,9 @@ OR { return OR; }
 
 "<"  |
 "<=" |
-">"  | 
+">"  |
 ">=" |
-"="  | 
+"="  |
 "<>"    { return CMP; }
 
 BETWEEN { return BETWEEN; }
@@ -68,17 +65,16 @@ DESC { return DESC; }
 
 [-+*/:(),.;] { return yytext[0]; }
 
-[A-Za-z][A-Za-z0-9_]* { return NAME; }
+[A-Za-z][A-Za-z0-9_]* { yylval.text =strdup(yytext); printf("strlen %d\n", strlen(yytext));return NAME; }
 
 [0-9]+           |
 [0-9]+"."[0-9]* |
-"."[0-9]+ { return NUMBER; }
+"."[0-9]* { yylval.number=atof(yytext); printf("num %lf\n", yylval.number);return NUMBER; }
 
 [0-9]+[eE][+-]?[0-9]+          |
 [0-9]+"."[0-9]*[eE][+-]?[0-9]+ |
 "."[0-9]*[eE][+-]?[0-9]+       { return ENUMBER; }
 
-\n   lineno++;
 [ \t\r]+  ; /*white space*/
 "--".*    ; /*comment*/
 
@@ -89,21 +85,6 @@ DESC { return DESC; }
             return STRING;
       else yymore();
 }
-'[^'\n]*$ { yyerror("Unterminated string");}
 
-. yyerror("invalid character");
 
 %%
-
-void yyerror(char *s) {
-    printf("%d: %s at %s\n", lineno, s, yytext);
-}
-
-int main(int argc, char* argv[]) {
-    if(argc > 1 && (yyin = fopen(argv[1], "r")) == NULL) {
-      perror(argv[1]);
-      exit(1);
-    }
-    printf("%d\n", yylex);
-    printf(yylex()?"SQL parse failed.\n":"SQL parse success.\n");
-}

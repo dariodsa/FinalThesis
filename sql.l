@@ -38,6 +38,34 @@ OR { return OR; }
 "="  |
 "<>"    { return CMP; }
 
+bigint |
+int8   |
+bigserial |
+serial8 |
+boolean |
+integer |
+int     |
+int4    |
+real    | 
+float4  |
+float8  |
+json    |
+xml     |
+smallint |
+int2   |
+text    { return DATA_TYPE; 
+int     |
+int4    |
+real    | 
+float4  |
+float8  |
+json    |
+xml     |
+smallint |
+int2   |
+text    { return DATA_TYPE; }}
+
+
 BETWEEN { return BETWEEN; }
 NULL  { return NULL_STR; }
 IN { return IN; }

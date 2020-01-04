@@ -16,6 +16,13 @@ HAVING { return HAVING; }
 BY     { return BY; }
 GROUP  { return GROUP; }
 ORDER  { return ORDER; }
+CROSS { return CROSS; }
+
+
+AS { return AS; }
+
+DISTINCT { return DISTINCT;}
+ALL { return ALL;}
 
 JOIN { return JOIN;}
 NATURAL { return NATURAL; }

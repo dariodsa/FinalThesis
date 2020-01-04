@@ -33,9 +33,44 @@ join_options_item:
 join_options_list: join_options_list join_options_item
 ansi_joined_tables: table_referece: join_options_list
 
+condition:
+         | NOT comparison_condition
+         | NOT condition_with_subquery
+         | comparison_condition
+         | condition_with_subquery
+         | condition
+         | NOT comparison_condition AND condition
+         | NOT condition_with_subquery AND condition
+         | comparison_condition AND condition
+         | condition_with_subquery AND condition
+         | condition AND condition
+         | NOT comparison_condition OR condition
+         | NOT condition_with_subquery OR condition
+         | comparison_condition OR condition
+         | condition_with_subquery OR condition
+         | condition OR condition
+
+limit_offset_clause: 
+                   | LIMIT expression
+                   | LIMIT expression OFFSET  expression
+
+column_name: 
+           | NAME NAME //table column
+           | NAME //column name
+
 relation_operator: CMP
 
 having_clause : HAVING condition
+
+list_names_sep_comma: 
+                    | list_names_sep_comma ',' NAME 
+                    | NAME
+values_clause:
+             | VALUES '(' list_names_sep_comma ')'
+             | VALUES '(' NULL ')'
+
+group_by_clause: GROUP BY list_names_sep_comma
+
 where_clause : WHERE condition 
 
 table_reference: 
@@ -48,7 +83,9 @@ from_clauses_item:
                  | table_reference
                  | ansi_joined_tables
 
-from_clauses_list: from_clauses_list ',' from_clauses_item
+from_clauses_list: 
+                 | from_clauses_list ',' from_clauses_item
+                 | from_clauses_item
 
 from_clause : FROM from_clauses_list
 

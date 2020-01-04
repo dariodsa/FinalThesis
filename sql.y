@@ -62,12 +62,26 @@ relation_operator: CMP
 
 having_clause : HAVING condition
 
+order_item: 
+          | expression ASC
+          | expression DESC
+          | expression 
+          | NAME ASC
+          | NAME DESC
+          | NAME
+order_list: 
+          | order_list ',' order_item
+          | order_item
+
+order_by_clause:
+               | ORDER BY order_list
+
 list_names_sep_comma: 
                     | list_names_sep_comma ',' NAME 
                     | NAME
 values_clause:
              | VALUES '(' list_names_sep_comma ')'
-             | VALUES '(' NULL ')'
+             | VALUES '(' NULL_STR ')'
 
 group_by_clause: GROUP BY list_names_sep_comma
 
@@ -94,8 +108,17 @@ select_options:
               | projection_clause from_clause where_clause group_by_clause
               | projection_clause from_clause where_clause group_by_clause having_clause
 
+select_options_more:
+                   | UNION ALL SELECT select_options
+                   | UNION SELECT select_options
 
-select_statement: SELECT select_options { printf("Imam select\n");}
+select_statement: 
+                | SELECT select_options
+                | SELECT select_options select_options_more order_by_clause limit_offset_clause
+                | SELECT select_options select_options_more order_by_clause
+                | SELECT select_options order_by_clause limit_offset_clause
+                | SELECT select_options limit_offset_clause
+                | SELECT select_options order_by_clause
 
 %%
 

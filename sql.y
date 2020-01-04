@@ -22,16 +22,37 @@ commands:
 
 command : 
         | select_statement
+        | insert_statement
+        | create_table_statement
+        | create_index_statement
+        | alter_table_statement
 
 projection_clause:
                  | ALL  select_list { printf("ALL\n");} 
                  | DISTINCT select_list { printf("DIS\n"); }
                  | select_list
+
+join_options: 
+            | join_options_part_one join_options_part_two
+            | NATURAL join_options_part_one join_options_part_two
+            | NATURAL join_options_part_one JOIN table_reference ON
+            | join_options_part_two 
+
+join_options_part_two: 
+                     | JOIN table_reference ON condition
+                     | JOIN table_reference ON USING '(' list_names_sep_comma  ')'
+           
+join_options_part_one: 
+                    | INNER 
+                    | LEFT OUTER
+                    | RIGHT OUTER 
+                    | FULL OUTER 
+
 join_options_item: 
                  | join_options
                  | CROSS JOIN table_reference
 join_options_list: join_options_list join_options_item
-ansi_joined_tables: table_referece: join_options_list
+ansi_joined_tables:  table_reference join_options_list
 
 condition:
          | NOT comparison_condition

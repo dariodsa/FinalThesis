@@ -27,6 +27,40 @@ command :
         | create_index_statement
         | alter_table_statement
 
+create_table_statement: CREATE TABLE NAME table_definition
+
+list_of_column_definition: 
+			 | list_of_column_definition ',' column_definition
+			 | column_definition
+list_of_column_con_def: 
+		      | list_of_column_con_def ',' multiple_column_constraint 
+		      | list_of_column_con_def ',' column_defintion 
+		      | multiple_column_constraint
+		      | column_definition
+
+alter_table_statement: ALTER TABLE NAME ADD CONSTRAINT multiple_column_constraint
+
+list_col_index: 
+	      | list_col_index ',' NAME ASC
+	      | list_col_index ',' NAME DESC
+	      | list_col_index ',' NAME
+
+create_index_statement: 
+		      | CREATE INDEX NAME ON NAME '(' list_col_index ')'
+		      | CREATE UNIQUE INDEX NAME ON NAME '(' list_col_index ')'
+
+table_definition:
+		| '(' list_of_column_definition ')'  
+		| '(' list_of_column_definition ',' list_of_column_con_def ')'
+
+
+column_definition:
+                 | NAME DATA_TYPE
+                 | NAME DATA_TYPE single_column_constraint
+
+single_column_constraint: 
+                        | 
+
 projection_clause:
                  | ALL  select_list { printf("ALL\n");} 
                  | DISTINCT select_list { printf("DIS\n"); }

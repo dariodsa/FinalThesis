@@ -23,6 +23,17 @@ commands:
 command : 
         | select_statement
 
+create_table_statement: CREATE TABLE NAME table_definition
+
+table_definition: 
+
+column_definition:
+                 | NAME DATA_TYPE
+                 | NAME DATA_TYPE single_column_constraint
+
+single_column_constraint: 
+                        | 
+
 projection_clause:
                  | ALL  select_list { printf("ALL\n");} 
                  | DISTINCT select_list { printf("DIS\n"); }

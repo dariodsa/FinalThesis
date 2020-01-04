@@ -34,6 +34,8 @@ OUTER { return OUTER;}
 ON { return ON;}
 USING { return USING; }
 
+ADD { return ADD; }
+
 NOT { return NOT; }
 AND { return AND; }
 OR { return OR; }
@@ -60,17 +62,7 @@ json    |
 xml     |
 smallint |
 int2   |
-text    { return DATA_TYPE; 
-int     |
-int4    |
-real    | 
-float4  |
-float8  |
-json    |
-xml     |
-smallint |
-int2   |
-text    { return DATA_TYPE; }}
+text    { return DATA_TYPE; }
 
 
 BETWEEN { return BETWEEN; }

@@ -142,6 +142,23 @@ conditional_expression:
                       | CASE list_condition_expression ELSE expression END
                       | CASE expression list_expression_expression END
                       | CASE expression list_expression ELSE expression END
+
+comparison_condition: 
+		    | expression relation_operator expression 
+		    | expression NOT BETWEEN expression AND expression 
+		    | expression BETWEEN expression AND expression
+		    | in_condition
+		    | column_name IS NULL
+		    | column_name IS NOT NULL
+		    | quoted_string NOT LIKE quoted_string
+		    | quoted_string LIKE quoted_string 
+		    | column_name NOT LIKE quoted_string
+		    | column_name LIKE quoted_string 
+		    | quoted_string NOT LIKE column_name
+		    | quoted_string LIKE column_name
+		    | column_name NOT LIKE column_name
+		    | column_name LIKE column_name
+
 expression: 
 	  | expression_part_one expression_part_two
 	  | expression_part_two

@@ -113,6 +113,12 @@ join_options_item:
 join_options_list: join_options_list join_options_item
 ansi_joined_tables:  table_reference join_options_list
 
+quoted_string: 
+	     | '"' NAME '"'
+	     | '"' NUMBER '"'
+	     | '"' ENUMBER '"'
+	     | '"' STRING '"' 
+
 condition:
          | NOT comparison_condition
          | NOT condition_with_subquery

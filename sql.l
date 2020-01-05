@@ -44,6 +44,24 @@ NOT { return NOT; }
 AND { return AND; }
 OR { return OR; }
 
+array_agg |
+avg |
+bit_and |
+bit_or |
+bool_and |
+bool_or | 
+count |
+every |
+json_agg |
+jsonb_agg |
+json_object_agg |
+jsonb_object_agg |
+max |
+min |
+string_agg |
+sum |
+xmlagg  { return AGG_FUNCTION; }
+
 "<"  |
 "<=" |
 ">"  |

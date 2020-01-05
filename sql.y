@@ -142,6 +142,30 @@ conditional_expression:
                       | CASE list_condition_expression ELSE expression END
                       | CASE expression list_expression_expression END
                       | CASE expression list_expression ELSE expression END
+expression: 
+	  | expression_part_one expression_part_two
+	  | expression_part_two
+
+expression_part_one:
+		   | '-'
+		   | '+'
+
+expression_part_two: 
+	  | column_name binary_operator expression
+	  | column_name 
+	  | conditional_expression binary_operator expression
+	  | conditional_expression
+	  | constant binary_operator expression
+	  | constant
+	  | aggregate_expression binary_operator expression
+	  | aggregate_expression 
+	  | function_expression binary_operator expression
+	  | function_expression
+	  | NULL_STR binary_operator expression
+	  | NULL_STR
+	  | '(' expression ')' binary_operator expression 
+	  | '(' expression ')' 
+
 
 in_condition: 
             | expression NOT IN '(' list_names_num_sep_comma ')'

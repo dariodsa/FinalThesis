@@ -20,6 +20,8 @@ CROSS { return CROSS; }
 
 
 AS { return AS; }
+END { return END;}
+WHEN { return WHEN; }
 
 DISTINCT { return DISTINCT;}
 ALL { return ALL;}

@@ -3,6 +3,7 @@
 #include <string.h>
 int lineno = 1;
 int yylex();
+extern char yytext[];
 %}
 
 %token SELECT UNION DISTINCT ALL FROM WHERE LIMIT OFFSET HAVING BY GROUP ORDER JOIN NATURAL LEFT RIGHT INNER FULL OUTER ON USING NOT AND OR CMP BETWEEN NULL_STR IN EXISTS CASE THEN ELSE VALUES INSERT INTO CREATE TABLE UNIQUE PRIMARY FOREIGN KEY CONSTRAINT INDEX ASC DESC NAME NUMBER ENUMBER STRING AS CROSS DATA_TYPE CROSS ALTER ADD
@@ -67,6 +68,7 @@ column_definition:
 //single_column_constraint: 
 
 projection_clause:
+                 | '*'
                  | ALL  select_list { printf("ALL\n");} 
                  | DISTINCT select_list { printf("DIS\n"); }
                  | select_list
@@ -137,10 +139,21 @@ order_by_clause:
                | ORDER BY order_list
 
 list_names_sep_comma: 
-                    | list_names_sep_comma ',' NAME 
-                    | NAME
+                | list_names_sep_comma ',' NAME 
+                | NAME
+
+list_names_num_sep_comma: 
+                | list_names_num_sep_comma ',' NAME 
+                | list_names_num_sep_comma ',' NUMBER
+                | list_names_num_sep_comma ',' ENUMBER
+                | NAME
+                | NUMBER
+                | ENUMBER
+
+
+
 values_clause:
-             | VALUES '(' list_names_sep_comma ')'
+             | VALUES '(' list_names_num_sep_comma ')'
              | VALUES '(' NULL_STR ')'
 
 group_by_clause: GROUP BY list_names_sep_comma
@@ -184,7 +197,7 @@ select_statement:
 
 
 void yyerror(char *s) {
-    printf("%d: %s at \n", lineno, s);
+    printf("%d: %s at %s\n", lineno, s, yytext);
 }
 
 int main(int argc, char* argv[]) {

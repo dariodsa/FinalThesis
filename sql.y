@@ -27,6 +27,12 @@ command :
         | create_index_statement
         | alter_table_statement
 
+insert_statement:
+                | INSERT INTO NAME '(' list_names_sep_comma  ')' values_clause
+                | INSERT INTO NAME '(' list_names_sep_comma ')' select_statement
+                | INSERT INTO NAME values_clause 
+                | INSERT INTO NAME select_statement
+
 create_table_statement: CREATE TABLE NAME table_definition
 
 list_of_column_definition: 
@@ -34,7 +40,7 @@ list_of_column_definition:
 			 | column_definition
 list_of_column_con_def: 
 		      | list_of_column_con_def ',' multiple_column_constraint 
-		      | list_of_column_con_def ',' column_defintion 
+		      | list_of_column_con_def ',' column_definition 
 		      | multiple_column_constraint
 		      | column_definition
 

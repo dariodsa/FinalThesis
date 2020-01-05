@@ -154,8 +154,8 @@ comparison_condition:
 		    | expression NOT BETWEEN expression AND expression 
 		    | expression BETWEEN expression AND expression
 		    | in_condition
-		    | column_name IS NULL
-		    | column_name IS NOT NULL
+		    | column_name IS NULL_STR
+		    | column_name IS NOT NULL_STR
 		    | quoted_string NOT LIKE quoted_string
 		    | quoted_string LIKE quoted_string 
 		    | column_name NOT LIKE quoted_string

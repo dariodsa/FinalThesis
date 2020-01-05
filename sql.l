@@ -4,7 +4,10 @@
 #include <string.h>
 %}
 
+
+%option caseless
 %%
+
 
 SELECT { return SELECT; }
 UNION  { return UNION; }

@@ -67,6 +67,22 @@ column_definition:
 
 //single_column_constraint: 
 
+select_list:
+           | expression AS NAME ',' select_list
+           | expression AS NAME select_list
+           | expression NAME ',' select_list
+           | expression NAME
+           | '(' subquery ')' select_list
+           | '(' subquery ')' AS NAME select_list
+           | '(' subquery ')' NAME select_list
+           | '(' subquery ')'
+           | '(' subquery ')' AS NAME 
+           | '(' subquery ')' NAME 
+           | expression ',' select_list
+           | expression 
+           | NAME '*' select_list
+           | NAME '*' 
+
 projection_clause:
                  | '*'
                  | ALL  select_list { printf("ALL\n");} 

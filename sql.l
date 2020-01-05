@@ -25,6 +25,8 @@ WHEN { return WHEN; }
 
 DISTINCT { return DISTINCT;}
 ALL { return ALL;}
+ANY  { return ANY; }
+SOME { return SOME; }
 
 JOIN { return JOIN;}
 NATURAL { return NATURAL; }

@@ -6,7 +6,7 @@ int yylex();
 extern char yytext[];
 %}
 
-%token SELECT UNION DISTINCT ALL FROM WHERE LIMIT OFFSET HAVING BY GROUP ORDER JOIN NATURAL LEFT RIGHT INNER FULL OUTER ON USING NOT AND OR CMP BETWEEN NULL_STR IN EXISTS CASE THEN ELSE VALUES INSERT INTO CREATE TABLE UNIQUE PRIMARY FOREIGN KEY CONSTRAINT INDEX ASC DESC NAME NUMBER ENUMBER STRING AS CROSS DATA_TYPE CROSS ALTER ADD
+%token SELECT UNION DISTINCT ALL FROM WHERE LIMIT OFFSET HAVING BY GROUP ORDER JOIN NATURAL LEFT RIGHT INNER FULL OUTER ON USING NOT AND OR CMP BETWEEN NULL_STR IN EXISTS CASE THEN ELSE VALUES INSERT INTO CREATE TABLE UNIQUE PRIMARY FOREIGN KEY CONSTRAINT INDEX ASC DESC NAME NUMBER ENUMBER STRING AS CROSS DATA_TYPE CROSS ALTER ADD END WHEN ANY SOME
 
 %union
 {
@@ -66,6 +66,8 @@ column_definition:
                  | NAME DATA_TYPE single_column_constraint
 
 //single_column_constraint: 
+
+subquery: select_statement
 
 select_list:
            | expression AS NAME ',' select_list
@@ -144,6 +146,18 @@ conditional_expression:
 in_condition: 
             | expression NOT IN '(' list_names_num_sep_comma ')'
             | expression IN '(' list_names_num_sep_comma ')'
+
+all_any_some: 
+            | ALL
+            | ANY
+            | SOME
+
+condition_wiht_subquery: 
+                       | expression NOT IN '(' subquery ')'
+                       | expression IN '(' subquery ')'
+                       | EXISTS '(' subquery ')'
+                       | expression relational_operator '(' subquery ')'
+                       | expression relational_operator all_any_some '(' subquery ')'
 
 limit_offset_clause: 
                    | LIMIT expression

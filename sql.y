@@ -112,6 +112,23 @@ condition:
          | condition_with_subquery OR condition
          | condition OR condition
 
+list_condition_expression: 
+                         | list_condition_expression WHEN condition THEN expression 
+                         | WHEN condition THEN expression
+list_expression_expression:
+                          | list_expression_expression WHEN expression THEN expression
+                          | WHEN expression THEN expression
+
+conditional_expression: 
+                      | CASE list_condition_expression END
+                      | CASE list_condition_expression ELSE expression END
+                      | CASE expression list_expression_expression END
+                      | CASE expression list_expression ELSE expression END
+
+in_condition: 
+            | expression NOT IN '(' list_names_num_sep_comma ')'
+            | expression IN '(' list_names_num_sep_comma ')'
+
 limit_offset_clause: 
                    | LIMIT expression
                    | LIMIT expression OFFSET  expression

@@ -6,7 +6,7 @@ int yylex();
 extern char yytext[];
 %}
 
-%token SELECT UNION DISTINCT ALL FROM WHERE LIMIT OFFSET HAVING BY GROUP ORDER JOIN NATURAL LEFT RIGHT INNER FULL OUTER ON USING NOT AND OR CMP BETWEEN NULL_STR IN EXISTS CASE THEN ELSE VALUES INSERT INTO CREATE TABLE UNIQUE PRIMARY FOREIGN KEY CONSTRAINT INDEX ASC DESC NAME NUMBER ENUMBER STRING AS CROSS DATA_TYPE CROSS ALTER ADD END WHEN ANY SOME AGG_FUNCTION
+%token SELECT UNION DISTINCT ALL FROM WHERE LIMIT OFFSET HAVING BY GROUP ORDER JOIN NATURAL LEFT RIGHT INNER FULL OUTER ON USING NOT AND OR CMP BETWEEN NULL_STR IN EXISTS CASE THEN ELSE VALUES INSERT INTO CREATE TABLE UNIQUE PRIMARY FOREIGN KEY CONSTRAINT INDEX ASC DESC NAME NUMBER ENUMBER STRING AS CROSS DATA_TYPE CROSS ALTER ADD END WHEN ANY SOME AGG_FUNCTION CHECK UPDATE DELETE SET DEFAULT ON CASCADE REFERENCES IS LIKE
 
 %union
 {
@@ -72,7 +72,59 @@ column_definition:
                  | NAME DATA_TYPE single_column_constraint
                  ;
 
-//single_column_constraint: 
+check_clause: CHECK '(' condition ')'
+
+references_clause_part_a:
+                        | ON DELETE
+                        | ON UPDATE
+                        ;
+
+references_clause_part_b:
+                        | CASCADE
+                        | SET NULL_STR
+                        | SET DEFAULT
+                        ;
+
+references_clause_part_two:
+                          | references_clause_part_two references_clause_part_a references_clause_part_b
+                          | references_clause_part_a references_clause_part_b
+                          ;
+
+references_clause:
+                 | REFERENCES NAME references_clause_part_two
+                 | REFERENCES NAME '(' list_names_sep_comma ')' references_clause_part_two
+                 ;
+
+multiple_column_const_b:
+                       | UNIQUE '(' list_names_sep_comma ')'
+                       | PRIMARY KEY '(' list_names_sep_comma ')'
+                       | check_clause
+                       | FOREIGN KEY '(' list_names_sep_comma  ')' references_clause
+
+
+multiple_column_constraint:
+                          | CONSTRAINT NAME multiple_column_const_b
+                          | multiple_column_const_b
+                          ;
+
+single_column_item_b:
+                    | NOT NULL_STR
+                    | UNIQUE    
+                    | PRIMARY KEY
+                    | references_clause
+                    | check_clause
+                    | DEFAULT expression
+                    ;
+
+single_column_item:
+                  | CONSTRAINT NAME single_column_item_b
+                  | single_column_item_b
+                  ;
+
+single_column_constraint: 
+                        | single_column_constraint single_column_item
+                        | single_column_item
+                        ;
 
 subquery: select_statement
 
@@ -164,7 +216,7 @@ conditional_expression:
                       | CASE list_condition_expression END
                       | CASE list_condition_expression ELSE expression END
                       | CASE expression list_expression_expression END
-                      | CASE expression list_expression ELSE expression END
+                      | CASE expression list_expression_expression ELSE expression END
                       ;
 comparison_condition: 
 		    | expression relation_operator expression 
@@ -219,7 +271,7 @@ all_any_some:
             | SOME
             ;
 
-condition_wiht_subquery: 
+condition_with_subquery: 
                        | expression NOT IN '(' subquery ')'
                        | expression IN '(' subquery ')'
                        | EXISTS '(' subquery ')'

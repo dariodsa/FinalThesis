@@ -41,6 +41,15 @@ OUTER { return OUTER;}
 ON { return ON;}
 USING { return USING; }
 
+CHECK { return CHECK; }
+UPDATE { return UPDATE; }
+DELETE { return DELETE; }
+SET { return SET; }
+DEFAULT { return DEFAULT; }
+ON { return ON; }
+CASCADE { return CASCADE; }
+REFERENCES { return REFERENCES;}
+
 ADD { return ADD; }
 
 NOT { return NOT; }
@@ -93,6 +102,8 @@ text    { return DATA_TYPE; }
 BETWEEN { return BETWEEN; }
 NULL  { return NULL_STR; }
 IN { return IN; }
+IS { return IS; }
+LIKE { return LIKE; }
 EXISTS { return EXISTS; }
 CASE { return CASE; }
 THEN { return THEN; }

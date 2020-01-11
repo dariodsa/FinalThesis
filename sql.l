@@ -46,7 +46,6 @@ UPDATE { return UPDATE; }
 DELETE { return DELETE; }
 SET { return SET; }
 DEFAULT { return DEFAULT; }
-ON { return ON; }
 CASCADE { return CASCADE; }
 REFERENCES { return REFERENCES;}
 

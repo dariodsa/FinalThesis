@@ -26,7 +26,7 @@ extern char yytext[];
 %%
 
 commands: 
-        | commands command
+        | command {$$ = $1;} //only one command at time
         ;
 
 command : 

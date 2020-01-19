@@ -21,8 +21,11 @@ int main(int argc, char* argv[]) {
         exit(0);
     } 
     
-    connect_to_replicas(replicas);
+    if( !connect_to_replicas(replicas) ) {
+        return 0;
+    }
 
+    connect_and_listen();
 
     return 0;
 }

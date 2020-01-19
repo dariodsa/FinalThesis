@@ -13,7 +13,7 @@ Program::Program(){
 
 void Program::setUp(int argc, char* argv[]) {
     int opt;
-    while( (opt = getopt(argc, argv, "c:l:")) != -1) {
+    while( (opt = getopt(argc, argv, "c:l:p:")) != -1) {
         
         switch(opt) {
             case 'c':
@@ -21,6 +21,9 @@ void Program::setUp(int argc, char* argv[]) {
                 break;
             case 'l':
                 log_level = atoi(optarg);
+                break;
+            case 'p':
+                port = atoi(optarg);
                 break;
             default:
                 printf("Parameter %s is not acceptable.\n", optarg);

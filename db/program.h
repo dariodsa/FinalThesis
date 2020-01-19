@@ -11,6 +11,7 @@ class Program {
     private:
         static Program* singleton;
         int log_level = 5;
+        int port = 7890;
         char config_file_path[MAX_LEN] = "config";
         bool terminal_output = false;
 

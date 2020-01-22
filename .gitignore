@@ -50,3 +50,8 @@ modules.order
 Module.symvers
 Mkfile.old
 dkms.conf
+
+data/lex.yy.c
+data/sql.tab.c
+data/sql.tab.h
+

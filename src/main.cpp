@@ -19,6 +19,7 @@ pthread_t keep_alive_thread;
 int main(int argc, char* argv[]) {
     
     Program* program = Program::getInstance();
+    
     program->setUp(argc, argv);
 
     char *CONFIG_FILE_PATH = program->getConfigFilePath();
@@ -34,7 +35,6 @@ int main(int argc, char* argv[]) {
         return 0;
     }
     
-
     bool value = connect_and_listen(program->getIP(), program->getPort());
 
     return 0;

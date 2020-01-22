@@ -16,7 +16,7 @@ class Program {
         int port = 7890;
         char IP[MAX_LEN];
         char config_file_path[MAX_LEN] = "config";
-        bool terminal_output = false;
+        bool terminal_output = true;
 
         void usage();
 };

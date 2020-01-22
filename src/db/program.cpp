@@ -5,7 +5,7 @@
 #include <syslog.h>
 #include <string.h>
 
-Program* Program::singleton = 0;
+Program* Program::singleton = NULL;
 
 Program::Program(){
     openlog("semantic-db", LOG_CONS | LOG_PID | LOG_NDELAY | LOG_NOWAIT, LOG_LOCAL1);
@@ -14,7 +14,6 @@ Program::Program(){
 void Program::setUp(int argc, char* argv[]) {
     int opt;
     while( (opt = getopt(argc, argv, "c:l:p:")) != -1) {
-        
         switch(opt) {
             case 'c':
                 strcpy(config_file_path, optarg);
@@ -31,7 +30,7 @@ void Program::setUp(int argc, char* argv[]) {
                 return;
         }
     }
-
+    return;
 }
 
 char* Program::getConfigFilePath() {
@@ -49,7 +48,7 @@ void Program::log(int priority, const char *format, ...) {
 }
 
 Program* Program::getInstance() {
-    if(singleton == 0) {
+    if(singleton == NULL) {
         singleton = new Program();
     }
     return singleton;

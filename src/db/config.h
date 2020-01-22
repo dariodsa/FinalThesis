@@ -1,9 +1,17 @@
+#pragma once
 #include <stdio.h>
 #include <stdlib.h>
 #include <vector>
 #include <syslog.h>
 #include "../structures/database.h"
+//#include "../data/y.tab.h"
+extern "C"{
+#include "../data/y.tab.c"
+#include "../data/lex.yy.c"
+}
 #include "program.h"
+
+
 
 #define ARG_NUMBERS 2
 #define MAX_PORT 65535
@@ -19,6 +27,18 @@ bool connect_and_listen(char *ip, int port) {
         program->log(LOG_WARNING, "IP is not initialized.\n");
         return false;
     }
+
+    //connect and listen to CONNECT postgres queries
+    FILE *yyin = fopen("../data/i1", "r");
+    printf("%ld\n", yyin);
+    
+    printf("Call parse:\n");
+    parse(yyin);
+    printf("Done parse:\n");
+    
+    
+
+    return true;
 }
 
 bool connect_to_replicas(std::vector<Database*> replicas) {

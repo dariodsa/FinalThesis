@@ -141,7 +141,7 @@ DESC { return DESC; }
 "--".*    ; /*comment*/
 
 '[^'\n]*'  {
-      int c = input();
+      int c = yyinput();
       unput(c);
       if(c != '\'')
             return STRING;

@@ -4,7 +4,9 @@
 int lineno = 1;
 int yylex();
 extern char* yytext;
+void yyerror(char* msg);
 %}
+
 
 %token SELECT UNION DISTINCT ALL FROM WHERE LIMIT OFFSET HAVING BY GROUP ORDER JOIN NATURAL LEFT RIGHT INNER FULL OUTER USING CMP BETWEEN NULL_STR IN EXISTS CASE THEN ELSE VALUES INSERT INTO CREATE TABLE UNIQUE PRIMARY FOREIGN KEY CONSTRAINT INDEX ASC DESC NAME NUMBER ENUMBER STRING AS CROSS DATA_TYPE ALTER ADD END WHEN ANY SOME AGG_FUNCTION CHECK UPDATE DELETE SET DEFAULT ON CASCADE REFERENCES IS LIKE
 
@@ -27,7 +29,7 @@ extern char* yytext;
 
 
 commands: 
-        | command {$$ = $1;} //only one command at time
+        | command //{$$ = $1;} //only one command at time
         ;
 
 command : 
@@ -294,8 +296,8 @@ limit_offset_clause:
                    ;
 
 column_name: 
-           | NAME NAME { $$=$1;} //table column
-           | NAME  { $$=$1;} //column name
+           | NAME NAME //{ $$=$1;} //table column
+           | NAME  //{ $$=$1;} //column name
            ;
 
 relation_operator: CMP
@@ -381,12 +383,40 @@ select_statement:
                 | SELECT select_options order_by_clause
                 ;
 
+binary_operator: ""
+               ;
+constant: ""
+        ;
+aggregate_expression: ""
+                    ;
+function_expression: ""
+                   ;
+relational_operator: ""
+                   ;
+
+
+                    
+
 %%
 
+extern FILE *yyin;
+
+void parse(FILE* fileInput)
+{
+   yyin= fileInput;
+   yyparse();
+   
+}
 
 void yyerror(char *s) {
     printf("%d: %s at %s\n", lineno, s, yytext);
 }
+
+/*extern "C"
+{
+        int yyparse(void);
+        int yylex(void); 
+}*/
 
 /*int main(int argc, char* argv[]) {
    yyparse();

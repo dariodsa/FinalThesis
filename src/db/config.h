@@ -31,12 +31,12 @@ bool connect_and_listen(char *ip, int port) {
     //connect and listen to CONNECT postgres queries
     FILE *yyin = fopen("../data/i1", "r");
     printf("%ld\n", yyin);
-    
+    vector<Token*>V;
     printf("Call parse:\n");
-    parse(yyin);
+    parse(yyin, V);
     printf("Done parse:\n");
     
-    
+    printf("Size %d\n", V.size());
 
     return true;
 }

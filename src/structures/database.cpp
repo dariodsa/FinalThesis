@@ -3,7 +3,7 @@
 #include <libpq-fe.h>
 
 Database::Database(char *ipAddress, int port) {
-    if(ipAddress == 0) {
+    if(ipAddress == NULL) {
         throw std::invalid_argument("Ip address is pointing to zero.\n");
     }
     if(strlen(ipAddress) > MAX_LEN) {

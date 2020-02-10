@@ -8,9 +8,11 @@ using namespace std;
 
 class Table { 
     public:
-        
+        Table(char* table_name, char* database);
         char* getTableName();
         bool isIndex(char* column, ...);
+        void addIndex(Index *index);
+        vector<Index*> getIndex();
     private:
         char name[MAX_LEN];
         char database[MAX_LEN];

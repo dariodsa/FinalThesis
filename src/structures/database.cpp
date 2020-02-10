@@ -3,6 +3,7 @@
 #include <stdexcept>
 #include <libpq-fe.h>
 
+Database::Database() {}
 
 Database::Database(char *ipAddress, char* dbName, int port, char* username, char* password) {
     if(ipAddress == NULL) {
@@ -46,4 +47,13 @@ bool Database::disconnect() {
     }
 
     return true;
+}
+
+void Database::addTable(Table *t) {
+    string table_name(t->getTableName());
+    this->tables[table_name] = t;
+}
+Table* Database::getTable(char* name) {
+    string table_name(name);
+    return this->tables[table_name];
 }

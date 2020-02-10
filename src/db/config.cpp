@@ -26,14 +26,18 @@ bool connect_and_listen(char *ip, int port) {
 
     //connect and listen to CONNECT postgres queries
     FILE *yyin = fopen("/home/dario/Documents/diplomski/FinalThesis/data/i1", "r");
+    Database *database = new Database();
+    Table* t = new Table("tablica", "d1");
+    database->addTable(t);
+
     printf("dario %d\n", yyin);
     
     printf("Call parse:\n");
-    parse(yyin);
+    parse(yyin, database);
     
     printf("Done parse:\n");
     
-    
+    printf("Index number: %s\n", t->getIndex()[0]->getName());
 
     return true;
 }

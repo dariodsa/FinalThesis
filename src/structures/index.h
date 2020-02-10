@@ -1,5 +1,6 @@
 #include <vector>
 #include <string.h>
+#include <string>
 #include <stdlib.h>
 using namespace std;
 #define MAX_LEN 100
@@ -20,7 +21,10 @@ class Index {
         
         int getColNumber();
         char* getColName(int index);
+        char* getTable();
+        char* getName();
         TYPE_COL getColType(int index);
+
     private:
        vector<char*>col_names;
        vector<TYPE_COL>types;

@@ -4,12 +4,16 @@
 #include <vector>
 #include "token.h"
 #include "../src/structures/index.h"
+#include "../src/structures/table.h"
 using namespace std;
 int lineno = 1;
 int yylex();
 extern char* yytext;
 void yyerror(char* msg);
 int yyparse();
+
+extern Database* database;
+
 %}
 
 
@@ -50,7 +54,8 @@ command :
         | create_table_statement
         | create_index_statement 
             {
-                printf("Index num: %d\n", $1->getColNumber());
+                Table *t = database->getTable($1->getTable());
+                t->addIndex($1);
             }
         | alter_table_statement
         ;
@@ -452,10 +457,12 @@ relational_operator: ""
 %%
 
 extern FILE *yyin;
+Database* database;
 
-void parse(FILE* fileInput)
+void parse(FILE* fileInput, Database* _database)
 {
    yyin= fileInput;
+   database = _database;
    printf("Unutra\n");
    printf("%d\n", yyin);
    yyparse();

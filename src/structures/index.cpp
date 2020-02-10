@@ -27,6 +27,14 @@ int Index::getColNumber() {
 char* Index::getColName(int index) {
     return this->col_names[index];
 }
+
+char* Index::getTable() {
+    return this->table;
+}
+char* Index::getName() {
+    return this->name;
+}
+
 TYPE_COL Index::getColType(int index) {
     return this->types[index];
 }

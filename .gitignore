@@ -55,3 +55,7 @@ data/lex.yy.c
 data/sql.tab.c
 data/sql.tab.h
 
+src/main
+
+data/i1
+

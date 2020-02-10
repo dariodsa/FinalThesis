@@ -1,10 +1,10 @@
 #include "database.h"
-#include "program.h"
+#include "../db/program.h"
 #include <stdexcept>
 #include <libpq-fe.h>
 
 
-Database::Database(char *ipAddress, int port, char* username, char* password) {
+Database::Database(char *ipAddress, char* dbName, int port, char* username, char* password) {
     if(ipAddress == NULL) {
         throw std::invalid_argument("Ip address is pointing to zero.\n");
     }
@@ -19,13 +19,16 @@ Database::Database(char *ipAddress, int port, char* username, char* password) {
 bool Database::connect() {
     Program* program = Program::getInstance();
     try {
-        this->C = new connection("dbname = testdb user = postgres password = cohondob \
-            hostaddr = 127.0.0.1 port = 5432");
+        char conn_str[150];
+        
+        sprintf(conn_str, "dbname = %s user = %s password = %s \
+            hostaddr = %s port = %d", this->dbName, this->username, this->password, this->ipAddress, this->port);
+        /*this->C = new connection(conn_str);
         if (C->is_open()) {
             return true;
         } else {   
             return false;
-        }
+        }*/
     } catch (const std::exception &e) {
         program->log(LOG_WARNING, "Exception message: %s", e.what());
         return false;
@@ -36,7 +39,7 @@ bool Database::connect() {
 bool Database::disconnect() {
     Program* program = Program::getInstance();
     try {
-        C->disconnect();
+        //C->disconnect();
     } catch(const std::exception &e) {
         program->log(LOG_WARNING, "Exception message: %s", e.what());
         return false;

@@ -3,6 +3,9 @@
 #include <vector>
 using namespace std;
 
+#ifndef TABLE_H
+#define TABLE_H
+
 class Table { 
     public:
         
@@ -14,3 +17,5 @@ class Table {
         vector<Column*> columns;
         vector<Index*> indexs;
 };
+
+#endif

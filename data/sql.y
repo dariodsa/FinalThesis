@@ -1,10 +1,15 @@
 %{
 #include <stdio.h>
 #include <string.h>
+#include <vector>
+#include "token.h"
+#include "../src/structures/index.h"
+using namespace std;
 int lineno = 1;
 int yylex();
 extern char* yytext;
 void yyerror(char* msg);
+int yyparse();
 %}
 
 
@@ -14,34 +19,44 @@ void yyerror(char* msg);
 %left '+' '-'
 %left '*' '/'
 
+
+
 %union
 {
    double number;
-   char *text;
+   char *text;  
+   Index* index;
    struct token {
       int s1;
       int s2;
    } s;
 }
 
+%type <index> create_index_statement
+%type <index> list_col_index 
+%type <text> NAME
+
 
 %%
 
 
 commands: 
-        | command //{$$ = $1;} //only one command at time
+        command //{$$ = $1;} //only one command at time
         ;
 
 command : 
-        | select_statement
+        select_statement  { printf("SELECET\n");}
         | insert_statement
         | create_table_statement
-        | create_index_statement
+        | create_index_statement 
+            {
+                printf("Index num: %d\n", $1->getColNumber());
+            }
         | alter_table_statement
         ;
 
 insert_statement:
-                | INSERT INTO NAME '(' list_names_sep_comma  ')' values_clause
+                INSERT INTO NAME '(' list_names_sep_comma  ')' values_clause
                 | INSERT INTO NAME '(' list_names_sep_comma ')' select_statement
                 | INSERT INTO NAME values_clause 
                 | INSERT INTO NAME select_statement
@@ -50,11 +65,11 @@ insert_statement:
 create_table_statement: CREATE TABLE NAME table_definition
 
 list_of_column_definition: 
-			 | list_of_column_definition ',' column_definition
+			 list_of_column_definition ',' column_definition
 			 | column_definition
              ;
 list_of_column_con_def: 
-		      | list_of_column_con_def ',' multiple_column_constraint 
+		      list_of_column_con_def ',' multiple_column_constraint 
 		      | list_of_column_con_def ',' column_definition 
 		      | multiple_column_constraint
 		      | column_definition
@@ -63,63 +78,103 @@ list_of_column_con_def:
 alter_table_statement: ALTER TABLE NAME ADD CONSTRAINT multiple_column_constraint
 
 list_col_index: 
-	      | list_col_index ',' NAME ASC
-	      | list_col_index ',' NAME DESC
-	      | list_col_index ',' NAME
+	      list_col_index ',' NAME ASC 
+	        {
+                $1->addColumn($3, ASC_ORDER);
+                $$=$1;
+                printf("String value %s ASC\n", $3);
+            }
+          | list_col_index ',' NAME DESC
+	        {
+                $1->addColumn($3, DESC_ORDER);
+                $$=$1;
+            }
+          | list_col_index ',' NAME
+            {
+                $1->addColumn($3, ASC_ORDER);
+                $$=$1;
+            }
+          | NAME ASC
+            {
+                $$=new Index();
+                $$->addColumn($1, ASC_ORDER); 
+            }
+          | NAME DESC
+            {
+                $$=new Index();
+                $$->addColumn($1, DESC_ORDER); 
+            }
+          | NAME 
+            {
+                $$=new Index();
+                $$->addColumn($1, ASC_ORDER);
+            }
           ;
 
 create_index_statement: 
-		      | CREATE INDEX NAME ON NAME '(' list_col_index ')'
-		      | CREATE UNIQUE INDEX NAME ON NAME '(' list_col_index ')'
+		      CREATE INDEX NAME ON NAME '(' list_col_index ')' 
+                {
+                    $$=$7;
+                    $$->setTable($5);
+                    $$->setName($3);
+                    $$->setUnique(false);
+                }
+		      | CREATE UNIQUE INDEX NAME ON NAME '(' list_col_index ')' 
+                {
+                    $$=$8;
+                    $$->setTable($6);
+                    $$->setName($4);
+                    $$->setUnique(true);
+                }
               ;
 
 table_definition:
-		| '(' list_of_column_definition ')'  
+		 '(' list_of_column_definition ')'  
 		| '(' list_of_column_definition ',' list_of_column_con_def ')'
         ;
 
 column_definition:
-                 | NAME DATA_TYPE
-                 | NAME DATA_TYPE single_column_constraint
+                  NAME STRING //DATA_TYPE
+                 | NAME STRING single_column_constraint
                  ;
 
 check_clause: CHECK '(' condition ')'
 
 references_clause_part_a:
-                        | ON DELETE
+                         ON DELETE
                         | ON UPDATE
                         ;
 
 references_clause_part_b:
-                        | CASCADE
+                         CASCADE
                         | SET NULL_STR
                         | SET DEFAULT
                         ;
 
 references_clause_part_two:
-                          | references_clause_part_two references_clause_part_a references_clause_part_b
+                           references_clause_part_two references_clause_part_a references_clause_part_b
                           | references_clause_part_a references_clause_part_b
                           ;
 
 references_clause:
-                 | REFERENCES NAME references_clause_part_two
+                  REFERENCES NAME references_clause_part_two
                  | REFERENCES NAME '(' list_names_sep_comma ')' references_clause_part_two
                  ;
 
 multiple_column_const_b:
-                       | UNIQUE '(' list_names_sep_comma ')'
+                        UNIQUE '(' list_names_sep_comma ')'
                        | PRIMARY KEY '(' list_names_sep_comma ')'
                        | check_clause
                        | FOREIGN KEY '(' list_names_sep_comma  ')' references_clause
 
 
 multiple_column_constraint:
-                          | CONSTRAINT NAME multiple_column_const_b
+                           CONSTRAINT NAME multiple_column_const_b
                           | multiple_column_const_b
                           ;
 
 single_column_item_b:
-                    | NOT NULL_STR
+                     NOT NULL_STR
                     | UNIQUE    
                     | PRIMARY KEY
                     | references_clause
@@ -128,19 +183,19 @@ single_column_item_b:
                     ;
 
 single_column_item:
-                  | CONSTRAINT NAME single_column_item_b
+                   CONSTRAINT NAME single_column_item_b
                   | single_column_item_b
                   ;
 
 single_column_constraint: 
-                        | single_column_constraint single_column_item
+                         single_column_constraint single_column_item
                         | single_column_item
                         ;
 
 subquery: select_statement
 
 select_list:
-           | expression AS NAME ',' select_list
+            expression AS NAME ',' select_list
            | expression AS NAME select_list
            | expression NAME ',' select_list
            | expression NAME
@@ -157,33 +212,33 @@ select_list:
            ;
 
 projection_clause:
-                 | '*'
+                  '*'
                  | ALL  select_list { printf("ALL\n");} 
                  | DISTINCT select_list { printf("DIS\n"); }
                  | select_list
                  ;
 
 join_options: 
-            | join_options_part_one join_options_part_two
+             join_options_part_one join_options_part_two
             | NATURAL join_options_part_one join_options_part_two
             | NATURAL join_options_part_one JOIN table_reference ON
             | join_options_part_two 
             ;
 
 join_options_part_two: 
-                     | JOIN table_reference ON condition
+                      JOIN table_reference ON condition
                      | JOIN table_reference ON USING '(' list_names_sep_comma  ')'
                      ;           
 
 join_options_part_one: 
-                    | INNER 
+                     INNER 
                     | LEFT OUTER
                     | RIGHT OUTER 
                     | FULL OUTER 
                     ;
 
 join_options_item: 
-                 | join_options
+                  join_options
                  | CROSS JOIN table_reference
                  ;
 
@@ -191,14 +246,14 @@ join_options_list: join_options_list join_options_item
 ansi_joined_tables:  table_reference join_options_list
 
 quoted_string: 
-	     | '"' NAME '"'
+	      '"' NAME '"'
 	     | '"' NUMBER '"'
 	     | '"' ENUMBER '"'
 	     | '"' STRING '"' 
          ;
 
 condition:
-         | NOT comparison_condition
+          NOT comparison_condition
          | NOT condition_with_subquery
          | comparison_condition
          | condition_with_subquery
@@ -216,21 +271,21 @@ condition:
          ;
 
 list_condition_expression: 
-                         | list_condition_expression WHEN condition THEN expression 
+                          list_condition_expression WHEN condition THEN expression 
                          | WHEN condition THEN expression
                          ;
 list_expression_expression:
-                          | list_expression_expression WHEN expression THEN expression
+                           list_expression_expression WHEN expression THEN expression
                           | WHEN expression THEN expression
                           ;
 conditional_expression: 
-                      | CASE list_condition_expression END
+                       CASE list_condition_expression END
                       | CASE list_condition_expression ELSE expression END
                       | CASE expression list_expression_expression END
                       | CASE expression list_expression_expression ELSE expression END
                       ;
 comparison_condition: 
-		    | expression relation_operator expression 
+		     expression relation_operator expression 
 		    | expression NOT BETWEEN expression AND expression 
 		    | expression BETWEEN expression AND expression
 		    | in_condition
@@ -246,16 +301,16 @@ comparison_condition:
 		    | column_name LIKE column_name
             ;
 expression: 
-	  | expression_part_one expression_part_two
+	   expression_part_one expression_part_two
 	  | expression_part_two
       ;
 expression_part_one:
-		   | '-'
+		    '-'
 		   | '+'
            ;
 
 expression_part_two: 
-	  | column_name binary_operator expression
+	   column_name binary_operator expression
 	  | column_name 
 	  | conditional_expression binary_operator expression
 	  | conditional_expression
@@ -272,18 +327,18 @@ expression_part_two:
       ;
 
 in_condition: 
-            | expression NOT IN '(' list_names_num_sep_comma ')'
+             expression NOT IN '(' list_names_num_sep_comma ')'
             | expression IN '(' list_names_num_sep_comma ')'
             ;
 
 all_any_some: 
-            | ALL
+             ALL
             | ANY
             | SOME
             ;
 
 condition_with_subquery: 
-                       | expression NOT IN '(' subquery ')'
+                       expression NOT IN '(' subquery ')'
                        | expression IN '(' subquery ')'
                        | EXISTS '(' subquery ')'
                        | expression relational_operator '(' subquery ')'
@@ -291,12 +346,12 @@ condition_with_subquery:
                        ;
 
 limit_offset_clause: 
-                   | LIMIT expression
+                    LIMIT expression
                    | LIMIT expression OFFSET  expression
                    ;
 
 column_name: 
-           | NAME NAME //{ $$=$1;} //table column
+            NAME NAME //{ $$=$1;} //table column
            | NAME  //{ $$=$1;} //column name
            ;
 
@@ -305,7 +360,7 @@ relation_operator: CMP
 having_clause : HAVING condition
 
 order_item: 
-          | expression ASC
+           expression ASC
           | expression DESC
           | expression 
           | NAME ASC
@@ -313,21 +368,21 @@ order_item:
           | NAME
           ;
 order_list: 
-          | order_list ',' order_item
+           order_list ',' order_item
           | order_item
           ;
 
 order_by_clause:
-               | ORDER BY order_list
+                ORDER BY order_list
                ;
 
 list_names_sep_comma: 
-                | list_names_sep_comma ',' NAME 
+                 list_names_sep_comma ',' NAME 
                 | NAME
                 ;
 
 list_names_num_sep_comma: 
-                | list_names_num_sep_comma ',' NAME 
+                 list_names_num_sep_comma ',' NAME 
                 | list_names_num_sep_comma ',' NUMBER
                 | list_names_num_sep_comma ',' ENUMBER
                 | NAME
@@ -337,7 +392,7 @@ list_names_num_sep_comma:
 
 
 values_clause:
-             | VALUES '(' list_names_num_sep_comma ')'
+              VALUES '(' list_names_num_sep_comma ')'
              | VALUES '(' NULL_STR ')'
              ;
 
@@ -346,36 +401,36 @@ group_by_clause: GROUP BY list_names_sep_comma
 where_clause : WHERE condition 
 
 table_reference: 
-               | NAME 
+                NAME 
                | NAME NAME
                | NAME AS NAME 
                ;
 
 from_clauses_item:
-                 | table_reference
+                 table_reference
                  | ansi_joined_tables
                  ;
 
 from_clauses_list: 
-                 | from_clauses_list ',' from_clauses_item
+                  from_clauses_list ',' from_clauses_item
                  | from_clauses_item
                  ;
 
 from_clause : FROM from_clauses_list
 
 select_options: 
-              | projection_clause from_clause
+               projection_clause from_clause
               | projection_clause from_clause where_clause group_by_clause
               | projection_clause from_clause where_clause group_by_clause having_clause
               ;
 
 select_options_more:
-                   | UNION ALL SELECT select_options
+                    UNION ALL SELECT select_options
                    | UNION SELECT select_options
                    ;
 
 select_statement: 
-                | SELECT select_options
+                 SELECT select_options
                 | SELECT select_options select_options_more order_by_clause limit_offset_clause
                 | SELECT select_options select_options_more order_by_clause
                 | SELECT select_options order_by_clause limit_offset_clause
@@ -394,9 +449,6 @@ function_expression: ""
 relational_operator: ""
                    ;
 
-
-                    
-
 %%
 
 extern FILE *yyin;
@@ -404,6 +456,8 @@ extern FILE *yyin;
 void parse(FILE* fileInput)
 {
    yyin= fileInput;
+   printf("Unutra\n");
+   printf("%d\n", yyin);
    yyparse();
    
 }
@@ -417,6 +471,7 @@ void yyerror(char *s) {
         int yyparse(void);
         int yylex(void); 
 }*/
+
 
 /*int main(int argc, char* argv[]) {
    yyparse();

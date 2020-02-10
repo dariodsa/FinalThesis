@@ -1,3 +1,9 @@
+#include <syslog.h>
+
+
+#ifndef PROGRAM_H
+#define PROGRAM_H
+
 #define MAX_LEN 30
 
 class Program {
@@ -20,3 +26,5 @@ class Program {
 
         void usage();
 };
+
+#endif

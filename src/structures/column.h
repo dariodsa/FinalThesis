@@ -1,5 +1,7 @@
 #include <string.h>
 
+#ifndef COLUMN_H
+#define COLUMN_H
 #define MAX_LEN 30
 
 class Column{
@@ -11,3 +13,5 @@ class Column{
         char name[MAX_LEN];
         char type[MAX_LEN];
 };
+
+#endif

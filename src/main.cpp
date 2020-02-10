@@ -1,10 +1,12 @@
 #include <stdio.h>
+
 #include "db/config.h"
+
 #include <libpq-fe.h>
 #include <vector>
-
+using namespace std;
 // list of replicas involved
-std::vector<Database*> replicas;
+vector<Database*> replicas;
 
 
 pthread_mutex_t replicas_lock;
@@ -32,6 +34,7 @@ int main(int argc, char* argv[]) {
     } 
     
     if( !connect_to_replicas(replicas) ) {
+        program->log(LOG_WARNING, "None of the replicas are alive.\n");
         return 0;
     }
     

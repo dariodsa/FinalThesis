@@ -9,9 +9,14 @@ class Column{
         Column(const char* name, const char* type);
         char* getName();
         char* getType();
+        bool getPrimaryOrUnique();
+        
+        void setPrimaryOrUnique(bool value);
+        
     private:
         char name[MAX_LEN];
         char type[MAX_LEN];
+        bool primary_key_or_unique;
 };
 
 #endif

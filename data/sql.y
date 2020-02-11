@@ -5,6 +5,7 @@
 #include "token.h"
 #include "../src/structures/index.h"
 #include "../src/structures/table.h"
+#include "../src/structures/column.h"
 using namespace std;
 int lineno = 1;
 int yylex();
@@ -27,31 +28,51 @@ extern Database* database;
 
 %union
 {
-   double number;
+   double fvalue;
    char *text;  
+   Column* column;
    Index* index;
+   Table* table;
+
+   int number;
+
    struct token {
       int s1;
       int s2;
    } s;
 }
 
+%type <column> column_definition
+
+%type <table> table_definition
+%type <table> create_table_statement
+%type <table> list_of_column_definition
+
 %type <index> create_index_statement
 %type <index> list_col_index 
-%type <text> NAME
 
+%type <text> NAME
+%type <text> data_types
+
+%type <number> single_column_constraint
+%type <number> single_column_item
+%type <number> single_column_item_b
 
 %%
 
 
 commands: 
-        command //{$$ = $1;} //only one command at time
+        commands ';' command
+      | command
         ;
 
 command : 
         select_statement  { printf("SELECET\n");}
         | insert_statement
         | create_table_statement
+            {
+                database->addTable($1);
+            }
         | create_index_statement 
             {
                 Table *t = database->getTable($1->getTable());
@@ -66,19 +87,6 @@ insert_statement:
                 | INSERT INTO NAME values_clause 
                 | INSERT INTO NAME select_statement
                 ;
-
-create_table_statement: CREATE TABLE NAME table_definition
-
-list_of_column_definition: 
-			 list_of_column_definition ',' column_definition
-			 | column_definition
-             ;
-list_of_column_con_def: 
-		      list_of_column_con_def ',' multiple_column_constraint 
-		      | list_of_column_con_def ',' column_definition 
-		      | multiple_column_constraint
-		      | column_definition
-              ;
 
 alter_table_statement: ALTER TABLE NAME ADD CONSTRAINT multiple_column_constraint
 
@@ -133,14 +141,54 @@ create_index_statement:
                 }
               ;
 
+create_table_statement: CREATE TABLE NAME table_definition {
+    $4->setTableName($3);
+    $$=$4;
+}
+
+list_of_column_definition: 
+			 list_of_column_definition ',' column_definition
+       {
+          $1->addColumn($3);
+          $$ = $1;
+       }
+			 | column_definition 
+       {
+          $$ = new Table();
+          $$->addColumn($1);
+       }
+             ;
+list_of_column_con_def: 
+		      list_of_column_con_def ',' multiple_column_constraint 
+		      | list_of_column_con_def ',' column_definition 
+		      | multiple_column_constraint
+		      | column_definition
+              ;
+
+
 table_definition:
 		 '(' list_of_column_definition ')'  
 		| '(' list_of_column_definition ',' list_of_column_con_def ')'
         ;
 
+data_types: 
+             NAME '(' NUMBER ')' {$$=$1;}
+          |  NAME {$$=$1;}
+          
+
 column_definition:
-                  NAME STRING //DATA_TYPE
-                 | NAME STRING single_column_constraint
+                  NAME data_types single_column_constraint 
+                  {
+                      $$ = new Column($1, $2);
+                      if($3 == UNIQUE || $3 == PRIMARY) {
+                          
+                          $$->setPrimaryOrUnique(true);
+                      }
+                  }
+                 | NAME data_types 
+                  {
+                      $$ = new Column($1, $2);
+                  }
                  ;
 
 check_clause: CHECK '(' condition ')'
@@ -179,17 +227,17 @@ multiple_column_constraint:
                           ;
 
 single_column_item_b:
-                     NOT NULL_STR
-                    | UNIQUE    
-                    | PRIMARY KEY
-                    | references_clause
-                    | check_clause
-                    | DEFAULT expression
+                     NOT NULL_STR {$$ = 0;}
+                    | UNIQUE    { $$ = UNIQUE;}
+                    | PRIMARY KEY { $$ = PRIMARY;}
+                    | references_clause {$$ = 0;}
+                    | check_clause {$$ = 0;}
+                    | DEFAULT expression {$$ = 0;}
                     ;
 
 single_column_item:
-                   CONSTRAINT NAME single_column_item_b
-                  | single_column_item_b
+                   CONSTRAINT NAME single_column_item_b {$$ = $3;}
+                  | single_column_item_b {$$ = $1;}
                   ;
 
 single_column_constraint: 
@@ -445,7 +493,10 @@ select_statement:
 
 binary_operator: ""
                ;
-constant: ""
+constant: 
+           NUMBER
+        | ENUMBER
+        | STRING
         ;
 aggregate_expression: ""
                     ;
@@ -470,7 +521,7 @@ void parse(FILE* fileInput, Database* _database)
 }
 
 void yyerror(char *s) {
-    printf("%d: %s at %s\n", lineno, s, yytext);
+    printf("%d: %s at %s!\n", lineno, s, yytext);
 }
 
 /*extern "C"

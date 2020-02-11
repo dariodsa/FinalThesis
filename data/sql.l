@@ -81,22 +81,7 @@ xmlagg  { return AGG_FUNCTION; }
 "="  |
 "<>"    { return CMP; }
 
-bigint |
-int8   |
-bigserial |
-serial8 |
-boolean |
-integer |
-int     |
-int4    |
-real    | 
-float4  |
-float8  |
-json    |
-xml     |
-smallint |
-int2   |
-text    { return DATA_TYPE; }
+
 
 
 BETWEEN { return BETWEEN; }
@@ -128,7 +113,7 @@ DESC { return DESC; }
 
 [-+*/:(),.;] { return yytext[0]; }
 
-[A-Za-z][A-Za-z0-9_]* { yylval.text =strdup(yytext); printf("strlen %d\n", strlen(yytext));return NAME; }
+[A-Za-z][A-Za-z0-9_]* { yylval.text =strdup(yytext); printf("strlen %d %s\n", strlen(yytext), yytext);return NAME; }
 
 [0-9]+           |
 [0-9]+"."[0-9]* |

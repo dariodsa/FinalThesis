@@ -12,6 +12,9 @@ enum TYPE_COL{
     ASC_ORDER, 
     DESC_ORDER
 };
+
+#define DEFAULT_INDEX_ORDER ASC_ORDER
+
 class Index {
     public:
         void setUnique(bool unique);

@@ -36,10 +36,7 @@ extern Database* database;
 
    int number;
 
-   struct token {
-      int s1;
-      int s2;
-   } s;
+    vector<Index*>* indexs;
 }
 
 %type <column> column_definition
@@ -57,6 +54,10 @@ extern Database* database;
 %type <number> single_column_constraint
 %type <number> single_column_item
 %type <number> single_column_item_b
+
+%type <indexs> list_of_column_con_def
+%type <index> multiple_column_constraint
+%type <index> multiple_column_const_b
 
 %%
 
@@ -168,7 +169,16 @@ list_of_column_con_def:
 
 table_definition:
 		 '(' list_of_column_definition ')'  
+         {
+             $$ = $2;
+         }
 		| '(' list_of_column_definition ',' list_of_column_con_def ')'
+        {
+            for(int i = 0, len = $4->size(); i < len; ++i) {
+                $2->addIndex((*$4)[i]);
+            }
+            $$=$2;
+        }
         ;
 
 data_types: 

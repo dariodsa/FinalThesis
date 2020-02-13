@@ -113,7 +113,7 @@ INDEX { return INDEX; }
 ASC { return ASC; }
 DESC { return DESC; }
 
-[-+*/:(),.;] { return yytext[0]; }
+[-+*/:(),.;'"] { return yytext[0]; }
 
 [A-Za-z][A-Za-z0-9_]* { yylval.text =strdup(yytext); printf("strlen %d %s\n", strlen(yytext), yytext);return NAME; }
 

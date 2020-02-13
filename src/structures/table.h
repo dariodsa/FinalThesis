@@ -21,11 +21,14 @@ class Table {
         void setTableName(char* name);
         
         void mergeTable(Table* table);
+
+        void addRow();
     private:
         char name[MAX_LEN];
         char database[MAX_LEN];
         vector<Column*> columns;
         vector<Index*> indexs;
+        int numOfRows;
 };
 
 #endif

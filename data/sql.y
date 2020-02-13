@@ -95,9 +95,21 @@ command :
 
 insert_statement:
                 INSERT INTO NAME '(' list_names_sep_comma  ')' values_clause
-                | INSERT INTO NAME '(' list_names_sep_comma ')' select_statement
+                {
+                    Table *t = database->getTable($3);
+                    if(t == NULL) {
+                        yyerror("Ne postoji tablica.");
+                    }
+                    t->addRow();
+                }
                 | INSERT INTO NAME values_clause 
-                | INSERT INTO NAME select_statement
+                {
+                    Table *t = database->getTable($3);
+                    if(t == NULL) {
+                        yyerror("Ne postoji tablica.");
+                    }
+                    t->addRow();
+                }
                 ;
 
 alter_table_statement: ALTER TABLE NAME ADD multiple_column_constraint

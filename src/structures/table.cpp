@@ -33,6 +33,10 @@ void Table::addColumn(Column *column) {
     }
 }
 
+void Table::addRow() {
+    this->numOfRows++;
+}
+
 void Table::setTableName(char* name) {
     strcpy(this->name, name);
 }

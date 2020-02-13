@@ -17,6 +17,7 @@ WHERE  { return WHERE; }
 LIMIT  { return LIMIT; }
 OFFSET { return OFFSET; }
 HAVING { return HAVING; }
+ONLY { return ONLY; }
 BY     { return BY; }
 GROUP  { return GROUP; }
 ORDER  { return ORDER; }
@@ -26,6 +27,8 @@ CROSS { return CROSS; }
 AS { return AS; }
 END { return END;}
 WHEN { return WHEN; }
+
+ALTER { return ALTER; }
 
 DISTINCT { return DISTINCT;}
 ALL { return ALL;}
@@ -63,7 +66,6 @@ bit_or |
 bool_and |
 bool_or | 
 count |
-every |
 json_agg |
 jsonb_agg |
 json_object_agg |
@@ -134,5 +136,6 @@ DESC { return DESC; }
       else yymore();
 }
 
+\n { lineno++; }
 
 %%

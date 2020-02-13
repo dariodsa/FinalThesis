@@ -20,6 +20,7 @@ class Index {
         void setUnique(bool unique);
         void setTable(char *table_name);
         void setName(char *name);
+        void addColumn(char* col_name);
         void addColumn(char* col_name, TYPE_COL type);
         
         int getColNumber();

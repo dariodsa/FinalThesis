@@ -8,6 +8,10 @@ void Index::addColumn(char* col_name, TYPE_COL type) {
     this->size++;
 }
 
+void Index::addColumn(char* col_name) {
+    this->addColumn(col_name, DEFAULT_INDEX_ORDER);
+}
+
 void Index::setUnique(bool unique) {
     this->unique = unique;
 }

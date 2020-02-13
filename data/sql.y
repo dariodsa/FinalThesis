@@ -18,7 +18,7 @@ extern Database* database;
 %}
 
 
-%token SELECT UNION DISTINCT ALL FROM WHERE LIMIT OFFSET HAVING BY GROUP ORDER JOIN NATURAL LEFT RIGHT INNER FULL OUTER USING CMP BETWEEN NULL_STR IN EXISTS CASE THEN ELSE VALUES INSERT INTO CREATE TABLE UNIQUE PRIMARY FOREIGN KEY CONSTRAINT INDEX ASC DESC NAME NUMBER ENUMBER STRING AS CROSS DATA_TYPE ALTER ADD END WHEN ANY SOME AGG_FUNCTION CHECK UPDATE DELETE SET DEFAULT ON CASCADE REFERENCES IS LIKE
+%token SELECT UNION DISTINCT ALL FROM WHERE LIMIT OFFSET ONLY HAVING BY GROUP ORDER JOIN NATURAL LEFT RIGHT INNER FULL OUTER USING CMP BETWEEN NULL_STR IN EXISTS CASE THEN ELSE VALUES INSERT INTO CREATE TABLE UNIQUE PRIMARY FOREIGN KEY CONSTRAINT INDEX ASC DESC NAME NUMBER ENUMBER STRING AS CROSS DATA_TYPE ALTER ADD END WHEN ANY SOME AGG_FUNCTION CHECK UPDATE DELETE SET DEFAULT ON CASCADE REFERENCES IS LIKE
 
 %left OR AND NOT
 %left '+' '-'
@@ -36,7 +36,6 @@ extern Database* database;
 
    int number;
 
-    vector<Index*>* indexs;
     vector<char*>* names;
 }
 
@@ -66,8 +65,9 @@ extern Database* database;
 
 
 commands: 
-        commands ';' command
-      | command
+        command ';' commands
+      | command ';'
+      | command 
         ;
 
 command : 
@@ -75,14 +75,22 @@ command :
         | insert_statement
         | create_table_statement
             {
+                { printf("CREATE %d\n", lineno);}
                 database->addTable($1);
             }
         | create_index_statement 
             {
+                { printf("INDEX %d\n", lineno);}
                 Table *t = database->getTable($1->getTable());
+                if(t == NULL) {
+                    yyerror("Ne postoji tablica.");
+                }
                 t->addIndex($1);
             }
         | alter_table_statement
+        {
+            printf("ALTER %d\n", lineno);
+        }
         ;
 
 insert_statement:
@@ -92,7 +100,8 @@ insert_statement:
                 | INSERT INTO NAME select_statement
                 ;
 
-alter_table_statement: ALTER TABLE NAME ADD CONSTRAINT multiple_column_constraint
+alter_table_statement: ALTER TABLE NAME ADD multiple_column_constraint
+                     |  ALTER TABLE ONLY NAME ADD multiple_column_constraint
 
 list_col_index: 
 	      list_col_index ',' NAME ASC 
@@ -124,7 +133,7 @@ list_col_index:
           | NAME 
             {
                 $$=new Index();
-                $$->addColumn($1, ASC_ORDER);
+                $$->addColumn($1);
             }
           ;
 
@@ -164,12 +173,24 @@ list_of_column_definition:
              ;
 list_of_column_con_def: 
 		      list_of_column_con_def ',' multiple_column_constraint 
+              {
+                  if($3 != NULL) {
+                      $1->addIndex($3);
+                  }
+                  $$ = $1;
+              }
 		      | list_of_column_con_def ',' column_definition 
               {
                   $1->addColumn($3);
                   $$=$1;
               }
 		      | multiple_column_constraint
+              {
+                  $$ = new Table();
+                  if($1 != NULL) {
+                      $$->addIndex($1);
+                  }
+              }
 		      | column_definition 
               {
                   $$ = new Table();
@@ -192,6 +213,7 @@ table_definition:
 
 data_types: 
              NAME '(' NUMBER ')' {$$=$1;}
+          |  NAME '(' NUMBER ',' NUMBER ')' {$$=$1;}
           |  NAME {$$=$1;}
           
 
@@ -231,19 +253,29 @@ references_clause_part_two:
 references_clause:
                   REFERENCES NAME references_clause_part_two
                  | REFERENCES NAME '(' list_names_sep_comma ')' references_clause_part_two
+                 |  REFERENCES NAME 
+                 | REFERENCES NAME '(' list_names_sep_comma ')'
+                 
                  ;
 
 multiple_column_const_b:
                         UNIQUE '(' list_names_sep_comma ')'
                         {
                             $$ = new Index();
+                            $$->setUnique(true);
+                            for(int i = 0; i < $3->size(); ++i) {
+                                $$->addColumn((*$3)[i]);
+                            }
                         }
                        | PRIMARY KEY '(' list_names_sep_comma ')'
                        {
                             $$ = new Index();
+                            for(int i = 0; i < $4->size(); ++i) {
+                                $$->addColumn((*$4)[i]);
+                            }
                        }
-                       | check_clause
-                       | FOREIGN KEY '(' list_names_sep_comma  ')' references_clause
+                       | check_clause { $$ = 0;}
+                       | FOREIGN KEY '(' list_names_sep_comma  ')' references_clause { $$ = 0;}
 
 
 multiple_column_constraint:
@@ -253,6 +285,7 @@ multiple_column_constraint:
 
 single_column_item_b:
                      NOT NULL_STR {$$ = 0;}
+                    | NULL_STR {$$ = 0;}
                     | UNIQUE    { $$ = UNIQUE;}
                     | PRIMARY KEY { $$ = PRIMARY;}
                     | references_clause {$$ = 0;}
@@ -457,7 +490,9 @@ order_by_clause:
 list_names_sep_comma: 
                  list_names_sep_comma ',' NAME 
                  {  
-                    char* name = (char*) malloc(strlen($3));
+                    int len = (strlen($3) + 1) * sizeof(char);
+                    char* name = (char*) malloc(len);
+                    memset(name, '\0', len);
                     strcpy(name, $3);
                     $1->push_back(name);
 
@@ -466,7 +501,9 @@ list_names_sep_comma:
                 | NAME 
                 {
                     $$ = new vector<char*>();
-                    char* name = (char*) malloc(strlen($1));
+                    int len =  (strlen($1) + 1) * sizeof(char);
+                    char* name = (char*) malloc(len);
+                    memset(name, '\0', len);
                     strcpy(name, $1);
                     $$->push_back(name);
                 }
@@ -476,6 +513,8 @@ list_names_num_sep_comma:
                  list_names_num_sep_comma ',' NAME 
                 | list_names_num_sep_comma ',' NUMBER
                 | list_names_num_sep_comma ',' ENUMBER
+                | list_names_num_sep_comma ',' ''' NAME '''
+                | ''' NAME '''
                 | NAME
                 | NUMBER
                 | ENUMBER

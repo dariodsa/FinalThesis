@@ -36,3 +36,14 @@ void Table::addColumn(Column *column) {
 void Table::setTableName(char* name) {
     strcpy(this->name, name);
 }
+
+void Table::mergeTable(Table *table) {
+    for(Column* column : table->columns) {
+        this->columns.push_back(column);
+    }
+    for(Index* index : table->indexs) {
+        this->indexs.push_back(index);
+    }
+    //free(table);
+    return;
+}

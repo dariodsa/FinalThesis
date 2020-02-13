@@ -11,11 +11,16 @@ class Table {
         Table();
         Table(char* table_name, char* database);
         char* getTableName();
+        vector<Index*> getIndex();
+
         bool isIndex(char* column, ...);
+        
         void addIndex(Index *index);
         void addColumn(Column* column);
+        
         void setTableName(char* name);
-        vector<Index*> getIndex();
+        
+        void mergeTable(Table* table);
     private:
         char name[MAX_LEN];
         char database[MAX_LEN];

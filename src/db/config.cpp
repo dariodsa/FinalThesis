@@ -37,7 +37,7 @@ bool connect_and_listen(char *ip, int port) {
     
     printf("Done parse:\n");
     
-    printf("Index number: %s\n", t->getIndex()[0]->getName());
+    //printf("Index number: %s\n", t->getIndex()[0]->getName());
 
     return true;
 }

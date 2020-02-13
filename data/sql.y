@@ -37,6 +37,7 @@ extern Database* database;
    int number;
 
     vector<Index*>* indexs;
+    vector<char*>* names;
 }
 
 %type <column> column_definition
@@ -55,9 +56,11 @@ extern Database* database;
 %type <number> single_column_item
 %type <number> single_column_item_b
 
-%type <indexs> list_of_column_con_def
+%type <table> list_of_column_con_def
 %type <index> multiple_column_constraint
 %type <index> multiple_column_const_b
+
+%type <names> list_names_sep_comma
 
 %%
 
@@ -162,8 +165,16 @@ list_of_column_definition:
 list_of_column_con_def: 
 		      list_of_column_con_def ',' multiple_column_constraint 
 		      | list_of_column_con_def ',' column_definition 
+              {
+                  $1->addColumn($3);
+                  $$=$1;
+              }
 		      | multiple_column_constraint
-		      | column_definition
+		      | column_definition 
+              {
+                  $$ = new Table();
+                  $$->addColumn($1);
+              }
               ;
 
 
@@ -174,9 +185,7 @@ table_definition:
          }
 		| '(' list_of_column_definition ',' list_of_column_con_def ')'
         {
-            for(int i = 0, len = $4->size(); i < len; ++i) {
-                $2->addIndex((*$4)[i]);
-            }
+            $2->mergeTable($4);
             $$=$2;
         }
         ;
@@ -226,7 +235,13 @@ references_clause:
 
 multiple_column_const_b:
                         UNIQUE '(' list_names_sep_comma ')'
+                        {
+                            $$ = new Index();
+                        }
                        | PRIMARY KEY '(' list_names_sep_comma ')'
+                       {
+                            $$ = new Index();
+                       }
                        | check_clause
                        | FOREIGN KEY '(' list_names_sep_comma  ')' references_clause
 
@@ -441,7 +456,20 @@ order_by_clause:
 
 list_names_sep_comma: 
                  list_names_sep_comma ',' NAME 
-                | NAME
+                 {  
+                    char* name = (char*) malloc(strlen($3));
+                    strcpy(name, $3);
+                    $1->push_back(name);
+
+                    $$ = $1;
+                 }
+                | NAME 
+                {
+                    $$ = new vector<char*>();
+                    char* name = (char*) malloc(strlen($1));
+                    strcpy(name, $1);
+                    $$->push_back(name);
+                }
                 ;
 
 list_names_num_sep_comma: 

@@ -24,12 +24,12 @@ bool Database::connect() {
         
         sprintf(conn_str, "dbname = %s user = %s password = %s \
             hostaddr = %s port = %d", this->dbName, this->username, this->password, this->ipAddress, this->port);
-        /*this->C = new connection(conn_str);
+        this->C = new connection(conn_str);
         if (C->is_open()) {
             return true;
         } else {   
             return false;
-        }*/
+        }
     } catch (const std::exception &e) {
         program->log(LOG_WARNING, "Exception message: %s", e.what());
         return false;

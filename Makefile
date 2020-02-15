@@ -19,7 +19,7 @@ SOURCE_MAIN = src/main.cpp
 CXX = g++
 CXXFLAGS =  -g -std=c++11 
 LEX_YACC_FLAGS = -ll -lfl -ly
-
+POSTGE_FLAGS = -lpqxx -lpq
 
 LEX = lex
 LEXFLAGS = 
@@ -60,16 +60,17 @@ lex_yacc_part:
 	cd data; sed -i '1s/^/#include "..\/src\/structures\/index.h"\n/' y.tab.h
 
 all: lex_yacc_part OBJECT_INDEX OBJECT_COLUMN OBJECT_TABLE OBJECT_DATABASE OBJECT_PROGRAM OBJECT_CONFIG
-	$(CXX) $(CXXFLAGS)  -I data -o $(MAIN) $(SOURCE_CONFIG) src/main.cpp   $(OBJECT_INDEX) $(OBJECT_PROGRAM) $(OBJECT_DATABASE) $(OBJECT_TABLE) $(OBJECT_COLUMN) $(LEX_YACC_FLAGS)
+	$(CXX) $(CXXFLAGS)  -I data -o $(MAIN) $(SOURCE_CONFIG) src/main.cpp   $(OBJECT_INDEX) $(OBJECT_PROGRAM) $(OBJECT_DATABASE) $(OBJECT_TABLE) $(OBJECT_COLUMN) $(LEX_YACC_FLAGS)  $(POSTGE_FLAGS)
 
 
 clean:
 	-rm -f $(OBJECT_INDEX)
 	-rm -f $(OBJECT_COLUMN)
 	-rm -f $(OBJECT_TABLE)
-	-rm -f $(OBJECT_DATBASE)
+	-rm -f $(OBJECT_DATABASE)
 	-rm -f $(OBJECT_PROGRAM)
 	-rm -f data/lex.yy.c
 	-rm -f data/y.tab.*
+	-rm -f src/db/config.o
 	-rm -f $(MAIN)
 	

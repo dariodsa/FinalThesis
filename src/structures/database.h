@@ -33,4 +33,11 @@ class Database {
     std::map<string, Table*>tables;
 };
 
+enum SearchType{
+      SELECT_TYPE
+    , INSERT_TYPE
+    , CREATE_TYPE
+    , ALTER_TYPE
+};
+
 #endif

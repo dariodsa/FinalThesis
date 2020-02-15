@@ -14,7 +14,7 @@ void yyerror(char* msg);
 int yyparse();
 
 extern Database* database;
-
+extern vector<SearchType>* searchTypes;
 %}
 
 
@@ -71,25 +71,32 @@ commands:
         ;
 
 command : 
-        select_statement  { printf("SELECET\n");}
+        select_statement  
+        { 
+            searchTypes->push_back(SELECT_TYPE);
+        }
         | insert_statement
+        {
+            searchTypes->push_back(INSERT_TYPE);
+        }
         | create_table_statement
-            {
-                { printf("CREATE %d\n", lineno);}
-                database->addTable($1);
-            }
+        {
+            database->addTable($1);
+            searchTypes->push_back(CREATE_TYPE);
+        }
         | create_index_statement 
-            {
-                { printf("INDEX %d\n", lineno);}
-                Table *t = database->getTable($1->getTable());
-                if(t == NULL) {
-                    yyerror("Ne postoji tablica.");
-                }
-                t->addIndex($1);
+        {
+            printf("INDEX %d\n", lineno);
+            Table *t = database->getTable($1->getTable());
+            if(t == NULL) {
+                yyerror("Ne postoji tablica.");
             }
+            t->addIndex($1);
+            searchTypes->push_back(CREATE_TYPE);
+        }
         | alter_table_statement
         {
-            printf("ALTER %d\n", lineno);
+            searchTypes->push_back(ALTER_TYPE);
         }
         ;
 
@@ -598,11 +605,13 @@ relational_operator: ""
 
 extern FILE *yyin;
 Database* database;
+vector<SearchType>* searchTypes;
 
-void parse(FILE* fileInput, Database* _database)
+void parse(FILE* fileInput, Database* _database, vector<SearchType>* _searchTypes)
 {
    yyin= fileInput;
    database = _database;
+   searchTypes = _searchTypes;
    printf("Unutra\n");
    printf("%d\n", yyin);
    yyparse();

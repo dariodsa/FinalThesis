@@ -33,7 +33,8 @@ bool connect_and_listen(char *ip, int port) {
     printf("dario %d\n", yyin);
     
     printf("Call parse:\n");
-    parse(yyin, database);
+    vector<SearchType> searchTypes;
+    parse(yyin, database, &searchTypes);
     
     printf("Done parse:\n");
     
@@ -76,7 +77,7 @@ std::vector<Database*> setup_db_replicas_pool(char *file_path) {
         }
 
         program->log(LOG_INFO, "Adding database info: IP: %s,  port:%d", _ip, _port);
-        replicas.push_back(new Database(_ip, NULL, _port, NULL, NULL));
+        replicas.push_back(new Database(_ip, "postgres", _port, "postgres", "12345"));
         
         line_num += 1;
     }

@@ -4,6 +4,7 @@
 #include <stdlib.h>
 #include <syslog.h>
 #include <string.h>
+#include <stdarg.h>
 
 Program* Program::singleton = NULL;
 
@@ -39,10 +40,13 @@ char* Program::getConfigFilePath() {
 
 void Program::log(int priority, const char *format, ...) {
     if( log_level >= priority ) {
-        syslog(priority, format);
+        va_list list;
+        va_start(list, format);
+        vsyslog(priority, format, list);
         if(terminal_output) {
-            fprintf(stderr, format);
+            vfprintf(stderr, format, list);
         }
+        va_end(list);
     }
     return;
 }

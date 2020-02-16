@@ -1,6 +1,7 @@
 #include "database.h"
 #include "../db/program.h"
 #include <stdexcept>
+#include <iostream>
 #include <libpq-fe.h>
 
 Database::Database() {}
@@ -15,6 +16,9 @@ Database::Database(char *ipAddress, char* dbName, int port, char* username, char
 
     this->port = port;
     strcpy(this->ipAddress, ipAddress);
+    strcpy(this->password, password);
+    strcpy(this->username, username);
+    strcpy(this->dbName, dbName);
 }
 
 bool Database::connect() {
@@ -24,6 +28,7 @@ bool Database::connect() {
         
         sprintf(conn_str, "dbname = %s user = %s password = %s \
             hostaddr = %s port = %d", this->dbName, this->username, this->password, this->ipAddress, this->port);
+        printf("%s\n", conn_str);
         this->C = new connection(conn_str);
         if (C->is_open()) {
             return true;
@@ -31,6 +36,7 @@ bool Database::connect() {
             return false;
         }
     } catch (const std::exception &e) {
+        cout << e.what() << endl;
         program->log(LOG_WARNING, "Exception message: %s", e.what());
         return false;
     }

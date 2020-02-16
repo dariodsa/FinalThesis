@@ -30,13 +30,12 @@ bool Database::connect() {
             hostaddr = %s port = %d", this->dbName, this->username, this->password, this->ipAddress, this->port);
         printf("%s\n", conn_str);
         this->C = new connection(conn_str);
-        if (C->is_open()) {
+        if (C && C->is_open()) {
             return true;
         } else {   
             return false;
         }
     } catch (const std::exception &e) {
-        cout << e.what() << endl;
         program->log(LOG_WARNING, "Exception message: %s", e.what());
         return false;
     }
@@ -46,7 +45,7 @@ bool Database::connect() {
 bool Database::disconnect() {
     Program* program = Program::getInstance();
     try {
-        //C->disconnect();
+        C->disconnect();
     } catch(const std::exception &e) {
         program->log(LOG_WARNING, "Exception message: %s", e.what());
         return false;
@@ -55,8 +54,26 @@ bool Database::disconnect() {
     return true;
 }
 
+bool Database::executeQuery(char* query) {
+    Program* program = Program::getInstance();
+    try {
+        pqxx::work W(*C);
+        W.exec( query );
+        W.commit();
+    } catch(const std::exception &e) {
+        program->log(LOG_WARNING, "Exception message: %s", e.what());
+        return false;
+    }
+    return true;
+}
+
 void Database::addTable(Table *t) {
     string table_name(t->getTableName());
+    
+    if(this->tables.find(table_name) != this->tables.end()) {
+        printf("%s\n", t->getTableName());
+        throw std::invalid_argument("Table is already existing.");
+    }
     this->tables[table_name] = t;
 }
 Table* Database::getTable(char* name) {

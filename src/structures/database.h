@@ -19,6 +19,7 @@ class Database {
         bool connect();
         bool disconnect();
         void addTable(Table *t);
+        bool executeQuery(char* query);
         Table* getTable(char* table_name);
     private:
     char dbName[MAX_LEN];

@@ -86,7 +86,6 @@ command :
         }
         | create_index_statement 
         {
-            printf("INDEX %d\n", lineno);
             Table *t = database->getTable($1->getTable());
             if(t == NULL) {
                 yyerror("Ne postoji tablica.");
@@ -127,7 +126,6 @@ list_col_index:
 	        {
                 $1->addColumn($3, ASC_ORDER);
                 $$=$1;
-                printf("String value %s ASC\n", $3);
             }
           | list_col_index ',' NAME DESC
 	        {
@@ -343,8 +341,8 @@ select_list:
 
 projection_clause:
                   '*'
-                 | ALL  select_list { printf("ALL\n");} 
-                 | DISTINCT select_list { printf("DIS\n"); }
+                 | ALL  select_list { } 
+                 | DISTINCT select_list { }
                  | select_list
                  ;
 
@@ -613,7 +611,6 @@ void parse(FILE* fileInput, Database* _database, vector<SearchType>* _searchType
    database = _database;
    searchTypes = _searchTypes;
    printf("Unutra\n");
-   printf("%d\n", yyin);
    yyparse();
    
 }

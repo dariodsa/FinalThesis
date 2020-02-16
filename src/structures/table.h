@@ -13,7 +13,7 @@ class Table {
         char* getTableName();
         vector<Index*> getIndex();
 
-        bool isIndex(char* column, ...);
+        bool isIndex(vector<char*> column);
         
         void addIndex(Index *index);
         void addColumn(Column* column);

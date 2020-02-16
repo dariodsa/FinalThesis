@@ -27,17 +27,31 @@ bool connect_and_listen(char *ip, int port) {
     //connect and listen to CONNECT postgres queries
     FILE *yyin = fopen("/home/dario/Documents/diplomski/FinalThesis/data/i1", "r");
     Database *database = new Database();
-    Table* t = new Table("tablica", "d1");
-    database->addTable(t);
-
-    printf("dario %d\n", yyin);
     
     printf("Call parse:\n");
+    
     vector<SearchType> searchTypes;
     parse(yyin, database, &searchTypes);
     
     printf("Done parse:\n");
     
+    fseek(yyin, 0, SEEK_END);
+    long size = ftell(yyin);
+    rewind(yyin);
+    char *query = (char*)malloc(sizeof(char) * (size + 1));
+    printf("Size: %d\n", size);
+    for(int i = 0; i < size; ++i) {
+        fread(&query[i], 1, 1, yyin);
+    }
+    query[size] = 0;
+    printf("%s\n", query);
+    //database->executeQuery(query);
+    Table* users = database->getTable("maintenances");
+    vector<char*> P;
+    P.push_back("active_till");
+    P.push_back("active_since");
+    printf("Is index: %d", users->isIndex(P));
+
     //printf("Index number: %s\n", t->getIndex()[0]->getName());
 
     return true;

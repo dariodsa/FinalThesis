@@ -6,6 +6,10 @@ void Index::addColumn(char* col_name, TYPE_COL type) {
     this->col_names.push_back(name);
     this->types.push_back(type);
     this->size++;
+
+    for(int i = 0, len = strlen(col_name); i < len; ++i) {
+        hash = hash * P + col_name[i];
+    }
 }
 
 void Index::addColumn(char* col_name) {
@@ -26,6 +30,10 @@ void Index::setName(char *name) {
 
 int Index::getColNumber() {
     return this->size;
+}
+
+int Index::getHash() {
+    return this->hash;
 }
 
 char* Index::getColName(int index) {

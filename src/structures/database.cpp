@@ -55,12 +55,14 @@ bool Database::disconnect() {
 }
 
 bool Database::executeQuery(char* query) {
+
     Program* program = Program::getInstance();
     try {
-        pqxx::work W(*C);
+        pqxx::nontransaction W(*C);
         W.exec( query );
         W.commit();
     } catch(const std::exception &e) {
+        printf("%s\n", e.what());
         program->log(LOG_WARNING, "Exception message: %s", e.what());
         return false;
     }

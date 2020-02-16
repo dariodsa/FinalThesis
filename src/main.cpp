@@ -38,7 +38,7 @@ int main(int argc, char* argv[]) {
         return 0;
     }
     
-    bool value = connect_and_listen(program->getIP(), program->getPort());
+    bool value = connect_and_listen(program->getIP(), program->getPort(), replicas);
 
     return 0;
 }

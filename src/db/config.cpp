@@ -12,7 +12,7 @@ extern "C"{
 #define ARG_NUMBERS 2
 #define MAX_PORT 65535
 
-bool connect_and_listen(char *ip, int port) {
+bool connect_and_listen(char *ip, int port, std::vector<Database*> replicas) {
     Program* program = Program::getInstance();
 
     if(port < 0 || port > MAX_PORT) {
@@ -26,7 +26,7 @@ bool connect_and_listen(char *ip, int port) {
 
     //connect and listen to CONNECT postgres queries
     FILE *yyin = fopen("/home/dario/Documents/diplomski/FinalThesis/data/i1", "r");
-    Database *database = new Database();
+    Database *database = replicas[0];
     
     printf("Call parse:\n");
     
@@ -45,12 +45,9 @@ bool connect_and_listen(char *ip, int port) {
     }
     query[size] = 0;
     printf("%s\n", query);
-    //database->executeQuery(query);
-    Table* users = database->getTable("maintenances");
-    vector<char*> P;
-    P.push_back("active_till");
-    P.push_back("active_since");
-    printf("Is index: %d", users->isIndex(P));
+    database->executeQuery(query);
+    
+    
 
     //printf("Index number: %s\n", t->getIndex()[0]->getName());
 
@@ -91,7 +88,7 @@ std::vector<Database*> setup_db_replicas_pool(char *file_path) {
         }
 
         program->log(LOG_INFO, "Adding database info: IP: %s,  port:%d", _ip, _port);
-        replicas.push_back(new Database(_ip, "postgres", _port, "postgres", "12345"));
+        replicas.push_back(new Database(_ip, "zabbix", _port, "postgres", "12345"));
         
         line_num += 1;
     }

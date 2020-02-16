@@ -6,6 +6,6 @@
 
 #include "program.h"
 
-bool connect_and_listen(char *ip, int port);
+bool connect_and_listen(char *ip, int port, std::vector<Database*> replicas);
 bool connect_to_replicas(std::vector<Database*> replicas);
 std::vector<Database*> setup_db_replicas_pool(char *file_path);

@@ -115,6 +115,9 @@ DESC { return DESC; }
 
 [-+*/:(),.;'"] { return yytext[0]; }
 
+\"[^\"]*[\"] { return QUOTED_STRING;}
+\'[^\']*[\'] { return SINGLE_QUOTED_STRING;}
+
 [A-Za-z][A-Za-z0-9_]* { yylval.text =strdup(yytext); return NAME; }
 
 [0-9]+           |

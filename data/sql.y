@@ -18,7 +18,7 @@ extern vector<SearchType>* searchTypes;
 %}
 
 
-%token SELECT UNION DISTINCT ALL FROM WHERE LIMIT OFFSET ONLY HAVING BY GROUP ORDER JOIN NATURAL LEFT RIGHT INNER FULL OUTER USING CMP BETWEEN NULL_STR IN EXISTS CASE THEN ELSE VALUES INSERT INTO CREATE TABLE UNIQUE PRIMARY FOREIGN KEY CONSTRAINT INDEX ASC DESC NAME NUMBER ENUMBER STRING AS CROSS DATA_TYPE ALTER ADD END WHEN ANY SOME AGG_FUNCTION CHECK UPDATE DELETE SET DEFAULT ON CASCADE REFERENCES IS LIKE
+%token SELECT UNION DISTINCT ALL FROM WHERE LIMIT QUOTED_STRING OFFSET ONLY HAVING BY GROUP ORDER JOIN NATURAL LEFT RIGHT INNER FULL OUTER USING CMP BETWEEN NULL_STR IN EXISTS CASE THEN ELSE VALUES INSERT INTO CREATE TABLE UNIQUE PRIMARY FOREIGN KEY CONSTRAINT INDEX ASC DESC NAME NUMBER ENUMBER STRING AS CROSS DATA_TYPE ALTER ADD END WHEN ANY SOME AGG_FUNCTION CHECK UPDATE DELETE SET DEFAULT ON CASCADE REFERENCES IS LIKE
 
 %left OR AND NOT
 %left '+' '-'
@@ -338,7 +338,10 @@ single_column_constraint:
                         | single_column_item
                         ;
 
-subquery: select_statement
+subquery: select_statement 
+        {
+            depth++;
+        }
 
 select_list:
             expression AS NAME ',' select_list
@@ -392,10 +395,8 @@ join_options_list: join_options_list join_options_item
 ansi_joined_tables:  table_reference join_options_list
 
 quoted_string: 
-	      '"' NAME '"'
-	     | '"' NUMBER '"'
-	     | '"' ENUMBER '"'
-	     | '"' STRING '"' 
+	     QUOTED_STRING
+         | SINGLE_QUOTED_STRING
          ;
 
 condition:
@@ -505,12 +506,14 @@ relation_operator: CMP
 
 having_clause : HAVING condition
 
+order_type: 
+          ASC 
+        | DESC
+
 order_item: 
-           expression ASC
-          | expression DESC
+           expression order_type
           | expression 
-          | NAME ASC
-          | NAME DESC
+          | NAME order_type
           | NAME
           ;
 order_list: 
@@ -545,12 +548,10 @@ list_names_sep_comma:
                 ;
 
 list_names_num_sep_comma: 
-                 list_names_num_sep_comma ',' NAME 
-                | list_names_num_sep_comma ',' NUMBER
+                list_names_num_sep_comma ',' NUMBER
                 | list_names_num_sep_comma ',' ENUMBER
-                | list_names_num_sep_comma ',' ''' NAME '''
-                | ''' NAME '''
-                | NAME
+                | list_names_num_sep_comma ',' quoted_string
+                | quoted_string
                 | NUMBER
                 | ENUMBER
                 ;
@@ -608,7 +609,7 @@ binary_operator: ""
 constant: 
            NUMBER
         | ENUMBER
-        | STRING
+        | quoted_string
         ;
 aggregate_expression: ""
                     ;
@@ -622,6 +623,8 @@ relational_operator: ""
 extern FILE *yyin;
 Database* database;
 vector<SearchType>* searchTypes;
+
+int depth = 0;
 
 void parse(FILE* fileInput, Database* _database, vector<SearchType>* _searchTypes)
 {

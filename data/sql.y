@@ -118,8 +118,26 @@ insert_statement:
                 }
                 ;
 
-alter_table_statement: ALTER TABLE NAME ADD multiple_column_constraint
-                     |  ALTER TABLE ONLY NAME ADD multiple_column_constraint
+alter_table_statement: ALTER TABLE ONLY NAME ADD multiple_column_constraint
+                    {
+                        Table *table = database->getTable($4);
+                        if(table == NULL) {
+                            yyerror("Ne postoji tablica.");
+                        }
+                        if($6 != NULL) {
+                            table->addIndex($6);
+                        }
+                    }
+                    |  ALTER TABLE NAME ADD multiple_column_constraint
+                     {
+                        Table *table = database->getTable($3);
+                        if(table == NULL) {
+                            yyerror("Ne postoji tablica.");
+                        }
+                        if($5 != NULL) {
+                            table->addIndex($5);
+                        }
+                     }
 
 list_col_index: 
 	      list_col_index ',' NAME ASC 

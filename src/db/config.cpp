@@ -46,11 +46,9 @@ bool connect_and_listen(char *ip, int port, std::vector<Database*> replicas) {
     query[size] = 0;
     //printf("%s\n", query);
     //database->executeQuery(query);
-    printf("%s\n", database->getJSON().serialize().c_str());
+    FILE* p1 = fopen("d1", "w");
+    fprintf(p1, "%s\n", database->getJSON().serialize().c_str());
     
-
-    //printf("Index number: %s\n", t->getIndex()[0]->getName());
-
     return true;
 }
 

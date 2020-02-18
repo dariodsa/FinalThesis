@@ -8,7 +8,7 @@ using namespace web;
 
 Database::Database() {}
 
-Database::Database(char *ipAddress, char* dbName, int port, char* username, char* password) {
+Database::Database(const char *ipAddress, const char* dbName, int port, const char* username, const char* password) {
     if(ipAddress == NULL) {
         throw std::invalid_argument("Ip address is pointing to zero.\n");
     }
@@ -21,6 +21,18 @@ Database::Database(char *ipAddress, char* dbName, int port, char* username, char
     strcpy(this->password, password);
     strcpy(this->username, username);
     strcpy(this->dbName, dbName);
+}
+
+Database::Database(web::json::value json) : Database(
+                                            json["ipAddress"].as_string().c_str()
+                                          , json["dbName"].as_string().c_str()
+                                          , json["port"].as_integer()
+                                          , json["username"].as_string().c_str()
+                                          , json["password"].as_string().c_str()) {
+    for(auto table : json["tables"].as_array()) {
+        Table* t = new Table(table);
+        this->tables[string(t->getTableName())] = t;
+    }
 }
 
 bool Database::connect() {

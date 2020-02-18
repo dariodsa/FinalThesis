@@ -2,7 +2,10 @@
 
 using namespace web;
 
-Table::Table() {}
+Table::Table() {
+    memset(this->name, 0, MAX_LEN * sizeof(char));
+    memset(this->database, 0, MAX_LEN * sizeof(char));
+}
 
 Table::Table(web::json::value json) : Table(json["table_name"].as_string().c_str(), json["database"].as_string().c_str()){
     web::json::array indexs = json["indexs"].as_array();
@@ -10,6 +13,13 @@ Table::Table(web::json::value json) : Table(json["table_name"].as_string().c_str
         Index* i1 = new Index(index);
         this->indexs.push_back(i1);
     }
+
+    web::json::array columns = json["columns"].as_array();
+    for(web::json::value column : columns) {
+        Column* c1 = new Column(column);
+        this->columns.push_back(c1);
+    }
+
     this->numOfRows = json["numOfRows"].as_integer();
 }
 

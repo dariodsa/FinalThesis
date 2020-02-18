@@ -2,9 +2,11 @@
 
 using namespace web;
 
-Index::Index() {}
+Index::Index() {
+    memset(this->name, 0, MAX_LEN * sizeof(char));
+}
 
-Index::Index(web::json::value json) {
+Index::Index(web::json::value json) : Index(){
     this->setName(json["name"].as_string().c_str());
     this->setTable(json["table"].as_string().c_str());
     
@@ -39,7 +41,6 @@ web::json::value Index::getJSON() {
     value["size"] = json::value::number(size);
     value["hash"] = json::value::number(hash);
 
-    printf("SIZE %d _%s_%s_\n", col_names.size(), name, table);
     value["col_names"] = json::value::array(col_names.size());
     value["col_types"] = json::value::array(col_names.size());
 

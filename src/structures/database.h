@@ -15,7 +15,9 @@ using namespace pqxx;
 class Database {
     public:
         Database();
-        Database(char *ipAddress, char* dbName, int port, char* username, char* password);
+        Database(const char *ipAddress, const char* dbName, int port, const char* username, const char* password);
+        Database(web::json::value json);
+
         bool connect();
         bool disconnect();
         void addTable(Table *t);

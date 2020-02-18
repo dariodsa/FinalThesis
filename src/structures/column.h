@@ -1,3 +1,4 @@
+#include <cpprest/json.h>
 #include <string.h>
 
 #ifndef COLUMN_H
@@ -7,11 +8,14 @@
 class Column{
     public:
         Column(const char* name, const char* type);
+        Column(web::json::value value);
         char* getName();
         char* getType();
         bool getPrimaryOrUnique();
         
         void setPrimaryOrUnique(bool value);
+
+        web::json::value getJSON();
         
     private:
         char name[MAX_LEN];

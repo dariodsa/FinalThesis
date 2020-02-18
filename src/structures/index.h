@@ -2,6 +2,8 @@
 #include <string.h>
 #include <string>
 #include <stdlib.h>
+#include <cpprest/json.h>
+
 using namespace std;
 #define MAX_LEN 100
 
@@ -9,8 +11,8 @@ using namespace std;
 #define INDEX_H
 
 enum TYPE_COL{
-    ASC_ORDER 
-    , DESC_ORDER
+    ASC_ORDER = 1
+    , DESC_ORDER = 2
 };
 
 #define DEFAULT_INDEX_ORDER ASC_ORDER
@@ -19,12 +21,15 @@ const int P = 103;
 
 class Index {
     public:
+        Index();
+        Index(web::json::value json);
+
         void setUnique(bool unique);
-        void setTable(char *table_name);
-        void setName(char *name);
+        void setTable(const char *table_name);
+        void setName(const char *name);
         
-        void addColumn(char* col_name);
-        void addColumn(char* col_name, TYPE_COL type);
+        void addColumn(const char* col_name);
+        void addColumn(const char* col_name, TYPE_COL type);
         
         int getColNumber();
         int getHash();
@@ -32,6 +37,8 @@ class Index {
         char* getTable();
         char* getName();
         TYPE_COL getColType(int index);
+
+        web::json::value getJSON();
 
     private:
        vector<char*>col_names;

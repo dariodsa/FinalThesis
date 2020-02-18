@@ -4,6 +4,8 @@
 #include <iostream>
 #include <libpq-fe.h>
 
+using namespace web;
+
 Database::Database() {}
 
 Database::Database(char *ipAddress, char* dbName, int port, char* username, char* password) {
@@ -81,4 +83,26 @@ void Database::addTable(Table *t) {
 Table* Database::getTable(char* name) {
     string table_name(name);
     return this->tables[table_name];
+}
+
+
+web::json::value Database::getJSON() {
+    json::value json;
+    json["dbName"] = json::value::string(string(dbName));
+    json["ipAddress"] = json::value::string(string(ipAddress));
+    json["username"] = json::value::string(string(username));
+    json["password"] = json::value::string(string(password));
+
+    json["port"] = json::value::number(port);
+
+    json["tables"] = json::value::array(tables.size());
+    map<string, Table*>::iterator it;
+    int i = 0;
+    for(it = tables.begin(); it != tables.end(); ++it, ++i) {
+        cout << "TABLE:" << it->first << endl;
+        json["tables"][i] = it->second->getJSON();
+        
+    }
+
+    return json;
 }

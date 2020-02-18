@@ -314,8 +314,8 @@ multiple_column_const_b:
 
 
 multiple_column_constraint:
-                           CONSTRAINT NAME multiple_column_const_b
-                          | multiple_column_const_b
+                           CONSTRAINT NAME multiple_column_const_b { $$ = $3; }
+                          | multiple_column_const_b { $$ = $1; }
                           ;
 
 single_column_item_b:

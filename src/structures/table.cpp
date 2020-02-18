@@ -1,10 +1,43 @@
 #include "table.h"
 
+using namespace web;
+
 Table::Table() {}
 
-Table::Table(char* table_name, char* database) {
+Table::Table(web::json::value json) : Table(json["table_name"].as_string().c_str(), json["database"].as_string().c_str()){
+    web::json::array indexs = json["indexs"].as_array();
+    for(web::json::value index : indexs) {
+        Index* i1 = new Index(index);
+        this->indexs.push_back(i1);
+    }
+    this->numOfRows = json["numOfRows"].as_integer();
+}
+
+Table::Table(const char* table_name, const char* database) {
     strcpy(this->name, table_name);
     strcpy(this->database, database);
+}
+
+
+web::json::value Table::getJSON() {
+    json::value json;
+
+    json["table_name"] = json::value::string(string(name));
+    json["database"] = json::value::string(string(database));
+
+    json["indexs"] = json::value::array(indexs.size());
+    json["columns"] = json::value::array(columns.size());
+
+    for(int i = 0, len = columns.size(); i < len; ++i) {
+        json["columns"][i] = columns[i]->getJSON();
+    }
+    for(int i = 0, len = indexs.size(); i < len; ++i) {
+        json["indexs"][i] = indexs[i]->getJSON();
+    }
+
+    json["numOfRows"] = json::value::number(numOfRows);
+
+    return json;
 }
 
 char* Table::getTableName() {

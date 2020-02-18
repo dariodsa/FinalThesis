@@ -9,7 +9,8 @@ using namespace std;
 class Table { 
     public:
         Table();
-        Table(char* table_name, char* database);
+        Table(web::json::value json);
+        Table(const char* table_name, const char* database);
         char* getTableName();
         vector<Index*> getIndex();
 
@@ -23,6 +24,8 @@ class Table {
         void mergeTable(Table* table);
 
         void addRow();
+
+        web::json::value getJSON();
     private:
         char name[MAX_LEN];
         char database[MAX_LEN];

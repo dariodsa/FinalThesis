@@ -21,6 +21,9 @@ class Database {
         void addTable(Table *t);
         bool executeQuery(char* query);
         Table* getTable(char* table_name);
+
+        web::json::value getJSON();
+
     private:
     char dbName[MAX_LEN];
     char ipAddress[MAX_LEN];

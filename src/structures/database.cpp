@@ -50,6 +50,7 @@ bool Database::connect() {
             return false;
         }
     } catch (const std::exception &e) {
+        cerr << e.what() << endl;
         program->log(LOG_WARNING, "Exception message: %s", e.what());
         return false;
     }

@@ -63,35 +63,36 @@ bool connect_to_replicas(std::vector<Database*> replicas) {
     return cnt > 0;
 }
 
-std::vector<Database*> setup_db_replicas_pool(char *file_path) {
+std::vector<Database*> setup_db_replicas_pool(web::json::value json) {
 
     Program *program = Program::getInstance();
 
     std::vector<Database*> replicas;
-    FILE *config_file = fopen(file_path, "r");
-    if(config_file == NULL) {
-        program->log(LOG_ALERT, "Config file doesn't exsist.\n");
-        exit(1);
-    }
     
-    char _ip[MAX_LEN];
-    int _port;
-    int line_num = 1;
-    int arg;
-    while( ( arg = fscanf(config_file, "%[^,],%d\n", &_ip, &_port)) != EOF) {
-        
-        if(arg != ARG_NUMBERS) {
-            program->log(LOG_ALERT, "Error in reading the config file[%s] in line %d.\n%m\n", file_path, line_num);
-            exit(1);
-        }
+    auto replicas_array = json["replicas"].as_array();
 
-        program->log(LOG_INFO, "Adding database info: IP: %s,  port:%d", _ip, _port);
-        replicas.push_back(new Database(_ip, "zabbix", _port, "postgres", "12345"));
+    for(auto replica : replicas_array) {
         
-        line_num += 1;
+
+        printf("Adding database info: IP: %s,  port:%d\n"
+                                    , (char*)replica["ipAddress"].as_string().c_str()
+                                    , replica["port"].as_integer()
+        );
+        program->log(LOG_INFO, "Adding database info: IP: %s,  port:%d\n"
+                                    , (char*)replica["ipAddress"].as_string().c_str()
+                                    , replica["port"].as_integer()
+        );
+        replicas.push_back(new Database(
+                                        replica["ipAddress"].as_string().c_str()
+                                        , replica["dbName"].as_string().c_str()
+                                        , replica["port"].as_integer()
+                                        , replica["username"].as_string().c_str()
+                                        , replica["password"].as_string().c_str()
+                                        )
+        );
+        
     }
 
-    fclose(config_file);
     closelog();
     return replicas;
  }

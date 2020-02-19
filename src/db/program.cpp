@@ -39,6 +39,7 @@ char* Program::getConfigFilePath() {
 }
 
 void Program::log(int priority, const char *format, ...) {
+    
     if( log_level >= priority ) {
         va_list list;
         va_start(list, format);

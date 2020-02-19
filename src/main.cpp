@@ -26,7 +26,12 @@ int main(int argc, char* argv[]) {
 
     char *CONFIG_FILE_PATH = program->getConfigFilePath();
 
-    replicas = setup_db_replicas_pool(CONFIG_FILE_PATH);
+    std::ifstream t;
+    t.open(CONFIG_FILE_PATH);
+    
+    auto json = web::json::value::parse(t);
+
+    replicas = setup_db_replicas_pool(json);
     
     if(replicas.size() == 0) {
         program->log(LOG_WARNING, "Number of databases are zero.\n");

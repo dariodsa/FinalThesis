@@ -4,6 +4,7 @@
               , "dbName": "zabbix"
               , "port": 5432
               , "username": "postgres"
-              , "password":"123456"
+              , "password":"12345"
   }]
+ , "data" : "d1"
 }

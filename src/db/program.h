@@ -15,6 +15,7 @@ class Program {
         char* getConfigFilePath();
         int getPort();
         char* getIP();
+        const char *data_location;
 
     private:
         static Program* singleton;

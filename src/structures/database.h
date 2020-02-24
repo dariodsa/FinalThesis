@@ -22,7 +22,9 @@ class Database {
         bool disconnect();
         void addTable(Table *t);
         bool executeQuery(char* query);
+
         Table* getTable(char* table_name);
+        size_t getNumOfTables();
 
         web::json::value getJSON();
 

@@ -23,12 +23,19 @@ Database::Database(const char *ipAddress, const char* dbName, int port, const ch
     strcpy(this->dbName, dbName);
 }
 
-Database::Database(web::json::value json) : Database(
-                                            json["ipAddress"].as_string().c_str()
-                                          , json["dbName"].as_string().c_str()
-                                          , json["port"].as_integer()
-                                          , json["username"].as_string().c_str()
-                                          , json["password"].as_string().c_str()) {
+Database::Database(web::json::value _json) : Database(
+                                            _json["ipAddress"].as_string().c_str()
+                                          , _json["dbName"].as_string().c_str()
+                                          , _json["port"].as_integer()
+                                          , _json["username"].as_string().c_str()
+                                          , _json["password"].as_string().c_str()) {
+    
+    Program* program = Program::getInstance();
+    std::ifstream data;
+    data.open(program->data_location);
+    
+    auto json = web::json::value::parse(data);
+    
     for(auto table : json["tables"].as_array()) {
         Table* t = new Table(table);
         this->tables[string(t->getTableName())] = t;
@@ -96,6 +103,10 @@ void Database::addTable(Table *t) {
 Table* Database::getTable(char* name) {
     string table_name(name);
     return this->tables[table_name];
+}
+
+size_t Database::getNumOfTables() {
+    return this->tables.size();
 }
 
 

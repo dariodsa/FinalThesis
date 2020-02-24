@@ -29,9 +29,9 @@ bool connect_and_listen(char *ip, int port, std::vector<Database*> replicas) {
     Database *database = replicas[0];
     
     printf("Call parse:\n");
-    
+    printf("Num of tables %d\n", database->getNumOfTables());
     vector<SearchType> searchTypes;
-    parse(yyin, database, &searchTypes);
+    //parse(yyin, database, &searchTypes);
     
     printf("Done parse:\n");
     
@@ -70,26 +70,19 @@ std::vector<Database*> setup_db_replicas_pool(web::json::value json) {
     std::vector<Database*> replicas;
     
     auto replicas_array = json["replicas"].as_array();
+    program->data_location = json["data"].as_string().c_str();
 
     for(auto replica : replicas_array) {
         
-
-        printf("Adding database info: IP: %s,  port:%d\n"
-                                    , (char*)replica["ipAddress"].as_string().c_str()
-                                    , replica["port"].as_integer()
+        const char* ipAddress = replica["ipAddress"].as_string().c_str();
+        int port = replica["port"].as_integer();
+        
+        program->log(LOG_INFO, "Adding database info: IP: %s, port: %d\n"
+                                    , ipAddress
+                                    , port
+                                    
         );
-        program->log(LOG_INFO, "Adding database info: IP: %s,  port:%d\n"
-                                    , (char*)replica["ipAddress"].as_string().c_str()
-                                    , replica["port"].as_integer()
-        );
-        replicas.push_back(new Database(
-                                        replica["ipAddress"].as_string().c_str()
-                                        , replica["dbName"].as_string().c_str()
-                                        , replica["port"].as_integer()
-                                        , replica["username"].as_string().c_str()
-                                        , replica["password"].as_string().c_str()
-                                        )
-        );
+        replicas.push_back(new Database(replica));
         
     }
 

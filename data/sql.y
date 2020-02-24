@@ -6,6 +6,7 @@
 #include "../src/structures/index.h"
 #include "../src/structures/table.h"
 #include "../src/structures/column.h"
+#include "../src/structures/token.h"
 using namespace std;
 int lineno = 1;
 int yylex();
@@ -19,6 +20,7 @@ extern vector<SearchType>* searchTypes;
 
 
 %token SELECT UNION DISTINCT ALL FROM WHERE LIMIT QUOTED_STRING OFFSET ONLY HAVING BY GROUP ORDER JOIN NATURAL LEFT RIGHT INNER FULL OUTER USING CMP BETWEEN NULL_STR IN EXISTS CASE THEN ELSE VALUES INSERT INTO CREATE TABLE UNIQUE PRIMARY FOREIGN KEY CONSTRAINT INDEX ASC DESC NAME NUMBER ENUMBER STRING AS CROSS DATA_TYPE ALTER ADD END WHEN ANY SOME AGG_FUNCTION CHECK UPDATE DELETE SET DEFAULT ON CASCADE REFERENCES IS LIKE
+%token SINGLE_QUOTED_STRING
 
 %left OR AND NOT
 %left '+' '-'
@@ -37,6 +39,9 @@ extern vector<SearchType>* searchTypes;
    int number;
 
     vector<char*>* names;
+
+
+
 }
 
 %type <column> column_definition
@@ -613,7 +618,14 @@ constant:
         ;
 aggregate_expression: ""
                     ;
-function_expression: ""
+
+list_function_exp: 
+                  NAME ',' list_function_exp
+                | function_expression ',' list_function_exp
+ 
+function_expression: 
+                     NAME '(' list_function_exp ')'
+
                    ;
 relational_operator: ""
                    ;

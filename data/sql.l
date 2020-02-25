@@ -81,7 +81,7 @@ xmlagg  { return AGG_FUNCTION; }
 ">"  |
 ">=" |
 "="  |
-"<>"    { return CMP; }
+"<>"    {return CMP; }
 
 
 
@@ -131,14 +131,8 @@ DESC { return DESC; }
 [ \t\r]+  ; /*white space*/
 "--".*    ; /*comment*/
 
-'[^'\n]*'  {
-      int c = yyinput();
-      unput(c);
-      if(c != '\'')
-            return STRING;
-      else yymore();
-}
 
-\n { lineno++; }
+
+\n { printf("new line\n");lineno++; }
 
 %%

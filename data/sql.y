@@ -19,14 +19,14 @@ extern vector<SearchType>* searchTypes;
 %}
 
 
-%token SELECT UNION DISTINCT ALL FROM WHERE LIMIT QUOTED_STRING OFFSET ONLY HAVING BY GROUP ORDER JOIN NATURAL LEFT RIGHT INNER FULL OUTER USING CMP BETWEEN NULL_STR IN EXISTS CASE THEN ELSE VALUES INSERT INTO CREATE TABLE UNIQUE PRIMARY FOREIGN KEY CONSTRAINT INDEX ASC DESC NAME NUMBER ENUMBER STRING AS CROSS DATA_TYPE ALTER ADD END WHEN ANY SOME AGG_FUNCTION CHECK UPDATE DELETE SET DEFAULT ON CASCADE REFERENCES IS LIKE
+%token SELECT UNION DISTINCT ALL FROM WHERE LIMIT QUOTED_STRING OFFSET ONLY HAVING BY GROUP ORDER JOIN NATURAL LEFT RIGHT INNER FULL OUTER USING CMP BETWEEN NULL_STR IN EXISTS CASE THEN ELSE VALUES INSERT INTO CREATE TABLE UNIQUE PRIMARY FOREIGN KEY CONSTRAINT INDEX ASC DESC NAME NUMBER ENUMBER AS CROSS DATA_TYPE ALTER ADD END WHEN ANY SOME AGG_FUNCTION CHECK UPDATE DELETE SET DEFAULT ON CASCADE REFERENCES IS LIKE
 %token SINGLE_QUOTED_STRING
 
 %left OR AND NOT
 %left '+' '-'
 %left '*' '/'
 
-
+%error-verbose
 
 %union
 {
@@ -54,6 +54,8 @@ extern vector<SearchType>* searchTypes;
 %type <index> list_col_index 
 
 %type <text> NAME
+%type <text> CMP
+%type <number> NUMBER
 %type <text> data_types
 
 %type <number> single_column_constraint
@@ -70,15 +72,16 @@ extern vector<SearchType>* searchTypes;
 
 
 commands: 
-        command ';' commands
-      | command ';'
-      | command 
+         command
+       
+      
         ;
 
 command : 
         select_statement  
         { 
             searchTypes->push_back(SELECT_TYPE);
+            printf("SELECT\n");
         }
         | insert_statement
         {
@@ -405,21 +408,25 @@ quoted_string:
          ;
 
 condition:
-          NOT comparison_condition
-         | NOT condition_with_subquery
-         | comparison_condition
-         | condition_with_subquery
-         | condition
-         | NOT comparison_condition AND condition
-         | NOT condition_with_subquery AND condition
-         | comparison_condition AND condition
-         | condition_with_subquery AND condition
-         | condition AND condition
+           NOT comparison_condition AND condition
          | NOT comparison_condition OR condition
+         | NOT comparison_condition
+         
          | NOT condition_with_subquery OR condition
+         | NOT condition_with_subquery AND condition
+         
+         | NOT condition_with_subquery
+         | comparison_condition AND condition
          | comparison_condition OR condition
+         | comparison_condition { }
+
          | condition_with_subquery OR condition
+         | condition_with_subquery AND condition
+         | condition_with_subquery
+         | '(' condition ')'  {}
+         | condition AND condition
          | condition OR condition
+         
          ;
 
 list_condition_expression: 
@@ -437,7 +444,7 @@ conditional_expression:
                       | CASE expression list_expression_expression ELSE expression END
                       ;
 comparison_condition: 
-		     expression relation_operator expression 
+		     expression relation_operator expression {printf("comp cond\n");}
 		    | expression NOT BETWEEN expression AND expression 
 		    | expression BETWEEN expression AND expression
 		    | in_condition
@@ -504,10 +511,10 @@ limit_offset_clause:
 
 column_name: 
             NAME NAME //{ $$=$1;} //table column
-           | NAME  //{ $$=$1;} //column name
+           | NAME  { printf("COL %s\n", $1);} //column name
            ;
 
-relation_operator: CMP
+relation_operator: CMP {printf("CMP %s\n", $1);}
 
 having_clause : HAVING condition
 
@@ -569,7 +576,7 @@ values_clause:
 
 group_by_clause: GROUP BY list_names_sep_comma
 
-where_clause : WHERE condition 
+where_clause : WHERE condition
 
 table_reference: 
                 NAME 
@@ -590,9 +597,16 @@ from_clauses_list:
 from_clause : FROM from_clauses_list
 
 select_options: 
-               projection_clause from_clause
+                projection_clause from_clause where_clause group_by_clause having_clause
+              | projection_clause from_clause where_clause having_clause
               | projection_clause from_clause where_clause group_by_clause
-              | projection_clause from_clause where_clause group_by_clause having_clause
+              | projection_clause from_clause group_by_clause
+              | projection_clause from_clause group_by_clause having_clause
+              | projection_clause from_clause where_clause 
+              | projection_clause from_clause
+              | projection_clause
+              
+              
               ;
 
 select_options_more:
@@ -612,7 +626,7 @@ select_statement:
 binary_operator: ""
                ;
 constant: 
-           NUMBER
+           NUMBER 
         | ENUMBER
         | quoted_string
         ;
@@ -649,7 +663,7 @@ void parse(FILE* fileInput, Database* _database, vector<SearchType>* _searchType
 }
 
 void yyerror(char *s) {
-    printf("%d: %s at %s!\n", lineno, s, yytext);
+    printf("%d: %s at \"%s\"\n", lineno, s, yytext);
 }
 
 /*extern "C"

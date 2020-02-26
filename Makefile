@@ -24,7 +24,7 @@ POSTGE_FLAGS = -lpqxx -lpq
 LEX = lex
 LEXFLAGS = 
 YACC = yacc
-YACCFLAGS = -d 
+YACCFLAGS = -d
 
 OBJECT_INDEX  = ${SOURCE_INDEX:.cpp=.o}
 OBJECT_COLUMN = ${SOURCE_COLUMN:.cpp=.o}

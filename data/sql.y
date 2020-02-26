@@ -2,7 +2,7 @@
 #include <stdio.h>
 #include <string.h>
 #include <vector>
-#include "token.h"
+#include "token.hxx"
 #include "../src/structures/index.h"
 #include "../src/structures/table.h"
 #include "../src/structures/column.h"
@@ -71,8 +71,9 @@ extern vector<SearchType>* searchTypes;
 %%
 
 
-commands: 
-         command
+commands:
+         command ';' commands  
+        | command ';'
        
       
         ;
@@ -353,27 +354,37 @@ subquery: select_statement
 
 select_list:
             expression AS NAME ',' select_list
-           | expression AS NAME select_list
            | expression NAME ',' select_list
            | expression NAME
-           | '(' subquery ')' select_list
-           | '(' subquery ')' AS NAME select_list
-           | '(' subquery ')' NAME select_list
+           | expression AS NAME
+           | expression ',' select_list
+           | expression 
+
+           | '(' subquery ')' ',' select_list
+           | '(' subquery ')' AS NAME ',' select_list
+           | '(' subquery ')' NAME ',' select_list
            | '(' subquery ')'
            | '(' subquery ')' AS NAME 
            | '(' subquery ')' NAME 
-           | expression ',' select_list
-           | expression 
-           | NAME '*' select_list
-           | NAME '*' 
+           
+           | NAME '.' '*' ',' select_list
+           | NAME '.' '*' 
            ;
 
 projection_clause:
                   '*'
-                 | ALL  select_list { } 
-                 | DISTINCT select_list { }
-                 | select_list
+                 | select_types  select_list                  
+                 | select_list 
+                 {
+                    for(int i=0, len = variables.size(); i < len; ++i) {
+                        printf("Select variable %s\n", variables[i].name);
+                    }
+                    variables.clear();
+                 }
                  ;
+
+select_types: ALL
+            | DISTINCT
 
 join_options: 
              join_options_part_one join_options_part_two
@@ -478,7 +489,7 @@ expression_part_two:
 	  | aggregate_expression binary_operator expression
 	  | aggregate_expression 
 	  | function_expression binary_operator expression
-	  | function_expression
+	  | function_expression {printf("Function\n");}
 	  | NULL_STR binary_operator expression
 	  | NULL_STR
 	  | '(' expression ')' binary_operator expression 
@@ -510,8 +521,8 @@ limit_offset_clause:
                    ;
 
 column_name: 
-            NAME NAME //{ $$=$1;} //table column
-           | NAME  { printf("COL %s\n", $1);} //column name
+            NAME'.'NAME //{ $$=$1;} //table column
+           | NAME  {  variables.push_back(variable($1, depth)); printf("COL %s\n", $1);} //column name
            ;
 
 relation_operator: CMP {printf("CMP %s\n", $1);}
@@ -579,9 +590,9 @@ group_by_clause: GROUP BY list_names_sep_comma
 where_clause : WHERE condition
 
 table_reference: 
-                NAME 
-               | NAME NAME
-               | NAME AS NAME 
+                NAME { variables.push_back(variable($1, depth));}
+               | NAME NAME { variables.push_back(variable($2, depth));}
+               | NAME AS NAME { variables.push_back(variable($3, depth));}
                ;
 
 from_clauses_item:
@@ -594,7 +605,10 @@ from_clauses_list:
                  | from_clauses_item
                  ;
 
-from_clause : FROM from_clauses_list
+from_clause : FROM from_clauses_list 
+            {
+               
+            }
 
 select_options: 
                 projection_clause from_clause where_clause group_by_clause having_clause
@@ -634,8 +648,10 @@ aggregate_expression: ""
                     ;
 
 list_function_exp: 
-                  NAME ',' list_function_exp
+                  column_name ',' list_function_exp
+                | column_name
                 | function_expression ',' list_function_exp
+                | function_expression
  
 function_expression: 
                      NAME '(' list_function_exp ')'
@@ -651,6 +667,9 @@ Database* database;
 vector<SearchType>* searchTypes;
 
 int depth = 0;
+
+TYPE type;
+vector<variable> variables;
 
 void parse(FILE* fileInput, Database* _database, vector<SearchType>* _searchTypes)
 {

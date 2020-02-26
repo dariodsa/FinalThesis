@@ -123,9 +123,7 @@ web::json::value Database::getJSON() {
     map<string, Table*>::iterator it;
     int i = 0;
     for(it = tables.begin(); it != tables.end(); ++it, ++i) {
-        cout << "TABLE:" << it->first << endl;
         json["tables"][i] = it->second->getJSON();
-        
     }
 
     return json;

@@ -59,23 +59,6 @@ NOT { return NOT; }
 AND { return AND; }
 OR { return OR; }
 
-array_agg |
-avg |
-bit_and |
-bit_or |
-bool_and |
-bool_or | 
-count |
-json_agg |
-jsonb_agg |
-json_object_agg |
-jsonb_object_agg |
-max |
-min |
-string_agg |
-sum |
-xmlagg  { return AGG_FUNCTION; }
-
 "<"  |
 "<=" |
 ">"  |
@@ -118,7 +101,7 @@ DESC { return DESC; }
 \"[^\"]*[\"] { return QUOTED_STRING;}
 \'[^\']*[\'] { return SINGLE_QUOTED_STRING;}
 
-[A-Za-z][A-Za-z0-9_]* { yylval.text =strdup(yytext); return NAME; }
+[A-Za-z][A-Za-z0-9_]* { yylval.text =strdup(yytext); printf("NAME:%s\n", yytext);return NAME; }
 
 [0-9]+           |
 [0-9]+"."[0-9]* |

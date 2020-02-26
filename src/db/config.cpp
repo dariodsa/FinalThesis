@@ -31,11 +31,11 @@ bool connect_and_listen(char *ip, int port, std::vector<Database*> replicas) {
     printf("Call parse:\n");
     printf("Num of tables %d\n", database->getNumOfTables());
     vector<SearchType> searchTypes;
-    //parse(yyin, database, &searchTypes);
+    parse(yyin, database, &searchTypes);
     
     printf("Done parse:\n");
     
-    fseek(yyin, 0, SEEK_END);
+    /*fseek(yyin, 0, SEEK_END);
     long size = ftell(yyin);
     rewind(yyin);
     char *query = (char*)malloc(sizeof(char) * (size + 1));
@@ -48,7 +48,7 @@ bool connect_and_listen(char *ip, int port, std::vector<Database*> replicas) {
     //database->executeQuery(query);
     FILE* p1 = fopen("d1", "w");
     fprintf(p1, "%s\n", database->getJSON().serialize().c_str());
-    
+    */
     return true;
 }
 

@@ -376,10 +376,7 @@ projection_clause:
                  | select_types  select_list                  
                  | select_list 
                  {
-                    for(int i=0, len = variables.size(); i < len; ++i) {
-                        printf("Select variable %s\n", variables[i].name);
-                    }
-                    variables.clear();
+                    
                  }
                  ;
 
@@ -590,9 +587,9 @@ group_by_clause: GROUP BY list_names_sep_comma
 where_clause : WHERE condition
 
 table_reference: 
-                NAME { variables.push_back(variable($1, depth));}
-               | NAME NAME { variables.push_back(variable($2, depth));}
-               | NAME AS NAME { variables.push_back(variable($3, depth));}
+                NAME { tables.push_back(table_name($1, $1, depth));}
+               | NAME NAME { tables.push_back(table_name($2, $1, depth));}
+               | NAME AS NAME { tables.push_back(table_name($3, $1, depth));}
                ;
 
 from_clauses_item:
@@ -654,7 +651,10 @@ list_function_exp:
                 | function_expression
  
 function_expression: 
-                     NAME '(' list_function_exp ')'
+                     NAME '(' list_function_exp ')' 
+                     {
+
+                     }
 
                    ;
 relational_operator: ""
@@ -670,6 +670,7 @@ int depth = 0;
 
 TYPE type;
 vector<variable> variables;
+vector<table_name> tables;
 
 void parse(FILE* fileInput, Database* _database, vector<SearchType>* _searchTypes)
 {
@@ -678,7 +679,9 @@ void parse(FILE* fileInput, Database* _database, vector<SearchType>* _searchType
    searchTypes = _searchTypes;
    printf("Unutra\n");
    yyparse();
-   
+   for(int i=0;i<tables.size();++i) {
+       printf("Table: %s\n", tables[i].name);
+   }
 }
 
 void yyerror(char *s) {

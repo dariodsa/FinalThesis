@@ -2,7 +2,8 @@
 #include <stdio.h>
 #include <string.h>
 #include <vector>
-#include "token.hxx"
+
+#include "token.cpp"
 #include "../src/structures/index.h"
 #include "../src/structures/table.h"
 #include "../src/structures/column.h"
@@ -15,12 +16,44 @@ void yyerror(char* msg);
 int yyparse();
 
 extern Database* database;
+
+
+struct variable {
+
+    int depth;
+    char name[100];
+    variable(const char* _name, int _depth) {
+        depth = depth;
+        strcpy(name, _name);
+    }
+};
+
+struct table_name {
+
+    int depth;
+    char name[100];
+    char real_name[100];
+    table_name(const char* _name, const char* _real_name, int _depth) {
+        depth = _depth;
+        strcpy(name, _name);
+        strcpy(real_name, _real_name);
+    }
+};
+
+enum TYPE{
+      SELECT_VARIABLE
+    , CONDITION_VARIABLE
+    , SORT_VARIABLE
+    , GROUP_VARIABLE 
+};
+
+
 extern vector<SearchType>* searchTypes;
 %}
 
 
 %token SELECT UNION DISTINCT ALL FROM WHERE LIMIT QUOTED_STRING OFFSET ONLY HAVING BY GROUP ORDER JOIN NATURAL LEFT RIGHT INNER FULL OUTER USING CMP BETWEEN NULL_STR IN EXISTS CASE THEN ELSE VALUES INSERT INTO CREATE TABLE UNIQUE PRIMARY FOREIGN KEY CONSTRAINT INDEX ASC DESC NAME NUMBER ENUMBER AS CROSS DATA_TYPE ALTER ADD END WHEN ANY SOME AGG_FUNCTION CHECK UPDATE DELETE SET DEFAULT ON CASCADE REFERENCES IS LIKE
-%token SINGLE_QUOTED_STRING
+%token SINGLE_QUOTED_STRING SINGLE_AGG_FUNCTION
 
 %left OR AND NOT
 %left '+' '-'
@@ -38,11 +71,15 @@ extern vector<SearchType>* searchTypes;
 
    int number;
 
-    vector<char*>* names;
+   vector<table_name*>* tables;
+   vector<char*>* names;
 
-
-
+   table_name* table_name;
+   
+   
 }
+
+
 
 %type <column> column_definition
 
@@ -68,6 +105,16 @@ extern vector<SearchType>* searchTypes;
 
 %type <names> list_names_sep_comma
 
+%type <table_name> table_reference
+
+%type <table_name> join_options_item 
+%type <table_name> join_options
+%type <table_name> join_options_part_two
+
+%type <tables> from_clauses_item
+%type <tables> join_options_list
+%type <tables> ansi_joined_tables
+%type <tables> from_clauses_list
 %%
 
 
@@ -83,6 +130,7 @@ command :
         { 
             searchTypes->push_back(SELECT_TYPE);
             printf("SELECT\n");
+            
         }
         | insert_statement
         {
@@ -384,15 +432,18 @@ select_types: ALL
             | DISTINCT
 
 join_options: 
-             join_options_part_one join_options_part_two
-            | NATURAL join_options_part_one join_options_part_two
-            | NATURAL join_options_part_one JOIN table_reference ON
-            | join_options_part_two 
+             join_options_part_one join_options_part_two { $$ = $2;}
+            | NATURAL join_options_part_one join_options_part_two { $$ = $3;}
+            | NATURAL join_options_part_one JOIN table_reference ON { $$ = $4;}
+            | join_options_part_two { $$ = $1; }
             ;
 
 join_options_part_two: 
-                      JOIN table_reference ON condition
-                     | JOIN table_reference ON USING '(' list_names_sep_comma  ')'
+                      JOIN table_reference ON condition { $$ = $2; }
+                     | JOIN table_reference ON USING '(' list_names_sep_comma  ')' 
+                     {
+                         $$ = $2;
+                     }
                      ;           
 
 join_options_part_one: 
@@ -403,12 +454,28 @@ join_options_part_one:
                     ;
 
 join_options_item: 
-                  join_options
-                 | CROSS JOIN table_reference
+                  join_options { $$ = $1; }
+                 | CROSS JOIN table_reference 
+                 { 
+                     $$ = $3;
+                 }
                  ;
 
-join_options_list: join_options_list join_options_item
+join_options_list: join_options_list join_options_item 
+                {             
+                    $1->push_back($2);
+                    $$ = $1;
+                }
+                 | join_options_item 
+                 { 
+                     $$ = new vector<table_name*>();
+                     $$->push_back($1);
+                 }
 ansi_joined_tables:  table_reference join_options_list
+                {
+                    $2->push_back($1);
+                    $$ = $2;
+                }
 
 quoted_string: 
 	     QUOTED_STRING
@@ -519,7 +586,10 @@ limit_offset_clause:
 
 column_name: 
             NAME'.'NAME //{ $$=$1;} //table column
-           | NAME  {  variables.push_back(variable($1, depth)); printf("COL %s\n", $1);} //column name
+           | NAME  
+             {  
+               //variables.top().push_back(variable($1, depth)); printf("COL %s\n", $1);
+             }
            ;
 
 relation_operator: CMP {printf("CMP %s\n", $1);}
@@ -587,24 +657,40 @@ group_by_clause: GROUP BY list_names_sep_comma
 where_clause : WHERE condition
 
 table_reference: 
-                NAME { tables.push_back(table_name($1, $1, depth));}
-               | NAME NAME { tables.push_back(table_name($2, $1, depth));}
-               | NAME AS NAME { tables.push_back(table_name($3, $1, depth));}
+                NAME { $$ = new table_name($1, $1, depth); }
+               | NAME NAME { $$ = new table_name($2, $1, depth); }
+               | NAME AS NAME { $$ = new table_name($3, $1, depth); }
                ;
 
 from_clauses_item:
-                 table_reference
-                 | ansi_joined_tables
+                 table_reference 
+                 { 
+                     $$ = new vector<table_name*>();
+                     $$->push_back($1); 
+                 }
+                 | ansi_joined_tables { $$ = $1; }
                  ;
 
 from_clauses_list: 
-                  from_clauses_list ',' from_clauses_item
-                 | from_clauses_item
+                  from_clauses_list ',' from_clauses_item 
+                  { 
+                      for(int i = 0, len = $3->size(); i < len; ++i) {
+                        $1->push_back((*$3)[i]);    
+                      }
+                      $$ = $1;
+                  }
+                | from_clauses_item 
+                { 
+                    $$ = $1;
+                }
                  ;
 
 from_clause : FROM from_clauses_list 
             {
-               
+               //tables.push(vector<table_name>());
+               for(int i = 0; i < $2->size(); ++i) {
+                   printf("Table: %s %s\n", (*$2)[i]->name, (*$2)[i]->real_name);
+               }
             }
 
 select_options: 
@@ -662,15 +748,19 @@ relational_operator: ""
 
 %%
 
+
+
+
 extern FILE *yyin;
 Database* database;
 vector<SearchType>* searchTypes;
 
+
 int depth = 0;
 
 TYPE type;
-vector<variable> variables;
-vector<table_name> tables;
+//stack<vector<variable> > variables;
+//stack<vector<table_name> > tables;
 
 void parse(FILE* fileInput, Database* _database, vector<SearchType>* _searchTypes)
 {
@@ -679,9 +769,9 @@ void parse(FILE* fileInput, Database* _database, vector<SearchType>* _searchType
    searchTypes = _searchTypes;
    printf("Unutra\n");
    yyparse();
-   for(int i=0;i<tables.size();++i) {
+   /*for(int i=0;i<tables.size();++i) {
        printf("Table: %s\n", tables[i].name);
-   }
+   }*/
 }
 
 void yyerror(char *s) {

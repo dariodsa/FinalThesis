@@ -644,7 +644,7 @@ constant:
         | ENUMBER
         | quoted_string
         ;
-aggregate_expression: ""
+aggregate_expression: SINGLE_AGG_FUNCTION expression
                     ;
 
 list_function_exp: 

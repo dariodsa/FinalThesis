@@ -66,6 +66,21 @@ OR { return OR; }
 "="  |
 "<>"    {return CMP; }
 
+array_agg |
+avg |
+bit_and |
+bit_or  |
+bool_or |
+bool_and |
+count |
+every |
+json_agg |
+jsonb_agg |
+max |
+min |
+sum |
+xmlagg {return SINGLE_AGG_FUNCTION;}
+
 
 
 

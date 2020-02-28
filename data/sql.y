@@ -22,9 +22,18 @@ struct variable {
 
     int depth;
     char name[100];
+    bool t;
+    char table[100];
     variable(const char* _name, int _depth) {
         depth = depth;
         strcpy(name, _name);
+        t = false;
+    }
+    variable(const char* _name, char* _table, int _depth) {
+        depth = depth;
+        strcpy(name, _name);
+        t = true;
+        strcpy(table, _table);
     }
 };
 
@@ -37,6 +46,16 @@ struct table_name {
         depth = _depth;
         strcpy(name, _name);
         strcpy(real_name, _real_name);
+    }
+};
+
+struct select_state {
+    vector<table_name*>* tables;
+    vector<variable>* select_variable;
+    bool SELECT_LIST = false;
+    select_state() {
+        SELECT_LIST = true;
+        select_variable = new vector<variable>();
     }
 };
 
@@ -397,7 +416,7 @@ single_column_constraint:
 
 subquery: select_statement 
         {
-            depth++;
+            
         }
 
 select_list:
@@ -585,10 +604,24 @@ limit_offset_clause:
                    ;
 
 column_name: 
-            NAME'.'NAME //{ $$=$1;} //table column
+            NAME'.'NAME 
+            {
+                printf("select list %d\n", *(*sp));
+                bool s = (*sp)->SELECT_LIST;
+                if(s) {
+                    (*sp)->select_variable->push_back(variable($3, $1, depth));
+                } else {
+                    printf("Nismo unutar %s\n", $3);
+                }
+            }
            | NAME  
              {  
-               //variables.top().push_back(variable($1, depth)); printf("COL %s\n", $1);
+               bool s = (*sp)->SELECT_LIST;
+               if(s) {
+                   (*sp)->select_variable->push_back(variable($1, depth));
+               } else {
+                   printf("Nismo unutar %s\n", $1);
+               }
              }
            ;
 
@@ -685,12 +718,17 @@ from_clauses_list:
                 }
                  ;
 
-from_clause : FROM from_clauses_list 
+from_clause: FROM from_clauses_list 
             {
-               //tables.push(vector<table_name>());
-               for(int i = 0; i < $2->size(); ++i) {
-                   printf("Table: %s %s\n", (*$2)[i]->name, (*$2)[i]->real_name);
-               }
+                //tables.push(vector<table_name>());
+                for(int i = 0; i < $2->size(); ++i) {
+                    printf("Table: %s %s\n", (*$2)[i]->name, (*$2)[i]->real_name);
+                }
+                (*sp)->tables = $2;
+                (*sp)->SELECT_LIST = false;
+                for(variable v : *((*sp)->select_variable)) {
+                   printf("Variable: %s %s\n", v.name, v.table);
+                }
             }
 
 select_options: 
@@ -712,13 +750,45 @@ select_options_more:
                    ;
 
 select_statement: 
-                 SELECT select_options
-                | SELECT select_options select_options_more order_by_clause limit_offset_clause
-                | SELECT select_options select_options_more order_by_clause
-                | SELECT select_options order_by_clause limit_offset_clause
-                | SELECT select_options limit_offset_clause
-                | SELECT select_options order_by_clause
+                 select_word select_options
+                 {
+                     --depth;
+                     pop(sp);
+                 }
+                | select_word select_options select_options_more order_by_clause limit_offset_clause
+                {
+                    --depth;
+                    pop(sp);
+                }
+                | select_word select_options select_options_more order_by_clause
+                {
+                    --depth;
+                    pop(sp);
+                }
+                | select_word select_options order_by_clause limit_offset_clause
+                {
+                    --depth;
+                    pop(sp);
+                }
+                | select_word select_options limit_offset_clause
+                {
+                    --depth;
+                    pop(sp);
+                }
+                | select_word select_options order_by_clause
+                {
+                    --depth;
+                    pop(sp);
+                }
                 ;
+
+select_word: SELECT {
+    auto s1 = new select_state();
+    printf("new select state\n");
+    push(sp, s1);
+    printf("select new %d\n", *(*sp));
+    depth++;
+}
 
 binary_operator: ""
                ;
@@ -749,8 +819,6 @@ relational_operator: ""
 %%
 
 
-
-
 extern FILE *yyin;
 Database* database;
 vector<SearchType>* searchTypes;
@@ -759,11 +827,18 @@ vector<SearchType>* searchTypes;
 int depth = 0;
 
 TYPE type;
-//stack<vector<variable> > variables;
-//stack<vector<table_name> > tables;
+
+bool SELECT_LIST = false;
+
+select_state* stack[1000];
+select_state** sp;
+#define push(sp, n) (*(++(sp)) = (n))
+#define pop(sp) (*--(sp))
+
 
 void parse(FILE* fileInput, Database* _database, vector<SearchType>* _searchTypes)
 {
+   sp = stack;
    yyin= fileInput;
    database = _database;
    searchTypes = _searchTypes;

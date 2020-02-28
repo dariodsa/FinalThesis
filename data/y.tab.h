@@ -66,9 +66,10 @@
 #define IS 321
 #define LIKE 322
 #define SINGLE_QUOTED_STRING 323
-#define OR 324
-#define AND 325
-#define NOT 326
+#define SINGLE_AGG_FUNCTION 324
+#define OR 325
+#define AND 326
+#define NOT 327
 #ifdef YYSTYPE
 #undef  YYSTYPE_IS_DECLARED
 #define YYSTYPE_IS_DECLARED 1
@@ -85,10 +86,12 @@ typedef union
 
    int number;
 
-    vector<char*>* names;
+   vector<table_name*>* tables;
+   vector<char*>* names;
 
-
-
+   table_name* table_name;
+   
+   
 } YYSTYPE;
 #endif /* !YYSTYPE_IS_DECLARED */
 extern YYSTYPE yylval;

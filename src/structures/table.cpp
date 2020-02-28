@@ -104,6 +104,13 @@ bool Table::isIndex(vector<char*> column) {
     return false;
 }
 
+bool Table::isColumn(char* name) {
+    for(auto column: columns) {
+        if(strcmp(column->getName(), name) == 0) return true;
+    }
+    return false;
+}
+
 void Table::setTableName(char* name) {
     strcpy(this->name, name);
 }

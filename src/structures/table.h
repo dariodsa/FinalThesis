@@ -15,7 +15,8 @@ class Table {
         vector<Index*> getIndex();
 
         bool isIndex(vector<char*> column);
-        
+        bool isColumn(char* name);
+
         void addIndex(Index *index);
         void addColumn(Column* column);
         

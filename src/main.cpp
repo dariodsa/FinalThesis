@@ -4,6 +4,9 @@
 
 #include <libpq-fe.h>
 #include <vector>
+
+#include "db/proxy.h"
+
 using namespace std;
 // list of replicas involved
 vector<Database*> replicas;
@@ -19,6 +22,9 @@ pthread_t keep_alive_thread;
 
 
 int main(int argc, char* argv[]) {
+    
+    //Proxy* p = new Proxy(55432);
+    
     
     Program* program = Program::getInstance();
     

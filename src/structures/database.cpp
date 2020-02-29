@@ -50,11 +50,11 @@ bool Database::connect() {
         sprintf(conn_str, "dbname = %s user = %s password = %s \
             hostaddr = %s port = %d", this->dbName, this->username, this->password, this->ipAddress, this->port);
         printf("%s\n", conn_str);
-        this->C = new connection(conn_str);
-        if (C && C->is_open()) {
-            return true;
-        } else {   
+        this->C = PQconnectdb(conn_str);
+        if (PQstatus(this->C) == CONNECTION_BAD)   {
             return false;
+        } else {   
+            return true;
         }
     } catch (const std::exception &e) {
         cerr << e.what() << endl;
@@ -67,7 +67,7 @@ bool Database::connect() {
 bool Database::disconnect() {
     Program* program = Program::getInstance();
     try {
-        C->disconnect();
+        //C->disconnect();
     } catch(const std::exception &e) {
         program->log(LOG_WARNING, "Exception message: %s", e.what());
         return false;
@@ -76,13 +76,23 @@ bool Database::disconnect() {
     return true;
 }
 
-bool Database::executeQuery(char* query) {
+bool Database::executeQuery(char* query, SearchType type) {
 
     Program* program = Program::getInstance();
+    PGresult *res;
+    
     try {
-        pqxx::nontransaction W(*C);
-        W.exec( query );
-        W.commit();
+        
+        res = PQexec(this->C, query);
+        int rec_count = PQntuples(res);
+        int col_count = PQnfields(res);
+        printf("We have %d rows.\n", rec_count);
+        for(int row = 0; row < rec_count; ++row) {
+            for(int col = 0; col < col_count; ++col) {
+                printf("%s ", PQgetvalue(res, row, col));
+            }
+            printf("\n");
+        }
     } catch(const std::exception &e) {
         printf("%s\n", e.what());
         program->log(LOG_WARNING, "Exception message: %s", e.what());

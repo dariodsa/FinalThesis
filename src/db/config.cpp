@@ -35,6 +35,9 @@ bool connect_and_listen(char *ip, int port, std::vector<Database*> replicas) {
     
     printf("Done parse:\n");
     
+    char *p = "SELECT * FROM dbversion;";
+    database->executeQuery(p, SELECT_TYPE);
+
     /*fseek(yyin, 0, SEEK_END);
     long size = ftell(yyin);
     rewind(yyin);

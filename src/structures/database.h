@@ -4,6 +4,7 @@
 #include <map>
 #include <string>
 #include "table.h"
+#include "libpq-fe.h"
 
 using namespace pqxx;
 
@@ -11,6 +12,13 @@ using namespace pqxx;
 #define DATABASE_H
 
 #define MAX_LEN 30
+
+enum SearchType{
+      SELECT_TYPE
+    , INSERT_TYPE
+    , CREATE_TYPE
+    , ALTER_TYPE
+};
 
 class Database {
     public:
@@ -21,7 +29,7 @@ class Database {
         bool connect();
         bool disconnect();
         void addTable(Table *t);
-        bool executeQuery(char* query);
+        bool executeQuery(char* query, SearchType type);
 
         Table* getTable(char* table_name);
         size_t getNumOfTables();
@@ -36,16 +44,11 @@ class Database {
 
     int port;
 
-    pqxx::connection* C;
+    PGconn* C;
 
     std::map<string, Table*>tables;
 };
 
-enum SearchType{
-      SELECT_TYPE
-    , INSERT_TYPE
-    , CREATE_TYPE
-    , ALTER_TYPE
-};
+
 
 #endif

@@ -818,7 +818,6 @@ relational_operator: ""
 
 %%
 
-
 extern FILE *yyin;
 Database* database;
 vector<SearchType>* searchTypes;
@@ -835,18 +834,25 @@ select_state** sp;
 #define push(sp, n) (*(++(sp)) = (n))
 #define pop(sp) (*--(sp))
 
+typedef struct yy_buffer_state * YY_BUFFER_STATE;
+extern YY_BUFFER_STATE yy_scan_string(const char * str);
+extern void yy_delete_buffer(YY_BUFFER_STATE buffer);
 
-void parse(FILE* fileInput, Database* _database, vector<SearchType>* _searchTypes)
+
+void parse(char* query, Database* _database, vector<SearchType>* _searchTypes)
 {
-   sp = stack;
-   yyin= fileInput;
-   database = _database;
-   searchTypes = _searchTypes;
-   printf("Unutra\n");
-   yyparse();
-   /*for(int i=0;i<tables.size();++i) {
-       printf("Table: %s\n", tables[i].name);
-   }*/
+    sp = stack;
+    database = _database;
+    searchTypes = _searchTypes;
+    printf("Unutra\n");
+
+    YY_BUFFER_STATE buffer = yy_scan_string(query);
+
+    yyparse();
+    yy_delete_buffer(buffer);
+    /*for(int i=0;i<tables.size();++i) {
+        printf("Table: %s\n", tables[i].name);
+    }*/
 }
 
 void yyerror(char *s) {
@@ -858,7 +864,6 @@ void yyerror(char *s) {
         int yyparse(void);
         int yylex(void); 
 }*/
-
 
 /*int main(int argc, char* argv[]) {
    yyparse();

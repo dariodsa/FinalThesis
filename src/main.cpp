@@ -23,7 +23,7 @@ pthread_t keep_alive_thread;
 
 int main(int argc, char* argv[]) {
     
-    //Proxy* p = new Proxy(55432);
+    //
     
     
     Program* program = Program::getInstance();
@@ -49,6 +49,8 @@ int main(int argc, char* argv[]) {
         return 0;
     }
     
+    Proxy* p = new Proxy(55432, replicas[0]);
+
     bool value = connect_and_listen(program->getIP(), program->getPort(), replicas);
 
     return 0;

@@ -38,7 +38,16 @@ bool connect_and_listen(char *ip, int port, std::vector<Database*> replicas) {
     printf("Done parse:\n");
     
     
-    database->executeQuery(p, SELECT_TYPE);
+    PGresult *res = database->executeQuery(p);
+    int rec_count = PQntuples(res);
+    int col_count = PQnfields(res);
+    printf("We have %d rows.\n", rec_count);
+    for(int row = 0; row < rec_count; ++row) {
+        for(int col = 0; col < col_count; ++col) {
+            printf("%s ", PQgetvalue(res, row, col));
+        }
+        printf("\n");
+    }
 
     /*fseek(yyin, 0, SEEK_END);
     long size = ftell(yyin);

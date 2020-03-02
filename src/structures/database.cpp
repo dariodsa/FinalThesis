@@ -76,7 +76,7 @@ bool Database::disconnect() {
     return true;
 }
 
-bool Database::executeQuery(char* query, SearchType type) {
+PGresult* Database::executeQuery(char* query) {
 
     Program* program = Program::getInstance();
     PGresult *res;
@@ -86,19 +86,13 @@ bool Database::executeQuery(char* query, SearchType type) {
         res = PQexec(this->C, query);
         int rec_count = PQntuples(res);
         int col_count = PQnfields(res);
-        printf("We have %d rows.\n", rec_count);
-        for(int row = 0; row < rec_count; ++row) {
-            for(int col = 0; col < col_count; ++col) {
-                printf("%s ", PQgetvalue(res, row, col));
-            }
-            printf("\n");
-        }
+        
     } catch(const std::exception &e) {
         printf("%s\n", e.what());
         program->log(LOG_WARNING, "Exception message: %s", e.what());
-        return false;
+        return NULL;
     }
-    return true;
+    return res;
 }
 
 void Database::addTable(Table *t) {

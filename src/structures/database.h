@@ -29,7 +29,7 @@ class Database {
         bool connect();
         bool disconnect();
         void addTable(Table *t);
-        bool executeQuery(char* query, SearchType type);
+        PGresult* executeQuery(char* query);
 
         Table* getTable(char* table_name);
         size_t getNumOfTables();

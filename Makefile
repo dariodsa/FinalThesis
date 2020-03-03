@@ -1,7 +1,7 @@
 STRUCTURES_PATH = src/structures/
 DB_PATH = src/db/
 
-DATA_PATH = 
+DATA_PATH = data/
 
 LEX_FILE = $(DATA_PATH)sql.l
 YACC_FILE = $(DATA_PATH)sql.y
@@ -63,8 +63,8 @@ OBJECT_PROXY:
 	$(CXX) $(CXXFLAGS) -c $(SOURCE_PROXY) -o $(OBJECT_PROXY)
 
 lex_yacc_part:
-	cd data; $(YACC) $(YACCFLAGS) $(YACC_FILE)
-	cd data; $(LEX) $(LEXFLAGS) $(LEX_FILE)
+	$(YACC) $(YACCFLAGS) $(YACC_FILE)
+	$(LEX) $(LEXFLAGS) $(LEX_FILE)
 	cd data; sed -i '1s/^/#include "..\/src\/structures\/index.h"\n/' y.tab.h
 
 all: lex_yacc_part OBJECT_INDEX OBJECT_COLUMN OBJECT_TABLE OBJECT_DATABASE OBJECT_PROGRAM OBJECT_CONFIG OBJECT_PROXY

@@ -66,7 +66,7 @@ OR { return OR; }
 ">"  |
 ">=" |
 "="  |
-"<>"    {return CMP; }
+"<>"    { yylval.text =strdup(yytext); return CMP; }
 
 array_agg |
 avg |

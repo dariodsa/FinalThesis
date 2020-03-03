@@ -59,6 +59,14 @@ struct select_state {
     }
 };
 
+struct expression_info {
+    bool equal = false;
+    vector<variable>* variables;
+    expression_info() {
+        variables = new vector<variable>();
+    }
+};
+
 enum TYPE{
       SELECT_VARIABLE
     , CONDITION_VARIABLE
@@ -95,7 +103,8 @@ extern vector<SearchType>* searchTypes;
 
    table_name* table_name;
    
-   
+   variable variable;
+   expression_info expression_info;
 }
 
 
@@ -111,6 +120,7 @@ extern vector<SearchType>* searchTypes;
 
 %type <text> NAME
 %type <text> CMP
+%type <text> relation_operator
 %type <number> NUMBER
 %type <text> data_types
 
@@ -134,6 +144,13 @@ extern vector<SearchType>* searchTypes;
 %type <tables> join_options_list
 %type <tables> ansi_joined_tables
 %type <tables> from_clauses_list
+
+%type <variable> column_name
+
+%type <expression_info> expression_part_two
+%type <expression_info> expression
+%type <expression_info> comparison_condition
+%type <expression_info> in_condition
 %%
 
 
@@ -538,20 +555,77 @@ conditional_expression:
                       | CASE expression list_expression_expression ELSE expression END
                       ;
 comparison_condition: 
-		     expression relation_operator expression {printf("comp cond\n");}
+		     expression relation_operator expression 
+             {  
+                 $$ = $1;
+                 if(strcmp("=", $2) == 0) $$.equal = true;
+                 else $$.equal = false;
+                 for(variable v : *$$.variables) {
+                     $$.variables->push_back(v);
+                 }
+             }
 		    | expression NOT BETWEEN expression AND expression 
+            {
+                //TODO
+            }
 		    | expression BETWEEN expression AND expression
+            {
+                //TODO
+            }
 		    | in_condition
-		    | column_name IS NULL_STR
+		    {
+                $$ = $1;
+            }
+            | column_name IS NULL_STR
+            {
+                $$ = expression_info();
+                $$.variables->push_back($1);
+            }
 		    | column_name IS NOT NULL_STR
+            {
+                $$ = expression_info();
+                $$.variables->push_back($1);
+            }
 		    | quoted_string NOT LIKE quoted_string
+            {
+                $$ = expression_info();
+            }
 		    | quoted_string LIKE quoted_string 
+            {
+                $$ = expression_info();
+            }
 		    | column_name NOT LIKE quoted_string
+            {
+                $$ = expression_info();
+                $$.variables->push_back($1);
+            }
 		    | column_name LIKE quoted_string 
+            {
+                $$ = expression_info();
+                $$.variables->push_back($1);
+            }
 		    | quoted_string NOT LIKE column_name
+            {
+                $$ = expression_info();
+                $$.variables->push_back($4);
+            }
 		    | quoted_string LIKE column_name
+            {
+                $$ = expression_info();
+                $$.variables->push_back($3);
+            }
 		    | column_name NOT LIKE column_name
+            {
+                $$ = expression_info();
+                $$.variables->push_back($1);
+                $$.variables->push_back($4);
+            }
 		    | column_name LIKE column_name
+            {
+                $$ = expression_info();
+                $$.variables->push_back($1);
+                $$.variables->push_back($3);
+            }
             ;
 expression: 
 	   expression_part_one expression_part_two
@@ -564,7 +638,15 @@ expression_part_one:
 
 expression_part_two: 
 	   column_name binary_operator expression
+       {
+           $3.variables->push_back($1);
+           $$ = $3;
+       }
 	  | column_name 
+      {
+          $$ = expression_info();
+          $$.variables->push_back($1); 
+      }
 	  | conditional_expression binary_operator expression
 	  | conditional_expression
 	  | constant binary_operator expression
@@ -594,8 +676,8 @@ condition_with_subquery:
                        expression NOT IN '(' subquery ')'
                        | expression IN '(' subquery ')'
                        | EXISTS '(' subquery ')'
-                       | expression relational_operator '(' subquery ')'
-                       | expression relational_operator all_any_some '(' subquery ')'
+                       | expression relation_operator '(' subquery ')'
+                       | expression relation_operator all_any_some '(' subquery ')'
                        ;
 
 limit_offset_clause: 
@@ -606,21 +688,24 @@ limit_offset_clause:
 column_name: 
             NAME'.'NAME 
             {
-                printf("select list %d\n", *(*sp));
                 bool s = (*sp)->SELECT_LIST;
+                variable V = variable($3, $1, depth);
                 if(s) {
-                    (*sp)->select_variable->push_back(variable($3, $1, depth));
+                    (*sp)->select_variable->push_back();
+                    $$ = NULL;
                 } else {
-                    printf("Nismo unutar %s\n", $3);
+                    $$ = V;
                 }
             }
            | NAME  
              {  
                bool s = (*sp)->SELECT_LIST;
+               variable V = variable($1, depth);
                if(s) {
-                   (*sp)->select_variable->push_back(variable($1, depth));
+                   (*sp)->select_variable->push_back(V);
+                   $$ = NULL;
                } else {
-                   printf("Nismo unutar %s\n", $1);
+                   $$ = V;
                }
              }
            ;
@@ -812,8 +897,6 @@ function_expression:
 
                      }
 
-                   ;
-relational_operator: ""
                    ;
 
 %%

@@ -65,7 +65,7 @@ bool Proxy::readSock(int s1, char* arr, int len) {
 
 void Proxy::send_row_descriptor(PGresult* res, int s1, int col_count) {
     int size = 0;
-    printf("Col count: %d\n", col_count);
+    
     for(int col = 0; col < col_count; ++col) {
         char* col_name = PQfname(res, col);
         size += strlen(col_name) + 1 + 4 + 2 + 4 + 2 + 4 + 2;
@@ -73,34 +73,35 @@ void Proxy::send_row_descriptor(PGresult* res, int s1, int col_count) {
     char t = 'T';
     int k = write(s1, &t, 1);
     size += 6;
-    printf("row des %d k %d\n", size, k);
     
+    size = htonl(size);
     k = write(s1, &size, 4);
-    printf("size k %d\n", k);
+    
     short c1 = col_count;
+    c1 = htons(c1);
     
     k = write(s1, &c1, 2);
-    printf("row desc %d, k %dn", col_count, k);
+    
     for(int col = 0; col < col_count; ++col) {
         char* col_name = PQfname(res, col);
-        printf("Col name %s\n", col_name);
+    
         write(s1, col_name, strlen(col_name));
         char n = NULL;
         write(s1, &n, 1);
-        int br = 0;
-        short a = 0;
+        int br = htonl(0);
+        short a = htons(0);
         
         write(s1, &br, 4); //table id
         write(s1, &a, 2); //column id
         //23 4
         
-        br = 23;//PQparamtype(res, col);
-        a = 4;//PQfsize(res, col);
+        br = htonl(23);//PQparamtype(res, col);
+        a = htons(4);//PQfsize(res, col);
         write(s1, &br, 4); //type id
         write(s1, &a, 2); //type size
         
-        br = -1;
-        a = 0;
+        br = htonl(-1);
+        a = htons(0);
         write(s1, &br, 4); //type modifier
         write(s1, &a, 2); //text format code
         
@@ -112,26 +113,28 @@ void Proxy::send_row_data(PGresult* res, int s1, int row_count, int col_count) {
         int size = 0;
         for(int col = 0; col < col_count; ++col) {
             char *row_data = PQgetvalue(res, row, col);
-            printf("%s %d\n", row_data, strlen(row_data));
+            
             int len = strlen(row_data);
             size += 4 + len;
         }
         char d = 'D';
         write(s1, &d, 1);
         int l1 = 6 + size;
-        printf("row datta %d\n", l1);
         
+        l1 = htonl(l1);
         write(s1, &l1, 4);
         short a = col_count;
+        a = htons(a);
         write(s1, &a, 2);
         for(int col = 0; col < col_count; ++col) {
             char *row_data = PQgetvalue(res, row, col);
-            int len = strlen(row_data);
-            write(s1, &len, 4);
             
+            int len = strlen(row_data);
+            int len1 = htonl(len);
+            write(s1, &len1, 4);
             write(s1, row_data, len);
             char n = NULL;
-            //write(s1, &n, 1);
+            
         }
     }
 }
@@ -142,27 +145,28 @@ void Proxy::processQuery(Database* d1, int s1, char* query) {
     int rec_count = PQntuples(res);
     int col_count = PQnfields(res);
 
-    printf("We have %d rows.\n", rec_count);
-    for(int row = 0; row < rec_count; ++row) {
+    //printf("We have %d rows.\n", rec_count);
+    /*for(int row = 0; row < rec_count; ++row) {
         for(int col = 0; col < col_count; ++col) {
             printf("%s ", PQgetvalue(res, row, col));
         }
         printf("\n");
-    }
-    printf("%d %d\n", rec_count, col_count);
+    }*/
+    
     send_row_descriptor(res, s1, col_count);
     send_row_data(res, s1, rec_count, col_count);
 
     char c = 'C';
     write(s1, &c, sizeof(char));
     int l = strlen("SELECT") + 4 + 1;
+    l = htonl(l);
     write(s1, &l, sizeof(int));
     char *select = (char*)malloc(7);
     select[6] = 0;
     strcpy(select, "SELECT");
     
-    int k = write(s1, select, 6);
-    printf("%s %d\n", select, k);
+    int k = write(s1, select, 7);
+    
 }
 
 void Proxy::send_ready_for_query(int conn) {

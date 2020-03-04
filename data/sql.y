@@ -82,9 +82,10 @@ extern vector<SearchType>* searchTypes;
 %token SELECT UNION DISTINCT ALL FROM WHERE LIMIT QUOTED_STRING OFFSET ONLY HAVING BY GROUP ORDER JOIN NATURAL LEFT RIGHT INNER FULL OUTER USING CMP BETWEEN NULL_STR IN EXISTS CASE THEN ELSE VALUES INSERT INTO CREATE TABLE UNIQUE PRIMARY FOREIGN KEY CONSTRAINT INDEX ASC DESC NAME NUMBER ENUMBER AS CROSS DATA_TYPE ALTER ADD END WHEN ANY SOME AGG_FUNCTION CHECK UPDATE DELETE SET DEFAULT ON CASCADE REFERENCES IS LIKE
 %token SINGLE_QUOTED_STRING SINGLE_AGG_FUNCTION
 
-%left OR AND NOT
-%left '+' '-'
-%left '*' '/'
+%left OR
+%left '+' '-' AND
+%left '*' '/' NOT
+
 
 %error-verbose
 
@@ -151,6 +152,12 @@ extern vector<SearchType>* searchTypes;
 %type <expression_info> expression
 %type <expression_info> comparison_condition
 %type <expression_info> in_condition
+
+%type <expression_info> aggregate_expression
+
+%type <expression_info> function_expression
+%type <expression_info> list_function_exp
+
 %%
 
 
@@ -549,42 +556,60 @@ list_expression_expression:
                           | WHEN expression THEN expression
                           ;
 conditional_expression: 
-                       CASE list_condition_expression END
-                      | CASE list_condition_expression ELSE expression END
-                      | CASE expression list_expression_expression END
+                       CASE list_condition_expression END 
+                      | CASE list_condition_expression ELSE expression END 
+                      | CASE expression list_expression_expression END 
                       | CASE expression list_expression_expression ELSE expression END
                       ;
 comparison_condition: 
 		     expression relation_operator expression 
              {  
-                 $$ = $1;
-                 if(strcmp("=", $2) == 0) $$.equal = true;
-                 else $$.equal = false;
-                 for(variable v : *$$.variables) {
-                     $$.variables->push_back(v);
-                 }
+                $$ = $1;
+                if(strcmp("=", $2) == 0) $$.equal = true;
+                else $$.equal = false;
+                for(variable v : *$3.variables) {
+                    $$.variables->push_back(v);
+                }
              }
 		    | expression NOT BETWEEN expression AND expression 
             {
-                //TODO
+                $$ = $1;
+                for(variable v : *$4.variables) {
+                     $$.variables->push_back(v);
+                }
+                for(variable v : *$6.variables) {
+                     $$.variables->push_back(v);
+                }
+                $$.equal = false;
+
             }
 		    | expression BETWEEN expression AND expression
             {
-                //TODO
+                $$ = $1;
+                for(variable v : *$3.variables) {
+                     $$.variables->push_back(v);
+                }
+                for(variable v : *$5.variables) {
+                     $$.variables->push_back(v);
+                }
+                $$.equal = false;
             }
 		    | in_condition
 		    {
                 $$ = $1;
+                $$.equal = false;
             }
             | column_name IS NULL_STR
             {
                 $$ = expression_info();
                 $$.variables->push_back($1);
+                $$.equal = true;
             }
 		    | column_name IS NOT NULL_STR
             {
                 $$ = expression_info();
                 $$.variables->push_back($1);
+                $$.equal = false;
             }
 		    | quoted_string NOT LIKE quoted_string
             {
@@ -598,38 +623,44 @@ comparison_condition:
             {
                 $$ = expression_info();
                 $$.variables->push_back($1);
+                $$.equal = false;
             }
 		    | column_name LIKE quoted_string 
             {
                 $$ = expression_info();
                 $$.variables->push_back($1);
+                $$.equal = false;
             }
 		    | quoted_string NOT LIKE column_name
             {
                 $$ = expression_info();
                 $$.variables->push_back($4);
+                $$.equal = false;
             }
 		    | quoted_string LIKE column_name
             {
                 $$ = expression_info();
                 $$.variables->push_back($3);
+                $$.equal = false;
             }
 		    | column_name NOT LIKE column_name
             {
                 $$ = expression_info();
                 $$.variables->push_back($1);
                 $$.variables->push_back($4);
+                $$.equal = false;
             }
 		    | column_name LIKE column_name
             {
                 $$ = expression_info();
                 $$.variables->push_back($1);
                 $$.variables->push_back($3);
+                $$.equal = false;
             }
             ;
 expression: 
-	   expression_part_one expression_part_two
-	  | expression_part_two
+	   expression_part_one expression_part_two { $$ = $2; }
+	  | expression_part_two { $$ = $1; }
       ;
 expression_part_one:
 		    '-'
@@ -648,17 +679,38 @@ expression_part_two:
           $$.variables->push_back($1); 
       }
 	  | conditional_expression binary_operator expression
-	  | conditional_expression
-	  | constant binary_operator expression
-	  | constant
+      {
+        $$ = expression_info();
+      }
+	  | conditional_expression 
+      {
+        $$ = expression_info(); 
+      }
+	  | constant binary_operator expression { $$ = $3; }
+	  | constant { $$ = expression_info(); }
 	  | aggregate_expression binary_operator expression
-	  | aggregate_expression 
+      {
+        $$ = $3;
+        for(variable v : *$1.variables) {
+            $$.variables->push_back(v);
+        }
+      }
+	  | aggregate_expression { $$ = $1; }
 	  | function_expression binary_operator expression
+      {
+        $$ = $3;
+        for(variable v : *$1.variables) {
+            $$.variables->push_back(v);
+        }
+      }
 	  | function_expression {printf("Function\n");}
-	  | NULL_STR binary_operator expression
-	  | NULL_STR
+	  | NULL_STR binary_operator expression { $$ = $3; }
+	  | NULL_STR { $$ = expression_info(); }
 	  | '(' expression ')' binary_operator expression 
-	  | '(' expression ')' 
+      {
+
+      }
+	  | '(' expression ')' { $$ = $2; }
       ;
 
 in_condition: 
@@ -674,10 +726,25 @@ all_any_some:
 
 condition_with_subquery: 
                        expression NOT IN '(' subquery ')'
+                       {
+                           
+                       }
                        | expression IN '(' subquery ')'
+                       {
+
+                       }
                        | EXISTS '(' subquery ')'
+                       {
+
+                       }
                        | expression relation_operator '(' subquery ')'
+                       {
+
+                       }
                        | expression relation_operator all_any_some '(' subquery ')'
+                       {
+
+                       }
                        ;
 
 limit_offset_clause: 
@@ -882,19 +949,36 @@ constant:
         | ENUMBER
         | quoted_string
         ;
-aggregate_expression: SINGLE_AGG_FUNCTION expression
+aggregate_expression: SINGLE_AGG_FUNCTION expression { $$ = $2; }
                     ;
 
 list_function_exp: 
                   column_name ',' list_function_exp
-                | column_name
+                {
+                    $$ = $3;
+                    $$.variables->push_back($1);
+                }
+                | column_name 
+                {
+                    $$ = expression_info();
+                    $$.variables->push_back($1);
+                }
                 | function_expression ',' list_function_exp
-                | function_expression
+                {
+                    $$ = $1;
+                    for(variable v : *$3.variables) {
+                        $$.variables->push_back(v);
+                    }
+                }
+                | function_expression 
+                {
+                    $$ = $1;
+                }
  
 function_expression: 
                      NAME '(' list_function_exp ')' 
                      {
-
+                        $$ = $3;
                      }
 
                    ;

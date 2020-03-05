@@ -67,6 +67,19 @@ struct expression_info {
     }
 };
 
+struct node{
+    bool terminal = false;
+    char name[5];
+    expression_info e1;
+    node *left;
+    node *right;
+};
+
+struct select_structure {
+    node* root;
+
+};
+
 enum TYPE{
       SELECT_VARIABLE
     , CONDITION_VARIABLE
@@ -106,6 +119,8 @@ extern vector<SearchType>* searchTypes;
    
    variable variable;
    expression_info expression_info;
+
+   select_structure select_structure;
 }
 
 
@@ -153,10 +168,14 @@ extern vector<SearchType>* searchTypes;
 %type <expression_info> comparison_condition
 %type <expression_info> in_condition
 
+%type <expression_info> condition_with_subquery
+
 %type <expression_info> aggregate_expression
 
 %type <expression_info> function_expression
 %type <expression_info> list_function_exp
+
+%type <select_structure> condition
 
 %%
 
@@ -527,24 +546,77 @@ quoted_string:
 
 condition:
            NOT comparison_condition AND condition
-         | NOT comparison_condition OR condition
-         | NOT comparison_condition
-         
-         | NOT condition_with_subquery OR condition
-         | NOT condition_with_subquery AND condition
-         
-         | NOT condition_with_subquery
-         | comparison_condition AND condition
-         | comparison_condition OR condition
-         | comparison_condition { }
+         {
 
+         }
+         | NOT comparison_condition OR condition
+         {
+
+         }
+         | NOT comparison_condition
+         {
+             $$ = select_structure();
+             $$.node = new Node();
+             strcpy($$.node->name, "NOT");
+             $$.right = NULL;
+             $$.left->e1 = $2;
+         }         
+         | NOT condition_with_subquery OR condition
+         {
+
+         }
+         | NOT condition_with_subquery AND condition
+         {
+
+         }
+         | NOT condition_with_subquery
+         {
+
+         }
+         | comparison_condition AND condition
+         {
+
+         }
+         | comparison_condition OR condition
+         {
+
+         }
+         | comparison_condition 
+         {
+             $$ = select_structure();
+             $$.node = new Node();
+             $$.node->terminal = true;
+             $$.node->e1 = $1;
+         }
          | condition_with_subquery OR condition
+         {
+
+         }
          | condition_with_subquery AND condition
+         {
+
+         }
          | condition_with_subquery
-         | '(' condition ')'  {}
+         {
+
+         }
+         | '(' condition ')'  { $$ = $2; }
          | condition AND condition
+         {
+             $$ = select_structure();
+             $$.node = new node();
+             strcpy($$.node->name, "AND");
+             $$.node->left = $1.node;
+             $$.node->right = $3.node;
+         }
          | condition OR condition
-         
+         {
+             $$ = select_structure();
+             $$.node = new node();
+             strcpy($$.node.name, "OR");
+             $$.node->left = $1.node;
+             $$.node->right = $3.node;
+         }
          ;
 
 list_condition_expression: 
@@ -727,23 +799,29 @@ all_any_some:
 condition_with_subquery: 
                        expression NOT IN '(' subquery ')'
                        {
-                           
+                           $$ = $1;
+                           //TODO add result of subquery to the some tree structure
                        }
                        | expression IN '(' subquery ')'
                        {
-
+                           $$ = $1;
+                           //TODO add result of subquery to the some tree structure
                        }
                        | EXISTS '(' subquery ')'
                        {
+                           $$ = expression_info();
+                           //TODO add result of subquery to the some tree structure
 
                        }
                        | expression relation_operator '(' subquery ')'
                        {
-
+                           $$ = $1;
+                           //TODO add result of subquery to the some tree structure
                        }
                        | expression relation_operator all_any_some '(' subquery ')'
                        {
-
+                           $$ = $1;
+                           //TODO add result of subquery to the some tree structure
                        }
                        ;
 

@@ -24,6 +24,7 @@ struct variable {
     char name[100];
     bool t;
     char table[100];
+    variable() {}
     variable(const char* _name, int _depth) {
         depth = depth;
         strcpy(name, _name);
@@ -70,15 +71,15 @@ struct expression_info {
 struct node{
     bool terminal = false;
     char name[5];
-    expression_info e1;
-    node *left;
-    node *right;
+    expression_info* e1;
+    node *left = 0; 
+    node *right = 0;
+    node() {
+        
+    }
 };
 
-struct select_structure {
-    node* root;
 
-};
 
 enum TYPE{
       SELECT_VARIABLE
@@ -117,10 +118,10 @@ extern vector<SearchType>* searchTypes;
 
    table_name* table_name;
    
-   variable variable;
-   expression_info expression_info;
+   variable* variable;
+   expression_info* expression_info;
 
-   select_structure select_structure;
+   node *node;
 }
 
 
@@ -175,7 +176,7 @@ extern vector<SearchType>* searchTypes;
 %type <expression_info> function_expression
 %type <expression_info> list_function_exp
 
-%type <select_structure> condition
+%type <node> condition
 
 %%
 
@@ -547,75 +548,151 @@ quoted_string:
 condition:
            NOT comparison_condition AND condition
          {
+             
+            
+            node* n = new node();
+            strcpy(n->name, "NOT");
+            n->left = new node();
+            n->left->e1 = $2; 
+
+
+            $$ = new node();
+            strcpy($$->name, "AND");
+            $$->right = $4;
+            $$->left = n;
 
          }
          | NOT comparison_condition OR condition
          {
+            node* n = new node();
+            strcpy(n->name, "NOT");
+            n->left = new node();
+            n->left->e1 = $2; 
 
+
+            $$ = new node();
+            strcpy($$->name, "OR");
+            $$->right = $4;
+            $$->left = n;
          }
          | NOT comparison_condition
          {
-             $$ = select_structure();
-             $$.node = new Node();
-             strcpy($$.node->name, "NOT");
-             $$.right = NULL;
-             $$.left->e1 = $2;
+            $$ = new node();
+            strcpy($$->name, "NOT");
+            $$->left = new node();
+            $$->left->terminal = true;
+            $$->left->e1 = $2;
          }         
          | NOT condition_with_subquery OR condition
          {
+            node* n1 = new node();
+            n1->terminal = true;
+            n1->e1 = $2;
 
+            node* n2 = new node();
+            strcpy(n2->name, "NOT");
+            n2->left = n1;
+
+            $$ = new node();
+            strcpy($$->name, "OR");
+            $$->left = n2;
+            $$->right = $4;
          }
          | NOT condition_with_subquery AND condition
          {
+            node* n1 = new node();
+            n1->terminal = true;
+            n1->e1 = $2;
 
+            node* n2 = new node();
+            strcpy(n2->name, "NOT");
+            n2->left = n1;
+
+            $$ = new node();
+            strcpy($$->name, "AND");
+            $$->left = n2;
+            $$->right = $4;
          }
          | NOT condition_with_subquery
          {
+            node* n1 = new node();
+            n1->terminal = true;
+            n1->e1 = $2;
 
+            $$ = new node();
+            strcpy($$->name, "NOT");
+            $$->left = n1;
          }
          | comparison_condition AND condition
          {
+            node* n1 = new node();
+            n1->terminal = true;
+            n1->e1 = $1;
 
+            $$ = new node();
+            strcpy($$->name, "AND");
+            $$->left = n1;
+            $$->right = $3;
          }
          | comparison_condition OR condition
          {
+            node* n1 = new node();
+            n1->terminal = true;
+            n1->e1 = $1;
 
+            $$ = new node();
+            strcpy($$->name, "OR");
+            $$->left = n1;
+            $$->right = $3;
          }
          | comparison_condition 
          {
-             $$ = select_structure();
-             $$.node = new Node();
-             $$.node->terminal = true;
-             $$.node->e1 = $1;
+            $$ = new node();
+            $$->terminal = true;
+            $$->e1 = $1;
          }
          | condition_with_subquery OR condition
          {
+            node* n1 = new node();
+            n1->terminal = true;
+            n1->e1 = $1;
 
+            $$ = new node();
+            strcpy($$->name, "OR");
+            $$->left = n1;
+            $$->right = $3;
          }
          | condition_with_subquery AND condition
          {
+            node* n1 = new node();
+            n1->terminal = true;
+            n1->e1 = $1;
 
+            $$ = new node();
+            strcpy($$->name, "AND");
+            $$->left = n1;
+            $$->right = $3;
          }
          | condition_with_subquery
          {
-
+            $$ = new node();
+            $$->terminal = true;
+            $$->e1 = $1;
          }
          | '(' condition ')'  { $$ = $2; }
          | condition AND condition
          {
-             $$ = select_structure();
-             $$.node = new node();
-             strcpy($$.node->name, "AND");
-             $$.node->left = $1.node;
-             $$.node->right = $3.node;
+            $$ = new node();
+            strcpy($$->name, "AND");
+            $$->left = $1;
+            $$->right = $3;
          }
          | condition OR condition
          {
-             $$ = select_structure();
-             $$.node = new node();
-             strcpy($$.node.name, "OR");
-             $$.node->left = $1.node;
-             $$.node->right = $3.node;
+            $$ = new node();
+            strcpy($$->name, "OR");
+            $$->left = $1;
+            $$->right = $3;
          }
          ;
 
@@ -637,97 +714,97 @@ comparison_condition:
 		     expression relation_operator expression 
              {  
                 $$ = $1;
-                if(strcmp("=", $2) == 0) $$.equal = true;
-                else $$.equal = false;
-                for(variable v : *$3.variables) {
-                    $$.variables->push_back(v);
+                if(strcmp("=", $2) == 0) $$->equal = true;
+                else $$->equal = false;
+                for(variable v : *$3->variables) {
+                    $$->variables->push_back(v);
                 }
              }
 		    | expression NOT BETWEEN expression AND expression 
             {
                 $$ = $1;
-                for(variable v : *$4.variables) {
-                     $$.variables->push_back(v);
+                for(variable v : *$4->variables) {
+                     $$->variables->push_back(v);
                 }
-                for(variable v : *$6.variables) {
-                     $$.variables->push_back(v);
+                for(variable v : *$6->variables) {
+                     $$->variables->push_back(v);
                 }
-                $$.equal = false;
+                $$->equal = false;
 
             }
 		    | expression BETWEEN expression AND expression
             {
                 $$ = $1;
-                for(variable v : *$3.variables) {
-                     $$.variables->push_back(v);
+                for(variable v : *$3->variables) {
+                     $$->variables->push_back(v);
                 }
-                for(variable v : *$5.variables) {
-                     $$.variables->push_back(v);
+                for(variable v : *$5->variables) {
+                     $$->variables->push_back(v);
                 }
-                $$.equal = false;
+                $$->equal = false;
             }
 		    | in_condition
 		    {
                 $$ = $1;
-                $$.equal = false;
+                $$->equal = false;
             }
             | column_name IS NULL_STR
             {
-                $$ = expression_info();
-                $$.variables->push_back($1);
-                $$.equal = true;
+                $$ = new expression_info();
+                $$->variables->push_back(*$1);
+                $$->equal = true;
             }
 		    | column_name IS NOT NULL_STR
             {
-                $$ = expression_info();
-                $$.variables->push_back($1);
-                $$.equal = false;
+                $$ = new expression_info();
+                $$->variables->push_back(*$1);
+                $$->equal = false;
             }
 		    | quoted_string NOT LIKE quoted_string
             {
-                $$ = expression_info();
+                $$ = new expression_info();
             }
 		    | quoted_string LIKE quoted_string 
             {
-                $$ = expression_info();
+                $$ = new expression_info();
             }
 		    | column_name NOT LIKE quoted_string
             {
-                $$ = expression_info();
-                $$.variables->push_back($1);
-                $$.equal = false;
+                $$ = new expression_info();
+                $$->variables->push_back(*$1);
+                $$->equal = false;
             }
 		    | column_name LIKE quoted_string 
             {
-                $$ = expression_info();
-                $$.variables->push_back($1);
-                $$.equal = false;
+                $$ = new expression_info();
+                $$->variables->push_back(*$1);
+                $$->equal = false;
             }
 		    | quoted_string NOT LIKE column_name
             {
-                $$ = expression_info();
-                $$.variables->push_back($4);
-                $$.equal = false;
+                $$ = new expression_info();
+                $$->variables->push_back(*$4);
+                $$->equal = false;
             }
 		    | quoted_string LIKE column_name
             {
-                $$ = expression_info();
-                $$.variables->push_back($3);
-                $$.equal = false;
+                $$ = new expression_info();
+                $$->variables->push_back(*$3);
+                $$->equal = false;
             }
 		    | column_name NOT LIKE column_name
             {
-                $$ = expression_info();
-                $$.variables->push_back($1);
-                $$.variables->push_back($4);
-                $$.equal = false;
+                $$ = new expression_info();
+                $$->variables->push_back(*$1);
+                $$->variables->push_back(*$4);
+                $$->equal = false;
             }
 		    | column_name LIKE column_name
             {
-                $$ = expression_info();
-                $$.variables->push_back($1);
-                $$.variables->push_back($3);
-                $$.equal = false;
+                $$ = new expression_info();
+                $$->variables->push_back(*$1);
+                $$->variables->push_back(*$3);
+                $$->equal = false;
             }
             ;
 expression: 
@@ -742,42 +819,42 @@ expression_part_one:
 expression_part_two: 
 	   column_name binary_operator expression
        {
-           $3.variables->push_back($1);
+           $3->variables->push_back(*$1);
            $$ = $3;
        }
 	  | column_name 
       {
-          $$ = expression_info();
-          $$.variables->push_back($1); 
+          $$ = new expression_info();
+          $$->variables->push_back(*$1); 
       }
 	  | conditional_expression binary_operator expression
       {
-        $$ = expression_info();
+        $$ = new expression_info();
       }
 	  | conditional_expression 
       {
-        $$ = expression_info(); 
+        $$ = new expression_info(); 
       }
 	  | constant binary_operator expression { $$ = $3; }
-	  | constant { $$ = expression_info(); }
+	  | constant { $$ = new expression_info(); }
 	  | aggregate_expression binary_operator expression
       {
         $$ = $3;
-        for(variable v : *$1.variables) {
-            $$.variables->push_back(v);
+        for(variable v : *$1->variables) {
+            $$->variables->push_back(v);
         }
       }
 	  | aggregate_expression { $$ = $1; }
 	  | function_expression binary_operator expression
       {
         $$ = $3;
-        for(variable v : *$1.variables) {
-            $$.variables->push_back(v);
+        for(variable v : *$1->variables) {
+            $$->variables->push_back(v);
         }
       }
 	  | function_expression {printf("Function\n");}
 	  | NULL_STR binary_operator expression { $$ = $3; }
-	  | NULL_STR { $$ = expression_info(); }
+	  | NULL_STR { $$ = new expression_info(); }
 	  | '(' expression ')' binary_operator expression 
       {
 
@@ -809,7 +886,7 @@ condition_with_subquery:
                        }
                        | EXISTS '(' subquery ')'
                        {
-                           $$ = expression_info();
+                           $$ = new expression_info();
                            //TODO add result of subquery to the some tree structure
 
                        }
@@ -834,10 +911,10 @@ column_name:
             NAME'.'NAME 
             {
                 bool s = (*sp)->SELECT_LIST;
-                variable V = variable($3, $1, depth);
+                variable* V = new variable($3, $1, depth);
                 if(s) {
-                    (*sp)->select_variable->push_back();
-                    $$ = NULL;
+                    (*sp)->select_variable->push_back(*V);
+                    $$ = V;
                 } else {
                     $$ = V;
                 }
@@ -845,10 +922,10 @@ column_name:
            | NAME  
              {  
                bool s = (*sp)->SELECT_LIST;
-               variable V = variable($1, depth);
+               variable* V = new variable($1, depth);
                if(s) {
-                   (*sp)->select_variable->push_back(V);
-                   $$ = NULL;
+                   (*sp)->select_variable->push_back(*V);
+                   $$ = V;
                } else {
                    $$ = V;
                }
@@ -1034,18 +1111,18 @@ list_function_exp:
                   column_name ',' list_function_exp
                 {
                     $$ = $3;
-                    $$.variables->push_back($1);
+                    $$->variables->push_back(*$1);
                 }
                 | column_name 
                 {
-                    $$ = expression_info();
-                    $$.variables->push_back($1);
+                    $$ = new expression_info();
+                    $$->variables->push_back(*$1);
                 }
                 | function_expression ',' list_function_exp
                 {
                     $$ = $1;
-                    for(variable v : *$3.variables) {
-                        $$.variables->push_back(v);
+                    for(variable v : *$3->variables) {
+                        $$->variables->push_back(v);
                     }
                 }
                 | function_expression 

@@ -1,10 +1,12 @@
 #include <syslog.h>
 
 
+#ifndef MAX_LEN
+#define MAX_LEN 50
+#endif
+
 #ifndef PROGRAM_H
 #define PROGRAM_H
-
-#define MAX_LEN 30
 
 class Program {
     public:

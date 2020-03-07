@@ -1,9 +1,12 @@
 #include <cpprest/json.h>
 #include <string.h>
 
+#ifndef MAX_LEN
+#define MAX_LEN 50
+#endif
+
 #ifndef COLUMN_H
 #define COLUMN_H
-#define MAX_LEN 30
 
 class Column{
     public:

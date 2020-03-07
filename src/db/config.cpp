@@ -32,7 +32,7 @@ bool connect_and_listen(char *ip, int port, std::vector<Database*> replicas) {
     printf("Num of tables %d\n", database->getNumOfTables());
     vector<SearchType> searchTypes;
     
-    char *p = "SELECT * FROM dbversion;";
+    const char *p = "SELECT * FROM dbversion;";
     parse(p, database, &searchTypes);
     
     printf("Done parse:\n");

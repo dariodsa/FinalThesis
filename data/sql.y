@@ -7,87 +7,21 @@
 #include "../src/structures/index.h"
 #include "../src/structures/table.h"
 #include "../src/structures/column.h"
-#include "../src/structures/token.h"
+#include "../src/structures/result.h"
+
 using namespace std;
+
+char AND_STR[] = "AND";
+char NOT_STR[] = "NOT";
+char OR_STR[]  = "OR";
+
 int lineno = 1;
 int yylex();
 extern char* yytext;
-void yyerror(char* msg);
+void yyerror(const char* msg);
 int yyparse();
 
 extern Database* database;
-
-
-struct variable {
-
-    int depth;
-    char name[100];
-    bool t;
-    char table[100];
-    variable() {}
-    variable(const char* _name, int _depth) {
-        depth = depth;
-        strcpy(name, _name);
-        t = false;
-    }
-    variable(const char* _name, char* _table, int _depth) {
-        depth = depth;
-        strcpy(name, _name);
-        t = true;
-        strcpy(table, _table);
-    }
-};
-
-struct table_name {
-
-    int depth;
-    char name[100];
-    char real_name[100];
-    table_name(const char* _name, const char* _real_name, int _depth) {
-        depth = _depth;
-        strcpy(name, _name);
-        strcpy(real_name, _real_name);
-    }
-};
-
-struct select_state {
-    vector<table_name*>* tables;
-    vector<variable>* select_variable;
-    bool SELECT_LIST = false;
-    select_state() {
-        SELECT_LIST = true;
-        select_variable = new vector<variable>();
-    }
-};
-
-struct expression_info {
-    bool equal = false;
-    vector<variable>* variables;
-    expression_info() {
-        variables = new vector<variable>();
-    }
-};
-
-struct node{
-    bool terminal = false;
-    char name[5];
-    expression_info* e1;
-    node *left = 0; 
-    node *right = 0;
-    node() {
-        
-    }
-};
-
-
-
-enum TYPE{
-      SELECT_VARIABLE
-    , CONDITION_VARIABLE
-    , SORT_VARIABLE
-    , GROUP_VARIABLE 
-};
-
 
 extern vector<SearchType>* searchTypes;
 %}
@@ -551,13 +485,13 @@ condition:
              
             
             node* n = new node();
-            strcpy(n->name, "NOT");
+            strcpy(n->name, NOT_STR);
             n->left = new node();
             n->left->e1 = $2; 
 
 
             $$ = new node();
-            strcpy($$->name, "AND");
+            strcpy($$->name, AND_STR);
             $$->right = $4;
             $$->left = n;
 
@@ -565,20 +499,20 @@ condition:
          | NOT comparison_condition OR condition
          {
             node* n = new node();
-            strcpy(n->name, "NOT");
+            strcpy(n->name, NOT_STR);
             n->left = new node();
             n->left->e1 = $2; 
 
 
             $$ = new node();
-            strcpy($$->name, "OR");
+            strcpy($$->name, OR_STR);
             $$->right = $4;
             $$->left = n;
          }
          | NOT comparison_condition
          {
             $$ = new node();
-            strcpy($$->name, "NOT");
+            strcpy($$->name, NOT_STR);
             $$->left = new node();
             $$->left->terminal = true;
             $$->left->e1 = $2;
@@ -590,11 +524,11 @@ condition:
             n1->e1 = $2;
 
             node* n2 = new node();
-            strcpy(n2->name, "NOT");
+            strcpy(n2->name, NOT_STR);
             n2->left = n1;
 
             $$ = new node();
-            strcpy($$->name, "OR");
+            strcpy($$->name, OR_STR);
             $$->left = n2;
             $$->right = $4;
          }
@@ -605,11 +539,11 @@ condition:
             n1->e1 = $2;
 
             node* n2 = new node();
-            strcpy(n2->name, "NOT");
+            strcpy(n2->name, NOT_STR);
             n2->left = n1;
 
             $$ = new node();
-            strcpy($$->name, "AND");
+            strcpy($$->name, AND_STR);
             $$->left = n2;
             $$->right = $4;
          }
@@ -620,7 +554,7 @@ condition:
             n1->e1 = $2;
 
             $$ = new node();
-            strcpy($$->name, "NOT");
+            strcpy($$->name, NOT_STR);
             $$->left = n1;
          }
          | comparison_condition AND condition
@@ -630,7 +564,7 @@ condition:
             n1->e1 = $1;
 
             $$ = new node();
-            strcpy($$->name, "AND");
+            strcpy($$->name, AND_STR);
             $$->left = n1;
             $$->right = $3;
          }
@@ -641,7 +575,7 @@ condition:
             n1->e1 = $1;
 
             $$ = new node();
-            strcpy($$->name, "OR");
+            strcpy($$->name, OR_STR);
             $$->left = n1;
             $$->right = $3;
          }
@@ -658,7 +592,7 @@ condition:
             n1->e1 = $1;
 
             $$ = new node();
-            strcpy($$->name, "OR");
+            strcpy($$->name, OR_STR);
             $$->left = n1;
             $$->right = $3;
          }
@@ -669,7 +603,7 @@ condition:
             n1->e1 = $1;
 
             $$ = new node();
-            strcpy($$->name, "AND");
+            strcpy($$->name, AND_STR);
             $$->left = n1;
             $$->right = $3;
          }
@@ -683,14 +617,14 @@ condition:
          | condition AND condition
          {
             $$ = new node();
-            strcpy($$->name, "AND");
+            strcpy($$->name, AND_STR);
             $$->left = $1;
             $$->right = $3;
          }
          | condition OR condition
          {
             $$ = new node();
-            strcpy($$->name, "OR");
+            strcpy($$->name, OR_STR);
             $$->left = $1;
             $$->right = $3;
          }
@@ -1147,8 +1081,6 @@ vector<SearchType>* searchTypes;
 
 int depth = 0;
 
-TYPE type;
-
 bool SELECT_LIST = false;
 
 select_state* stack[1000];
@@ -1161,7 +1093,7 @@ extern YY_BUFFER_STATE yy_scan_string(const char * str);
 extern void yy_delete_buffer(YY_BUFFER_STATE buffer);
 
 
-void parse(char* query, Database* _database, vector<SearchType>* _searchTypes)
+void parse(const char* query, Database* _database, vector<SearchType>* _searchTypes)
 {
     sp = stack;
     database = _database;
@@ -1177,7 +1109,7 @@ void parse(char* query, Database* _database, vector<SearchType>* _searchTypes)
     }*/
 }
 
-void yyerror(char *s) {
+void yyerror(const char *s) {
     printf("%d: %s at \"%s\"\n", lineno, s, yytext);
 }
 
@@ -1190,3 +1122,4 @@ void yyerror(char *s) {
 /*int main(int argc, char* argv[]) {
    yyparse();
  }*/
+

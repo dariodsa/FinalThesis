@@ -76,7 +76,7 @@ bool Database::disconnect() {
     return true;
 }
 
-PGresult* Database::executeQuery(char* query) {
+PGresult* Database::executeQuery(const char* query) {
 
     Program* program = Program::getInstance();
     PGresult *res;

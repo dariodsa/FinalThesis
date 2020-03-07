@@ -8,10 +8,13 @@
 
 using namespace pqxx;
 
+#ifndef MAX_LEN
+#define MAX_LEN 50
+#endif
+
 #ifndef DATABASE_H
 #define DATABASE_H
 
-#define MAX_LEN 30
 
 enum SearchType{
       SELECT_TYPE
@@ -29,7 +32,7 @@ class Database {
         bool connect();
         bool disconnect();
         void addTable(Table *t);
-        PGresult* executeQuery(char* query);
+        PGresult* executeQuery(const char* query);
 
         Table* getTable(char* table_name);
         size_t getNumOfTables();

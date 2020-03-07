@@ -86,7 +86,7 @@ void Proxy::send_row_descriptor(PGresult* res, int s1, int col_count) {
         char* col_name = PQfname(res, col);
     
         write(s1, col_name, strlen(col_name));
-        char n = NULL;
+        char n = 0;
         write(s1, &n, 1);
         int br = htonl(0);
         short a = htons(0);
@@ -133,7 +133,7 @@ void Proxy::send_row_data(PGresult* res, int s1, int row_count, int col_count) {
             int len1 = htonl(len);
             write(s1, &len1, 4);
             write(s1, row_data, len);
-            char n = NULL;
+            char n = 0;
             
         }
     }

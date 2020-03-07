@@ -91,7 +91,10 @@ typedef union
 
    table_name* table_name;
    
-   
+   variable* variable;
+   expression_info* expression_info;
+
+   node *node;
 } YYSTYPE;
 #endif /* !YYSTYPE_IS_DECLARED */
 extern YYSTYPE yylval;

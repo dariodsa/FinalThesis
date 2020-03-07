@@ -5,10 +5,14 @@
 #include <cpprest/json.h>
 
 using namespace std;
-#define MAX_LEN 100
+
+#ifndef MAX_LEN
+#define MAX_LEN 50
+#endif
 
 #ifndef INDEX_H
 #define INDEX_H
+
 
 enum TYPE_COL{
     ASC_ORDER = 1

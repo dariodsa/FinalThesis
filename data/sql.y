@@ -11,10 +11,6 @@
 
 using namespace std;
 
-char AND_STR[] = "AND";
-char NOT_STR[] = "NOT";
-char OR_STR[]  = "OR";
-
 int lineno = 1;
 int yylex();
 extern char* yytext;

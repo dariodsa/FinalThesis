@@ -4,6 +4,10 @@
 #ifndef RESULT_H
 #define RESULT_H 
 
+char AND_STR[] = "AND";
+char NOT_STR[] = "NOT";
+char OR_STR[]  = "OR";
+
 struct variable {
 
     int depth;
@@ -54,14 +58,14 @@ struct expression_info {
     }
 };
 
-struct node{
+struct node {
     bool terminal = false;
     char name[5];
     expression_info* e1;
     node *left = 0; 
     node *right = 0;
     node() {
-        
+        terminal = false;
     }
 };
 
@@ -87,6 +91,7 @@ class Select{
     public: 
         Select(node *node);
     private:
+        std::vector<expression_info> bfs_populate(node *node);
 
 };
 

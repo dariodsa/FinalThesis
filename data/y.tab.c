@@ -30,10 +30,6 @@
 
 using namespace std;
 
-char AND_STR[] = "AND";
-char NOT_STR[] = "NOT";
-char OR_STR[]  = "OR";
-
 int lineno = 1;
 int yylex();
 extern char* yytext;
@@ -49,7 +45,7 @@ extern vector<SearchType>* searchTypes;
 #endif
 #ifndef YYSTYPE_IS_DECLARED
 #define YYSTYPE_IS_DECLARED 1
-#line 40 "sql.y"
+#line 36 "sql.y"
 typedef union
 {
    double fvalue;
@@ -71,7 +67,7 @@ typedef union
    node *node;
 } YYSTYPE;
 #endif /* !YYSTYPE_IS_DECLARED */
-#line 75 "y.tab.c"
+#line 71 "y.tab.c"
 
 /* compatibility with bison */
 #ifdef YYPARSE_PARAM
@@ -1035,7 +1031,7 @@ typedef struct {
 } YYSTACKDATA;
 /* variables for the parser stack */
 static YYSTACKDATA yystack;
-#line 1076 "sql.y"
+#line 1072 "sql.y"
 
 extern FILE *yyin;
 Database* database;
@@ -1086,7 +1082,7 @@ void yyerror(const char *s) {
    yyparse();
  }*/
 
-#line 1090 "y.tab.c"
+#line 1086 "y.tab.c"
 
 #if YYDEBUG
 #include <stdio.h>	/* needed for printf */
@@ -1286,7 +1282,7 @@ yyreduce:
     switch (yyn)
     {
 case 3:
-#line 127 "sql.y"
+#line 123 "sql.y"
 	{ 
             searchTypes->push_back(SELECT_TYPE);
             printf("SELECT\n");
@@ -1294,20 +1290,20 @@ case 3:
         }
 break;
 case 4:
-#line 133 "sql.y"
+#line 129 "sql.y"
 	{
             searchTypes->push_back(INSERT_TYPE);
         }
 break;
 case 5:
-#line 137 "sql.y"
+#line 133 "sql.y"
 	{
             database->addTable(yystack.l_mark[0].table);
             searchTypes->push_back(CREATE_TYPE);
         }
 break;
 case 6:
-#line 142 "sql.y"
+#line 138 "sql.y"
 	{
             Table *t = database->getTable(yystack.l_mark[0].index->getTable());
             if(t == NULL) {
@@ -1318,13 +1314,13 @@ case 6:
         }
 break;
 case 7:
-#line 151 "sql.y"
+#line 147 "sql.y"
 	{
             searchTypes->push_back(ALTER_TYPE);
         }
 break;
 case 8:
-#line 158 "sql.y"
+#line 154 "sql.y"
 	{
                     Table *t = database->getTable(yystack.l_mark[-4].text);
                     if(t == NULL) {
@@ -1334,7 +1330,7 @@ case 8:
                 }
 break;
 case 9:
-#line 166 "sql.y"
+#line 162 "sql.y"
 	{
                     Table *t = database->getTable(yystack.l_mark[-1].text);
                     if(t == NULL) {
@@ -1344,7 +1340,7 @@ case 9:
                 }
 break;
 case 10:
-#line 176 "sql.y"
+#line 172 "sql.y"
 	{
                         Table *table = database->getTable(yystack.l_mark[-2].text);
                         if(table == NULL) {
@@ -1356,7 +1352,7 @@ case 10:
                     }
 break;
 case 11:
-#line 186 "sql.y"
+#line 182 "sql.y"
 	{
                         Table *table = database->getTable(yystack.l_mark[-2].text);
                         if(table == NULL) {
@@ -1368,49 +1364,49 @@ case 11:
                      }
 break;
 case 12:
-#line 198 "sql.y"
+#line 194 "sql.y"
 	{
                 yystack.l_mark[-3].index->addColumn(yystack.l_mark[-1].text, ASC_ORDER);
                 yyval.index=yystack.l_mark[-3].index;
             }
 break;
 case 13:
-#line 203 "sql.y"
+#line 199 "sql.y"
 	{
                 yystack.l_mark[-3].index->addColumn(yystack.l_mark[-1].text, DESC_ORDER);
                 yyval.index=yystack.l_mark[-3].index;
             }
 break;
 case 14:
-#line 208 "sql.y"
+#line 204 "sql.y"
 	{
                 yystack.l_mark[-2].index->addColumn(yystack.l_mark[0].text, ASC_ORDER);
                 yyval.index=yystack.l_mark[-2].index;
             }
 break;
 case 15:
-#line 213 "sql.y"
+#line 209 "sql.y"
 	{
                 yyval.index=new Index();
                 yyval.index->addColumn(yystack.l_mark[-1].text, ASC_ORDER); 
             }
 break;
 case 16:
-#line 218 "sql.y"
+#line 214 "sql.y"
 	{
                 yyval.index=new Index();
                 yyval.index->addColumn(yystack.l_mark[-1].text, DESC_ORDER); 
             }
 break;
 case 17:
-#line 223 "sql.y"
+#line 219 "sql.y"
 	{
                 yyval.index=new Index();
                 yyval.index->addColumn(yystack.l_mark[0].text);
             }
 break;
 case 18:
-#line 231 "sql.y"
+#line 227 "sql.y"
 	{
                     yyval.index=yystack.l_mark[-1].index;
                     yyval.index->setTable(yystack.l_mark[-3].text);
@@ -1419,7 +1415,7 @@ case 18:
                 }
 break;
 case 19:
-#line 238 "sql.y"
+#line 234 "sql.y"
 	{
                     yyval.index=yystack.l_mark[-1].index;
                     yyval.index->setTable(yystack.l_mark[-3].text);
@@ -1428,28 +1424,28 @@ case 19:
                 }
 break;
 case 20:
-#line 246 "sql.y"
+#line 242 "sql.y"
 	{
     yystack.l_mark[0].table->setTableName(yystack.l_mark[-1].text);
     yyval.table=yystack.l_mark[0].table;
 }
 break;
 case 21:
-#line 253 "sql.y"
+#line 249 "sql.y"
 	{
           yystack.l_mark[-2].table->addColumn(yystack.l_mark[0].column);
           yyval.table = yystack.l_mark[-2].table;
        }
 break;
 case 22:
-#line 258 "sql.y"
+#line 254 "sql.y"
 	{
           yyval.table = new Table();
           yyval.table->addColumn(yystack.l_mark[0].column);
        }
 break;
 case 23:
-#line 265 "sql.y"
+#line 261 "sql.y"
 	{
                   if(yystack.l_mark[0].index != NULL) {
                       yystack.l_mark[-2].table->addIndex(yystack.l_mark[0].index);
@@ -1458,14 +1454,14 @@ case 23:
               }
 break;
 case 24:
-#line 272 "sql.y"
+#line 268 "sql.y"
 	{
                   yystack.l_mark[-2].table->addColumn(yystack.l_mark[0].column);
                   yyval.table=yystack.l_mark[-2].table;
               }
 break;
 case 25:
-#line 277 "sql.y"
+#line 273 "sql.y"
 	{
                   yyval.table = new Table();
                   if(yystack.l_mark[0].index != NULL) {
@@ -1474,39 +1470,39 @@ case 25:
               }
 break;
 case 26:
-#line 284 "sql.y"
+#line 280 "sql.y"
 	{
                   yyval.table = new Table();
                   yyval.table->addColumn(yystack.l_mark[0].column);
               }
 break;
 case 27:
-#line 293 "sql.y"
+#line 289 "sql.y"
 	{
              yyval.table = yystack.l_mark[-1].table;
          }
 break;
 case 28:
-#line 297 "sql.y"
+#line 293 "sql.y"
 	{
             yystack.l_mark[-3].table->mergeTable(yystack.l_mark[-1].table);
             yyval.table=yystack.l_mark[-3].table;
         }
 break;
 case 29:
-#line 304 "sql.y"
+#line 300 "sql.y"
 	{yyval.text=yystack.l_mark[-3].text;}
 break;
 case 30:
-#line 305 "sql.y"
+#line 301 "sql.y"
 	{yyval.text=yystack.l_mark[-5].text;}
 break;
 case 31:
-#line 306 "sql.y"
+#line 302 "sql.y"
 	{yyval.text=yystack.l_mark[0].text;}
 break;
 case 32:
-#line 311 "sql.y"
+#line 307 "sql.y"
 	{
                       yyval.column = new Column(yystack.l_mark[-2].text, yystack.l_mark[-1].text);
                       if(yystack.l_mark[0].number == UNIQUE || yystack.l_mark[0].number == PRIMARY) {
@@ -1516,13 +1512,13 @@ case 32:
                   }
 break;
 case 33:
-#line 319 "sql.y"
+#line 315 "sql.y"
 	{
                       yyval.column = new Column(yystack.l_mark[-1].text, yystack.l_mark[0].text);
                   }
 break;
 case 46:
-#line 352 "sql.y"
+#line 348 "sql.y"
 	{
                             yyval.index = new Index();
                             yyval.index->setUnique(true);
@@ -1532,7 +1528,7 @@ case 46:
                         }
 break;
 case 47:
-#line 360 "sql.y"
+#line 356 "sql.y"
 	{
                             yyval.index = new Index();
                             for(int i = 0; i < yystack.l_mark[-1].names->size(); ++i) {
@@ -1541,128 +1537,128 @@ case 47:
                        }
 break;
 case 48:
-#line 366 "sql.y"
+#line 362 "sql.y"
 	{ yyval.index = 0;}
 break;
 case 49:
-#line 367 "sql.y"
+#line 363 "sql.y"
 	{ yyval.index = 0;}
 break;
 case 50:
-#line 371 "sql.y"
+#line 367 "sql.y"
 	{ yyval.index = yystack.l_mark[0].index; }
 break;
 case 51:
-#line 372 "sql.y"
+#line 368 "sql.y"
 	{ yyval.index = yystack.l_mark[0].index; }
 break;
 case 52:
-#line 376 "sql.y"
+#line 372 "sql.y"
 	{yyval.number = 0;}
 break;
 case 53:
-#line 377 "sql.y"
+#line 373 "sql.y"
 	{yyval.number = 0;}
 break;
 case 54:
-#line 378 "sql.y"
+#line 374 "sql.y"
 	{ yyval.number = UNIQUE;}
 break;
 case 55:
-#line 379 "sql.y"
+#line 375 "sql.y"
 	{ yyval.number = PRIMARY;}
 break;
 case 56:
-#line 380 "sql.y"
+#line 376 "sql.y"
 	{yyval.number = 0;}
 break;
 case 57:
-#line 381 "sql.y"
+#line 377 "sql.y"
 	{yyval.number = 0;}
 break;
 case 58:
-#line 382 "sql.y"
+#line 378 "sql.y"
 	{yyval.number = 0;}
 break;
 case 59:
-#line 386 "sql.y"
+#line 382 "sql.y"
 	{yyval.number = yystack.l_mark[0].number;}
 break;
 case 60:
-#line 387 "sql.y"
+#line 383 "sql.y"
 	{yyval.number = yystack.l_mark[0].number;}
 break;
 case 63:
-#line 396 "sql.y"
+#line 392 "sql.y"
 	{
             
         }
 break;
 case 80:
-#line 423 "sql.y"
+#line 419 "sql.y"
 	{
                     
                  }
 break;
 case 83:
-#line 432 "sql.y"
+#line 428 "sql.y"
 	{ yyval.table_name = yystack.l_mark[0].table_name;}
 break;
 case 84:
-#line 433 "sql.y"
+#line 429 "sql.y"
 	{ yyval.table_name = yystack.l_mark[0].table_name;}
 break;
 case 85:
-#line 434 "sql.y"
+#line 430 "sql.y"
 	{ yyval.table_name = yystack.l_mark[-1].table_name;}
 break;
 case 86:
-#line 435 "sql.y"
+#line 431 "sql.y"
 	{ yyval.table_name = yystack.l_mark[0].table_name; }
 break;
 case 87:
-#line 439 "sql.y"
+#line 435 "sql.y"
 	{ yyval.table_name = yystack.l_mark[-2].table_name; }
 break;
 case 88:
-#line 441 "sql.y"
+#line 437 "sql.y"
 	{
                          yyval.table_name = yystack.l_mark[-5].table_name;
                      }
 break;
 case 93:
-#line 454 "sql.y"
+#line 450 "sql.y"
 	{ yyval.table_name = yystack.l_mark[0].table_name; }
 break;
 case 94:
-#line 456 "sql.y"
+#line 452 "sql.y"
 	{ 
                      yyval.table_name = yystack.l_mark[0].table_name;
                  }
 break;
 case 95:
-#line 462 "sql.y"
+#line 458 "sql.y"
 	{             
                     yystack.l_mark[-1].tables->push_back(yystack.l_mark[0].table_name);
                     yyval.tables = yystack.l_mark[-1].tables;
                 }
 break;
 case 96:
-#line 467 "sql.y"
+#line 463 "sql.y"
 	{ 
                      yyval.tables = new vector<table_name*>();
                      yyval.tables->push_back(yystack.l_mark[0].table_name);
                  }
 break;
 case 97:
-#line 472 "sql.y"
+#line 468 "sql.y"
 	{
                     yystack.l_mark[0].tables->push_back(yystack.l_mark[-1].table_name);
                     yyval.tables = yystack.l_mark[0].tables;
                 }
 break;
 case 100:
-#line 484 "sql.y"
+#line 480 "sql.y"
 	{
              
             
@@ -1680,7 +1676,7 @@ case 100:
          }
 break;
 case 101:
-#line 500 "sql.y"
+#line 496 "sql.y"
 	{
             node* n = new node();
             strcpy(n->name, NOT_STR);
@@ -1695,7 +1691,7 @@ case 101:
          }
 break;
 case 102:
-#line 513 "sql.y"
+#line 509 "sql.y"
 	{
             yyval.node = new node();
             strcpy(yyval.node->name, NOT_STR);
@@ -1705,7 +1701,7 @@ case 102:
          }
 break;
 case 103:
-#line 521 "sql.y"
+#line 517 "sql.y"
 	{
             node* n1 = new node();
             n1->terminal = true;
@@ -1722,7 +1718,7 @@ case 103:
          }
 break;
 case 104:
-#line 536 "sql.y"
+#line 532 "sql.y"
 	{
             node* n1 = new node();
             n1->terminal = true;
@@ -1739,7 +1735,7 @@ case 104:
          }
 break;
 case 105:
-#line 551 "sql.y"
+#line 547 "sql.y"
 	{
             node* n1 = new node();
             n1->terminal = true;
@@ -1751,7 +1747,7 @@ case 105:
          }
 break;
 case 106:
-#line 561 "sql.y"
+#line 557 "sql.y"
 	{
             node* n1 = new node();
             n1->terminal = true;
@@ -1764,7 +1760,7 @@ case 106:
          }
 break;
 case 107:
-#line 572 "sql.y"
+#line 568 "sql.y"
 	{
             node* n1 = new node();
             n1->terminal = true;
@@ -1777,7 +1773,7 @@ case 107:
          }
 break;
 case 108:
-#line 583 "sql.y"
+#line 579 "sql.y"
 	{
             yyval.node = new node();
             yyval.node->terminal = true;
@@ -1785,7 +1781,7 @@ case 108:
          }
 break;
 case 109:
-#line 589 "sql.y"
+#line 585 "sql.y"
 	{
             node* n1 = new node();
             n1->terminal = true;
@@ -1798,7 +1794,7 @@ case 109:
          }
 break;
 case 110:
-#line 600 "sql.y"
+#line 596 "sql.y"
 	{
             node* n1 = new node();
             n1->terminal = true;
@@ -1811,7 +1807,7 @@ case 110:
          }
 break;
 case 111:
-#line 611 "sql.y"
+#line 607 "sql.y"
 	{
             yyval.node = new node();
             yyval.node->terminal = true;
@@ -1819,11 +1815,11 @@ case 111:
          }
 break;
 case 112:
-#line 616 "sql.y"
+#line 612 "sql.y"
 	{ yyval.node = yystack.l_mark[-1].node; }
 break;
 case 113:
-#line 618 "sql.y"
+#line 614 "sql.y"
 	{
             yyval.node = new node();
             strcpy(yyval.node->name, AND_STR);
@@ -1832,7 +1828,7 @@ case 113:
          }
 break;
 case 114:
-#line 625 "sql.y"
+#line 621 "sql.y"
 	{
             yyval.node = new node();
             strcpy(yyval.node->name, OR_STR);
@@ -1841,7 +1837,7 @@ case 114:
          }
 break;
 case 123:
-#line 649 "sql.y"
+#line 645 "sql.y"
 	{  
                 yyval.expression_info = yystack.l_mark[-2].expression_info;
                 if(strcmp("=", yystack.l_mark[-1].text) == 0) yyval.expression_info->equal = true;
@@ -1852,7 +1848,7 @@ case 123:
              }
 break;
 case 124:
-#line 658 "sql.y"
+#line 654 "sql.y"
 	{
                 yyval.expression_info = yystack.l_mark[-5].expression_info;
                 for(variable v : *yystack.l_mark[-2].expression_info->variables) {
@@ -1866,7 +1862,7 @@ case 124:
             }
 break;
 case 125:
-#line 670 "sql.y"
+#line 666 "sql.y"
 	{
                 yyval.expression_info = yystack.l_mark[-4].expression_info;
                 for(variable v : *yystack.l_mark[-2].expression_info->variables) {
@@ -1879,14 +1875,14 @@ case 125:
             }
 break;
 case 126:
-#line 681 "sql.y"
+#line 677 "sql.y"
 	{
                 yyval.expression_info = yystack.l_mark[0].expression_info;
                 yyval.expression_info->equal = false;
             }
 break;
 case 127:
-#line 686 "sql.y"
+#line 682 "sql.y"
 	{
                 yyval.expression_info = new expression_info();
                 yyval.expression_info->variables->push_back(*yystack.l_mark[-2].variable);
@@ -1894,7 +1890,7 @@ case 127:
             }
 break;
 case 128:
-#line 692 "sql.y"
+#line 688 "sql.y"
 	{
                 yyval.expression_info = new expression_info();
                 yyval.expression_info->variables->push_back(*yystack.l_mark[-3].variable);
@@ -1902,19 +1898,19 @@ case 128:
             }
 break;
 case 129:
-#line 698 "sql.y"
+#line 694 "sql.y"
 	{
                 yyval.expression_info = new expression_info();
             }
 break;
 case 130:
-#line 702 "sql.y"
+#line 698 "sql.y"
 	{
                 yyval.expression_info = new expression_info();
             }
 break;
 case 131:
-#line 706 "sql.y"
+#line 702 "sql.y"
 	{
                 yyval.expression_info = new expression_info();
                 yyval.expression_info->variables->push_back(*yystack.l_mark[-3].variable);
@@ -1922,7 +1918,7 @@ case 131:
             }
 break;
 case 132:
-#line 712 "sql.y"
+#line 708 "sql.y"
 	{
                 yyval.expression_info = new expression_info();
                 yyval.expression_info->variables->push_back(*yystack.l_mark[-2].variable);
@@ -1930,7 +1926,7 @@ case 132:
             }
 break;
 case 133:
-#line 718 "sql.y"
+#line 714 "sql.y"
 	{
                 yyval.expression_info = new expression_info();
                 yyval.expression_info->variables->push_back(*yystack.l_mark[0].variable);
@@ -1938,7 +1934,7 @@ case 133:
             }
 break;
 case 134:
-#line 724 "sql.y"
+#line 720 "sql.y"
 	{
                 yyval.expression_info = new expression_info();
                 yyval.expression_info->variables->push_back(*yystack.l_mark[0].variable);
@@ -1946,7 +1942,7 @@ case 134:
             }
 break;
 case 135:
-#line 730 "sql.y"
+#line 726 "sql.y"
 	{
                 yyval.expression_info = new expression_info();
                 yyval.expression_info->variables->push_back(*yystack.l_mark[-3].variable);
@@ -1955,7 +1951,7 @@ case 135:
             }
 break;
 case 136:
-#line 737 "sql.y"
+#line 733 "sql.y"
 	{
                 yyval.expression_info = new expression_info();
                 yyval.expression_info->variables->push_back(*yystack.l_mark[-2].variable);
@@ -1964,49 +1960,49 @@ case 136:
             }
 break;
 case 137:
-#line 745 "sql.y"
+#line 741 "sql.y"
 	{ yyval.expression_info = yystack.l_mark[0].expression_info; }
 break;
 case 138:
-#line 746 "sql.y"
+#line 742 "sql.y"
 	{ yyval.expression_info = yystack.l_mark[0].expression_info; }
 break;
 case 141:
-#line 755 "sql.y"
+#line 751 "sql.y"
 	{
            yystack.l_mark[0].expression_info->variables->push_back(*yystack.l_mark[-2].variable);
            yyval.expression_info = yystack.l_mark[0].expression_info;
        }
 break;
 case 142:
-#line 760 "sql.y"
+#line 756 "sql.y"
 	{
           yyval.expression_info = new expression_info();
           yyval.expression_info->variables->push_back(*yystack.l_mark[0].variable); 
       }
 break;
 case 143:
-#line 765 "sql.y"
+#line 761 "sql.y"
 	{
         yyval.expression_info = new expression_info();
       }
 break;
 case 144:
-#line 769 "sql.y"
+#line 765 "sql.y"
 	{
         yyval.expression_info = new expression_info(); 
       }
 break;
 case 145:
-#line 772 "sql.y"
+#line 768 "sql.y"
 	{ yyval.expression_info = yystack.l_mark[0].expression_info; }
 break;
 case 146:
-#line 773 "sql.y"
+#line 769 "sql.y"
 	{ yyval.expression_info = new expression_info(); }
 break;
 case 147:
-#line 775 "sql.y"
+#line 771 "sql.y"
 	{
         yyval.expression_info = yystack.l_mark[0].expression_info;
         for(variable v : *yystack.l_mark[-2].expression_info->variables) {
@@ -2015,11 +2011,11 @@ case 147:
       }
 break;
 case 148:
-#line 781 "sql.y"
+#line 777 "sql.y"
 	{ yyval.expression_info = yystack.l_mark[0].expression_info; }
 break;
 case 149:
-#line 783 "sql.y"
+#line 779 "sql.y"
 	{
         yyval.expression_info = yystack.l_mark[0].expression_info;
         for(variable v : *yystack.l_mark[-2].expression_info->variables) {
@@ -2028,43 +2024,43 @@ case 149:
       }
 break;
 case 150:
-#line 789 "sql.y"
+#line 785 "sql.y"
 	{printf("Function\n");}
 break;
 case 151:
-#line 790 "sql.y"
+#line 786 "sql.y"
 	{ yyval.expression_info = yystack.l_mark[0].expression_info; }
 break;
 case 152:
-#line 791 "sql.y"
+#line 787 "sql.y"
 	{ yyval.expression_info = new expression_info(); }
 break;
 case 153:
-#line 793 "sql.y"
+#line 789 "sql.y"
 	{
 
       }
 break;
 case 154:
-#line 796 "sql.y"
+#line 792 "sql.y"
 	{ yyval.expression_info = yystack.l_mark[-1].expression_info; }
 break;
 case 160:
-#line 812 "sql.y"
+#line 808 "sql.y"
 	{
                            yyval.expression_info = yystack.l_mark[-5].expression_info;
                            /*TODO add result of subquery to the some tree structure*/
                        }
 break;
 case 161:
-#line 817 "sql.y"
+#line 813 "sql.y"
 	{
                            yyval.expression_info = yystack.l_mark[-4].expression_info;
                            /*TODO add result of subquery to the some tree structure*/
                        }
 break;
 case 162:
-#line 822 "sql.y"
+#line 818 "sql.y"
 	{
                            yyval.expression_info = new expression_info();
                            /*TODO add result of subquery to the some tree structure*/
@@ -2072,21 +2068,21 @@ case 162:
                        }
 break;
 case 163:
-#line 828 "sql.y"
+#line 824 "sql.y"
 	{
                            yyval.expression_info = yystack.l_mark[-4].expression_info;
                            /*TODO add result of subquery to the some tree structure*/
                        }
 break;
 case 164:
-#line 833 "sql.y"
+#line 829 "sql.y"
 	{
                            yyval.expression_info = yystack.l_mark[-5].expression_info;
                            /*TODO add result of subquery to the some tree structure*/
                        }
 break;
 case 167:
-#line 846 "sql.y"
+#line 842 "sql.y"
 	{
                 bool s = (*sp)->SELECT_LIST;
                 variable* V = new variable(yystack.l_mark[0].text, yystack.l_mark[-2].text, depth);
@@ -2099,7 +2095,7 @@ case 167:
             }
 break;
 case 168:
-#line 857 "sql.y"
+#line 853 "sql.y"
 	{  
                bool s = (*sp)->SELECT_LIST;
                variable* V = new variable(yystack.l_mark[0].text, depth);
@@ -2112,11 +2108,11 @@ case 168:
              }
 break;
 case 169:
-#line 869 "sql.y"
+#line 865 "sql.y"
 	{printf("CMP %s\n", yystack.l_mark[0].text);}
 break;
 case 180:
-#line 894 "sql.y"
+#line 890 "sql.y"
 	{  
                     int len = (strlen(yystack.l_mark[0].text) + 1) * sizeof(char);
                     char* name = (char*) malloc(len);
@@ -2128,7 +2124,7 @@ case 180:
                  }
 break;
 case 181:
-#line 904 "sql.y"
+#line 900 "sql.y"
 	{
                     yyval.names = new vector<char*>();
                     int len =  (strlen(yystack.l_mark[0].text) + 1) * sizeof(char);
@@ -2139,30 +2135,30 @@ case 181:
                 }
 break;
 case 192:
-#line 934 "sql.y"
+#line 930 "sql.y"
 	{ yyval.table_name = new table_name(yystack.l_mark[0].text, yystack.l_mark[0].text, depth); }
 break;
 case 193:
-#line 935 "sql.y"
+#line 931 "sql.y"
 	{ yyval.table_name = new table_name(yystack.l_mark[0].text, yystack.l_mark[-1].text, depth); }
 break;
 case 194:
-#line 936 "sql.y"
+#line 932 "sql.y"
 	{ yyval.table_name = new table_name(yystack.l_mark[0].text, yystack.l_mark[-2].text, depth); }
 break;
 case 195:
-#line 941 "sql.y"
+#line 937 "sql.y"
 	{ 
                      yyval.tables = new vector<table_name*>();
                      yyval.tables->push_back(yystack.l_mark[0].table_name); 
                  }
 break;
 case 196:
-#line 945 "sql.y"
+#line 941 "sql.y"
 	{ yyval.tables = yystack.l_mark[0].tables; }
 break;
 case 197:
-#line 950 "sql.y"
+#line 946 "sql.y"
 	{ 
                       for(int i = 0, len = yystack.l_mark[0].tables->size(); i < len; ++i) {
                         yystack.l_mark[-2].tables->push_back((*yystack.l_mark[0].tables)[i]);    
@@ -2171,13 +2167,13 @@ case 197:
                   }
 break;
 case 198:
-#line 957 "sql.y"
+#line 953 "sql.y"
 	{ 
                     yyval.tables = yystack.l_mark[0].tables;
                 }
 break;
 case 199:
-#line 963 "sql.y"
+#line 959 "sql.y"
 	{
                 /*tables.push(vector<table_name>());*/
                 for(int i = 0; i < yystack.l_mark[0].tables->size(); ++i) {
@@ -2191,49 +2187,49 @@ case 199:
             }
 break;
 case 210:
-#line 995 "sql.y"
+#line 991 "sql.y"
 	{
                      --depth;
                      pop(sp);
                  }
 break;
 case 211:
-#line 1000 "sql.y"
+#line 996 "sql.y"
 	{
                     --depth;
                     pop(sp);
                 }
 break;
 case 212:
-#line 1005 "sql.y"
+#line 1001 "sql.y"
 	{
                     --depth;
                     pop(sp);
                 }
 break;
 case 213:
-#line 1010 "sql.y"
+#line 1006 "sql.y"
 	{
                     --depth;
                     pop(sp);
                 }
 break;
 case 214:
-#line 1015 "sql.y"
+#line 1011 "sql.y"
 	{
                     --depth;
                     pop(sp);
                 }
 break;
 case 215:
-#line 1020 "sql.y"
+#line 1016 "sql.y"
 	{
                     --depth;
                     pop(sp);
                 }
 break;
 case 216:
-#line 1026 "sql.y"
+#line 1022 "sql.y"
 	{
     auto s1 = new select_state();
     printf("new select state\n");
@@ -2243,25 +2239,25 @@ case 216:
 }
 break;
 case 221:
-#line 1041 "sql.y"
+#line 1037 "sql.y"
 	{ yyval.expression_info = yystack.l_mark[0].expression_info; }
 break;
 case 222:
-#line 1046 "sql.y"
+#line 1042 "sql.y"
 	{
                     yyval.expression_info = yystack.l_mark[0].expression_info;
                     yyval.expression_info->variables->push_back(*yystack.l_mark[-2].variable);
                 }
 break;
 case 223:
-#line 1051 "sql.y"
+#line 1047 "sql.y"
 	{
                     yyval.expression_info = new expression_info();
                     yyval.expression_info->variables->push_back(*yystack.l_mark[0].variable);
                 }
 break;
 case 224:
-#line 1056 "sql.y"
+#line 1052 "sql.y"
 	{
                     yyval.expression_info = yystack.l_mark[-2].expression_info;
                     for(variable v : *yystack.l_mark[0].expression_info->variables) {
@@ -2270,18 +2266,18 @@ case 224:
                 }
 break;
 case 225:
-#line 1063 "sql.y"
+#line 1059 "sql.y"
 	{
                     yyval.expression_info = yystack.l_mark[0].expression_info;
                 }
 break;
 case 226:
-#line 1069 "sql.y"
+#line 1065 "sql.y"
 	{
                         yyval.expression_info = yystack.l_mark[-1].expression_info;
                      }
 break;
-#line 2285 "y.tab.c"
+#line 2281 "y.tab.c"
     }
     yystack.s_mark -= yym;
     yystate = *yystack.s_mark;

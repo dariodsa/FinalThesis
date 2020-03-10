@@ -4,9 +4,9 @@
 #ifndef RESULT_H
 #define RESULT_H 
 
-char AND_STR[] = "AND";
-char NOT_STR[] = "NOT";
-char OR_STR[]  = "OR";
+extern char AND_STR[4];
+extern char NOT_STR[4];
+extern char OR_STR[3];
 
 struct variable {
 
@@ -51,7 +51,7 @@ struct select_state {
 };
 
 struct expression_info {
-    bool equal = false;
+    int equal = 0;
     std::vector<variable>* variables;
     expression_info() {
         variables = new std::vector<variable>();
@@ -92,6 +92,8 @@ class Select{
         Select(node *node);
     private:
         std::vector<expression_info> bfs_populate(node *node);
+        
+        node* de_morgan(node* root);
 
 };
 

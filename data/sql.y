@@ -513,6 +513,13 @@ condition:
             $$->left->terminal = true;
             $$->left->e1 = $2;
          }         
+         | NOT condition {
+            node* n1 = $2;
+
+            $$ = new node();
+            strcpy($$->name, NOT_STR);
+            $$->left = n1;
+         }
          | NOT condition_with_subquery OR condition
          {
             node* n1 = new node();
@@ -643,9 +650,11 @@ conditional_expression:
 comparison_condition: 
 		     expression relation_operator expression 
              {  
+                printf("dsadasdas\n");
                 $$ = $1;
-                if(strcmp("=", $2) == 0) $$->equal = true;
-                else $$->equal = false;
+                if(strcmp("=", $2) == 0) $$->equal = 1;
+                else if(strcmp("<>", $2) == 0) $$->equal = 2;
+                else $$->equal = 0;
                 for(variable v : *$3->variables) {
                     $$->variables->push_back(v);
                 }
@@ -659,7 +668,7 @@ comparison_condition:
                 for(variable v : *$6->variables) {
                      $$->variables->push_back(v);
                 }
-                $$->equal = false;
+                $$->equal = 0;
 
             }
 		    | expression BETWEEN expression AND expression
@@ -671,24 +680,24 @@ comparison_condition:
                 for(variable v : *$5->variables) {
                      $$->variables->push_back(v);
                 }
-                $$->equal = false;
+                $$->equal = 0;
             }
 		    | in_condition
 		    {
                 $$ = $1;
-                $$->equal = false;
+                $$->equal = 0;
             }
             | column_name IS NULL_STR
             {
                 $$ = new expression_info();
                 $$->variables->push_back(*$1);
-                $$->equal = true;
+                $$->equal = 1;
             }
 		    | column_name IS NOT NULL_STR
             {
                 $$ = new expression_info();
                 $$->variables->push_back(*$1);
-                $$->equal = false;
+                $$->equal = 2;
             }
 		    | quoted_string NOT LIKE quoted_string
             {
@@ -702,39 +711,39 @@ comparison_condition:
             {
                 $$ = new expression_info();
                 $$->variables->push_back(*$1);
-                $$->equal = false;
+                $$->equal = 0;
             }
 		    | column_name LIKE quoted_string 
             {
                 $$ = new expression_info();
                 $$->variables->push_back(*$1);
-                $$->equal = false;
+                $$->equal = 0;
             }
 		    | quoted_string NOT LIKE column_name
             {
                 $$ = new expression_info();
                 $$->variables->push_back(*$4);
-                $$->equal = false;
+                $$->equal = 0;
             }
 		    | quoted_string LIKE column_name
             {
                 $$ = new expression_info();
                 $$->variables->push_back(*$3);
-                $$->equal = false;
+                $$->equal = 0;
             }
 		    | column_name NOT LIKE column_name
             {
                 $$ = new expression_info();
                 $$->variables->push_back(*$1);
                 $$->variables->push_back(*$4);
-                $$->equal = false;
+                $$->equal = 0;
             }
 		    | column_name LIKE column_name
             {
                 $$ = new expression_info();
                 $$->variables->push_back(*$1);
                 $$->variables->push_back(*$3);
-                $$->equal = false;
+                $$->equal = 0;
             }
             ;
 expression: 
@@ -924,7 +933,10 @@ values_clause:
 
 group_by_clause: GROUP BY list_names_sep_comma
 
-where_clause : WHERE condition
+where_clause : WHERE condition 
+            {
+                Select* s = new Select($2);
+            }
 
 table_reference: 
                 NAME { $$ = new table_name($1, $1, depth); }

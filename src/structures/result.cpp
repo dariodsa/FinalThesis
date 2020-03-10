@@ -9,6 +9,7 @@ char OR_STR[]  = "OR";
 
 Select::Select(node *root) {
 
+    printf("Select result\n");
     root = this->de_morgan(root);
     printf("Root name: %s\n", root->name);
     /*if(root->terminal == true) {
@@ -62,6 +63,10 @@ vector<expression_info> Select::bfs_populate(node *n) {
 
 node* Select::de_morgan(node* root) {
     
+    if(root->terminal) {
+        return root;
+    }
+    
     if(strcmp(root->name, NOT_STR) == 0) {
         if(!root->left->terminal && strcmp(root->left->name, NOT_STR) != 0){
             node* n = new node();
@@ -86,7 +91,8 @@ node* Select::de_morgan(node* root) {
             return n;
         } else if(!root->left->terminal && strcmp(root->left->name, NOT_STR) == 0) {
             //skip one not
-            return root->left;
+            return de_morgan(root->left->left);
+            
         } else if(root->left->terminal) {
             if(root->left->e1->equal != 0) {
                 root->left->e1->equal = 3 - root->left->e1->equal;

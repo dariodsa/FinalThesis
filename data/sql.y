@@ -650,7 +650,6 @@ conditional_expression:
 comparison_condition: 
 		     expression relation_operator expression 
              {  
-                printf("dsadasdas\n");
                 $$ = $1;
                 if(strcmp("=", $2) == 0) $$->equal = 1;
                 else if(strcmp("<>", $2) == 0) $$->equal = 2;
@@ -855,6 +854,12 @@ column_name:
                     (*sp)->select_variable->push_back(*V);
                     $$ = V;
                 } else {
+                    vector<table_name*>* tables = (*sp)->tables;
+                    for(table_name* t1 : *tables) {
+                        if(strcmp($1, t1->name) == 0 || strcmp($1, t1->real_name) == 0) {
+                            V->setTable(t1->real_name);
+                        }
+                    }
                     $$ = V;
                 }
             }
@@ -866,7 +871,11 @@ column_name:
                    (*sp)->select_variable->push_back(*V);
                    $$ = V;
                } else {
-                   $$ = V;
+                    vector<table_name*>* tables = (*sp)->tables;
+                    
+                    char* table_name = database->getTableNameByVar($1, tables);
+                    V->setTable(table_name);
+                    $$ = V;
                }
              }
            ;
@@ -935,7 +944,7 @@ group_by_clause: GROUP BY list_names_sep_comma
 
 where_clause : WHERE condition 
             {
-                Select* s = new Select($2);
+                Select* s = new Select(database, $2, (*sp)->tables, (*sp)->select_variable);
             }
 
 table_reference: 

@@ -50,6 +50,7 @@ web::json::value Table::getJSON() {
     return json;
 }
 
+
 char* Table::getTableName() {
     return this->name;
 }
@@ -57,6 +58,13 @@ char* Table::getTableName() {
 
 vector<Index*> Table::getIndex() {
     return this->indexs;
+}
+
+Column* Table::getColumn(const char *name) {
+    for(Column* col : columns) {
+        if(strcmp(name, col->getName()) == 0) return col;
+    }
+    return NULL;
 }
 
 void Table::addIndex(Index *index) {

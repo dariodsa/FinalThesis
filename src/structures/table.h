@@ -11,8 +11,10 @@ class Table {
         Table();
         Table(web::json::value json);
         Table(const char* table_name, const char* database);
+        
         char* getTableName();
         vector<Index*> getIndex();
+        Column* getColumn(const char *name);
 
         bool isIndex(vector<char*> column);
         bool isColumn(char* name);
@@ -27,6 +29,7 @@ class Table {
         void addRow();
 
         web::json::value getJSON();
+
     private:
         char name[MAX_LEN];
         char database[MAX_LEN];

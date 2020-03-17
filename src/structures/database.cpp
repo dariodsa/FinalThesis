@@ -104,9 +104,20 @@ void Database::addTable(Table *t) {
     }
     this->tables[table_name] = t;
 }
-Table* Database::getTable(char* name) {
+Table* Database::getTable(const char* name) {
     string table_name(name);
     return this->tables[table_name];
+}
+
+char * Database::getTableNameByVar(char* variable, vector<table_name*>* tables) {
+    for(table_name* _table : *tables) {
+        Table* table = this->getTable(_table->real_name);
+        printf("%s in %s\n", variable, _table->real_name);
+        if(table->isColumn(variable)) {
+            return _table->real_name;
+        }
+    }
+    return NULL;
 }
 
 size_t Database::getNumOfTables() {

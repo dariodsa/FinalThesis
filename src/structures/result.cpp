@@ -1,64 +1,148 @@
 #include "result.h"
 #include <stdio.h>
 #include <queue>
+#include <set>
+#include <string>
 using namespace std;
 
 char AND_STR[] = "AND";
 char NOT_STR[] = "NOT";
 char OR_STR[]  = "OR";
 
-Select::Select(node *root) {
+Result::Result() {}
 
-    printf("Select result\n");
-    root = this->de_morgan(root);
-    printf("Root name: %s\n", root->name);
-    /*if(root->terminal == true) {
-        //easy
+Result::Result(Table* table, std::vector<Column*>* columns) {
+    this->table = table;
+    for(Column* c : *columns) {
+        this->columns.push_back(c);
     }
-    else {
-        if(strcmp(root->name, NOT_STR) == 0) {
-            //can't do anything right now, maybe de morgan later
-        }
-        else if(strcmp(root->name, AND_STR) == 0) {
-            vector<expression_info> exp_list = this->bfs_populate(root);
-        }
-        else if(strcmp(root->name, OR_STR) == 0) {
-            vector<expression_info> l1 = this->bfs_populate(root->left);
-            vector<expression_info> l2 = this->bfs_populate(root->right);
-        }
-    }*/
+    this->type = SEQ_SCAN;
+    this->locked = false;
 }
 
-vector<expression_info> Select::bfs_populate(node *n) {
-    queue<node*> Q;
-    vector<expression_info> list;
+void Result::addElement(Result* result) {
+    this->results.push_back(result);
+}
 
-    Q.push(n);
-    while(!Q.empty()) {
-        node *pos = Q.front();
-        Q.pop();
+void Result::removeAndFlood() {
+    this->and_flood = false;
+}
 
-        if(pos->terminal) {
-            list.push_back(*pos->e1);
-            continue;
+void Result::print() {
+    if(this->results.size() != 0) {
+        for(auto r : results) {
+            r->print();
         }
-        if(strcmp(pos->name, AND_STR) != 0) continue;
-        //left
-        if(pos->left != 0) {
-            if(strcmp(pos->left->name, AND_STR) == 0) {
-                Q.push(pos->left);
-            }
-        }
+        return;
+    }
+    printf("u %s\n",  table->getTableName());
+    printf(" nad retcima: ");
+    for(Column* column : this->columns) {
+        printf("%s, ", column->getName());
+    }
+    printf("\n");
+    
+}
 
-        //right
-        if(pos->right != 0) {
-            if(strcmp(pos->right->name, AND_STR) == 0) {
-                Q.push(pos->right);
+Select::Select(Database* database, vector<table_name*>* tables, vector<variable>* variables) {
+}
+
+Select::Select(Database* database, node* root, vector<table_name*>* tables, vector<variable>* variables) {
+
+    this->database = database;
+    //remove not nodes
+    root = this->de_morgan(root);
+    printf("Root name: %s\n", root->name);
+
+    for(table_name* t : *tables) {
+        printf("Table: %s %s\n", t->name, t->real_name);
+    }
+    //asign tables to the variables
+    for(int i = 0, size = variables->size(); i < size; ++i) {
+
+        variable* v = &(*variables)[i];
+
+        if(v->table[0] == 0) {
+            strcpy(v->table, database->getTableNameByVar(v->name, tables));
+        } else {
+            for(table_name* t : *tables) {
+                if(strcmp(t->name, v->table) == 0) {
+                    v->setTable(t->real_name);
+                }
             }
         }
     }
 
-    return list;
+    vector<Result*> p = dfs(root);
+    for(auto r : p) {
+        r->print();
+    }
+    
+}
+
+vector<Result*> Select::dfs(node *root) {
+    
+    vector<Result*> results;
+    if(!root->terminal) {
+        
+        auto r1 = dfs(root->left);
+        auto r2 = dfs(root->right);
+            
+        if(strcmp(root->name, AND_STR) == 0) { // and
+            //try construct is
+            //merge rest
+            for(Result* _r : r1) {
+                results.push_back(_r);
+            }
+
+            //right subtree
+            for(Result* _r : r2) {
+                results.push_back(_r);
+            }
+
+        } else { // or
+            //merge two subtree
+            //block and
+            
+            //left subtree
+            for(Result* _r : r1) {
+                _r->removeAndFlood();
+                results.push_back(_r);
+            }
+
+            //right subtree
+            for(Result* _r : r2) {
+                _r->removeAndFlood();
+                results.push_back(_r);
+            }
+        }
+        return results;
+    } else { //terminal root
+        vector<variable> variables = *root->e1->variables;
+        set<string> tables;
+        for(auto v : variables) {
+            tables.insert(string(v.table));
+        }
+        int size = tables.size();
+        Result* composit = new Result();
+        
+        for(string t : tables) {
+            Table* table = database->getTable(t.c_str());
+            vector<Column*>* columns = new vector<Column*>();
+            for(auto v: variables) {
+                if(strcmp(table->getTableName(), v.table) == 0) {
+                    columns->push_back(table->getColumn(v.name));
+                }
+            }
+            printf("TAB %s\n", table->getTableName());
+            Result* _r = new Result(table, columns);
+            composit->addElement(_r);
+        }
+        vector<Result*> list;
+        list.push_back(composit);
+        return list;
+    }
+    
 }
 
 node* Select::de_morgan(node* root) {
@@ -78,8 +162,10 @@ node* Select::de_morgan(node* root) {
             
             //set name
             if(strcmp(root->left->name, OR_STR) == 0) {
+                memset(n->name, 0, 4);
                 strcpy(n->name, AND_STR);
             } else {
+                memset(n->name, 0, 4);
                 strcpy(n->name, OR_STR);
             }
             strcpy(not1->name, NOT_STR);
@@ -88,6 +174,11 @@ node* Select::de_morgan(node* root) {
             //set children
             not1->left = root->left->left;
             not2->left = root->left->right;
+            
+            n->left = this->de_morgan(n->left);
+            
+            n->right = this->de_morgan(n->right);
+            
             return n;
         } else if(!root->left->terminal && strcmp(root->left->name, NOT_STR) == 0) {
             //skip one not

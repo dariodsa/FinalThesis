@@ -40,36 +40,36 @@ OBJECT_PROGRAM = ${SOURCE_PROGRAM:.cpp=.o}
 OBJECT_CONFIG = ${SOURCE_CONFIG:.cpp=.o}
 MAIN=main
  
-main: $(OBJECT_CONFIG) $(OBJECT_INDEX) $(OBJECT_COLUMN) $(OBJECT_TABLE) $(OBJECT_DATABASE) $(OBJECT_PROGRAM) $(OBJECT_PROXY) $(OBJECT_RESULT)
-	$(CXX) $(CXXFLAGS)  -o $@  src/main.cpp  $^ $(LEX_YACC_FLAGS)  $(POSTGE_FLAGS)
+main: lex_yacc_part index column table result database program proxy  config
+	$(CXX) $(CXXFLAGS)  -o $@  src/main.cpp  $(OBJECT_PROXY) $(OBJECT_TOKEN) $(OBJECT_CONFIG)  $(OBJECT_PROGRAM) $(OBJECT_RESULT) $(OBJECT_DATABASE) $(OBJECT_TABLE) $(OBJECT_COLUMN) $(OBJECT_INDEX)  $(LEX_YACC_FLAGS)  $(POSTGE_FLAGS)
 
-$(OBJECT_INDEX): 
-	$(CXX) $(CXXFLAGS) -c $(SOURCE_INDEX) -o $@
+index: 
+	$(CXX) $(CXXFLAGS) -c $(SOURCE_INDEX) -o $(OBJECT_INDEX)
 
-$(OBJECT_COLUMN):
-	$(CXX) $(CXXFLAGS) -c $(SOURCE_COLUMN) -o $@
+column:
+	$(CXX) $(CXXFLAGS) -c $(SOURCE_COLUMN) -o $(OBJECT_COLUMN)
 
-$(OBJECT_TABLE):
-	$(CXX) $(CXXFLAGS) -c $(SOURCE_TABLE) -o $@
+table:
+	$(CXX) $(CXXFLAGS) -c $(SOURCE_TABLE) -o $(OBJECT_TABLE)
 
-$(OBJECT_DATABASE): 
-	$(CXX) $(CXXFLAGS) -c $(SOURCE_DATABASE) -o $@
+database: 
+	$(CXX) $(CXXFLAGS) -c $(SOURCE_DATABASE) -o $(OBJECT_DATABASE)
 
-$(OBJECT_RESULT):
-	$(CXX) $(CXXFLAGS) -c $(SOURCE_RESULT) -o $@
+result:
+	$(CXX) $(CXXFLAGS) -c $(SOURCE_RESULT) -o $(OBJECT_RESULT)
 
-$(OBJECT_PROGRAM): 
-	$(CXX) $(CXXFLAGS) -c $(SOURCE_PROGRAM) -o $@
+program: 
+	$(CXX) $(CXXFLAGS) -c $(SOURCE_PROGRAM) -o $(OBJECT_PROGRAM)
 
-$(OBJECT_CONFIG): lex_yacc_part
-	$(CXX)  $(CXXFLAGS) -c $(SOURCE_CONFIG)  -o $@  $(LEX_YACC_FLAGS)
+config: 
+	$(CXX)  $(CXXFLAGS) -c $(SOURCE_CONFIG)  -o $(OBJECT_CONFIG)  $(LEX_YACC_FLAGS)
 
-$(OBJECT_TOKEN): 
-	$(CXX)  $(CXXFLAGS) -c $(SOURCE_TOKEN)  -o $@
+token: 
+	$(CXX)  $(CXXFLAGS) -c $(SOURCE_TOKEN)  -o $(OBJECT_TOKEN)
 
 
-$(OBJECT_PROXY):
-	$(CXX) $(CXXFLAGS) -c $(SOURCE_PROXY) -o $@
+proxy:
+	$(CXX) $(CXXFLAGS) -c $(SOURCE_PROXY) -o $(OBJECT_PROXY)
 
 lex_yacc_part:
 	cd data; $(YACC) $(YACCFLAGS) $(YACC_FILE)

@@ -32,6 +32,11 @@ class Result{
         void setLock();
         void print();
         void addElement(Result *result);
+
+        Table getTable();
+        vector<Column*> getColumns();
+        vector<Result*> getResults();
+
     private:
         Table *table;
         
@@ -51,6 +56,9 @@ class Select{
         Select(Database* database, node* root, std::vector<table_name*>* tables, std::vector<variable>* variables);
     private:
         vector<Result*> dfs(node *node);
+
+        vector<Result*> processAnd(vector<Result*> inputs);
+
         node* de_morgan(node* root);
         Database* database;
 };

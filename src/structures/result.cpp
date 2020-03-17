@@ -50,6 +50,17 @@ void Result::setLock() {
     this->locked = true;
 }
 
+Table Result::getTable() {
+    return *this->table;
+}
+vector<Column*> Result::getColumns() {
+    return this->columns;
+}
+vector<Result*> Result::getResults() {
+    return this->results;
+}
+
+
 Select::Select(Database* database, vector<table_name*>* tables, vector<variable>* variables) {
 }
 
@@ -153,6 +164,13 @@ vector<Result*> Select::dfs(node *root) {
         return list;
     }
     
+}
+
+vector<Result*> Select::processAnd(vector<Result*> inputs) {
+    set<Table> tables;
+    for(Result* _r : inputs) {
+        tables.insert(_r->)
+    }
 }
 
 node* Select::de_morgan(node* root) {

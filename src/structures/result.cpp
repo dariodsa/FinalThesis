@@ -30,6 +30,7 @@ void Result::removeAndFlood() {
 
 void Result::print() {
     if(this->results.size() != 0) {
+        printf("Parent composit lock %d\n", locked);
         for(auto r : results) {
             r->print();
         }
@@ -42,6 +43,11 @@ void Result::print() {
     }
     printf("\n");
     
+}
+
+
+void Result::setLock() {
+    this->locked = true;
 }
 
 Select::Select(Database* database, vector<table_name*>* tables, vector<variable>* variables) {
@@ -134,10 +140,14 @@ vector<Result*> Select::dfs(node *root) {
                     columns->push_back(table->getColumn(v.name));
                 }
             }
-            printf("TAB %s\n", table->getTableName());
             Result* _r = new Result(table, columns);
             composit->addElement(_r);
         }
+        
+        if(root->e1->locked) {
+            composit->setLock();
+        }
+
         vector<Result*> list;
         list.push_back(composit);
         return list;

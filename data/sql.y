@@ -1085,6 +1085,7 @@ function_expression:
                      NAME '(' list_function_exp ')' 
                      {
                         $$ = $3;
+                        $$->locked = true;
                      }
 
                    ;

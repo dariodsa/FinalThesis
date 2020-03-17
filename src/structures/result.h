@@ -29,6 +29,7 @@ class Result{
         Result();
         Result(Table* table, std::vector<Column*>* columns);
         void removeAndFlood();
+        void setLock();
         void print();
         void addElement(Result *result);
     private:

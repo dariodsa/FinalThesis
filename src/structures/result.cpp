@@ -117,6 +117,8 @@ vector<Result*> Select::dfs(node *root) {
                 results.push_back(_r);
             }
 
+            results = this->processAnd(results); //try construct is
+
         } else { // or
             //merge two subtree
             //block and
@@ -169,8 +171,14 @@ vector<Result*> Select::dfs(node *root) {
 vector<Result*> Select::processAnd(vector<Result*> inputs) {
     set<Table> tables;
     for(Result* _r : inputs) {
-        tables.insert(_r->)
+        tables.insert(_r->getTable());
     }
+    for(Table _table : tables) {
+        for(Index* _index : _table.getIndex()) {
+            inputs = this->lookForIndex(_index, inputs);
+        }
+    }
+    return inputs;
 }
 
 node* Select::de_morgan(node* root) {

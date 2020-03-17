@@ -32,7 +32,7 @@ bool connect_and_listen(char *ip, int port, std::vector<Database*> replicas) {
     printf("Num of tables %d\n", database->getNumOfTables());
     vector<SearchType> searchTypes;
     
-    const char *p = "SELECT * FROM t1 where not ( x <> 2 or y <> 3);";
+    const char *p = "SELECT gi.graphid,i.hostid FROM graphs_items gi,items i WHERE fun(gi.graphid)=823 AND gi.itemid=i.itemid;";
     parse(p, database, &searchTypes);
     
     printf("Done parse:\n");

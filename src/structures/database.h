@@ -68,8 +68,10 @@ struct select_state {
 struct expression_info {
     int equal = 0;
     std::vector<variable>* variables;
+    bool locked;
     expression_info() {
         variables = new std::vector<variable>();
+        locked = false;
     }
 };
 

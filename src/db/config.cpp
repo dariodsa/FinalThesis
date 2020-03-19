@@ -32,7 +32,7 @@ bool connect_and_listen(char *ip, int port, std::vector<Database*> replicas) {
     printf("Num of tables %d\n", database->getNumOfTables());
     vector<SearchType> searchTypes;
     
-    const char *p = "SELECT gi.graphid,i.hostid FROM graphs_items gi,items i WHERE fun(gi.graphid)=823 AND gi.itemid=i.itemid;";
+    const char *p = "SELECT * from task where status = 320 and proxy_hostid = 32;";
     parse(p, database, &searchTypes);
     
     printf("Done parse:\n");

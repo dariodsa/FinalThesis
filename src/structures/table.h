@@ -30,6 +30,10 @@ class Table {
 
         web::json::value getJSON();
 
+        bool operator<(const Table &t1) const {
+            return strcmp(name, t1.name) < 0;
+        }
+
     private:
         char name[MAX_LEN];
         char database[MAX_LEN];

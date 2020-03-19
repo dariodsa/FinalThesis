@@ -30,13 +30,13 @@ class Result{
         Result(Table* table, std::vector<Column*>* columns);
         void removeAndFlood();
         void setLock();
+        void setParent(Result* result);
         void print();
-        void addElement(Result *result);
         bool hasColumn(char* col_name);
 
-        Table getTable();
+        Table* getTable();
         vector<Column*> getColumns();
-        vector<Result*> getResults();
+        Result* getParent();
 
     private:
         
@@ -47,8 +47,8 @@ class Result{
         bool locked;
         bool and_flood;
 
+        Result* parent;
         std::vector<Column*> columns;
-        std::vector<Result*> results;
         
 };
 

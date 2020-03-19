@@ -20,22 +20,11 @@ Result::Result(Table* table, std::vector<Column*>* columns) {
     this->locked = false;
 }
 
-void Result::addElement(Result* result) {
-    this->results.push_back(result);
-}
-
 void Result::removeAndFlood() {
     this->and_flood = false;
 }
 
 void Result::print() {
-    if(this->results.size() != 0) {
-        printf("Parent composit lock %d\n", locked);
-        for(auto r : results) {
-            r->print();
-        }
-        return;
-    }
     printf("u %s\n",  table->getTableName());
     printf(" nad retcima: ");
     for(Column* column : this->columns) {
@@ -50,14 +39,25 @@ void Result::setLock() {
     this->locked = true;
 }
 
-Table Result::getTable() {
-    return *this->table;
+void Result::setParent(Result* parent) {
+    this->parent = parent;
+}
+
+Table* Result::getTable() {
+    return this->table;
 }
 vector<Column*> Result::getColumns() {
     return this->columns;
 }
-vector<Result*> Result::getResults() {
-    return this->results;
+Result* Result::getParent() {
+    return this->parent;
+}
+
+bool Result::hasColumn(char* col_name) {
+    for(Column* col : columns) {
+        if(strcmp(col->getName(), col_name) == 0) return true;
+    }
+    return false;
 }
 
 
@@ -137,14 +137,19 @@ vector<Result*> Select::dfs(node *root) {
         }
         return results;
     } else { //terminal root
+
+        vector<Result*> list;
         vector<variable> variables = *root->e1->variables;
         set<string> tables;
         for(auto v : variables) {
             tables.insert(string(v.table));
         }
         int size = tables.size();
-        Result* composit = new Result();
-        
+        Result* parent = new Result();
+        if(root->e1->locked) {
+            parent->setLock();
+        }
+
         for(string t : tables) {
             Table* table = database->getTable(t.c_str());
             vector<Column*>* columns = new vector<Column*>();
@@ -154,27 +159,27 @@ vector<Result*> Select::dfs(node *root) {
                 }
             }
             Result* _r = new Result(table, columns);
-            composit->addElement(_r);
+            _r->setParent(parent);    
+            list.push_back(_r);
         }
         
-        if(root->e1->locked) {
-            composit->setLock();
-        }
-
-        vector<Result*> list;
-        list.push_back(composit);
         return list;
     }
     
 }
 
 vector<Result*> Select::processAnd(vector<Result*> inputs) {
-    set<Table> tables;
+    set<string> tables;
     for(Result* _r : inputs) {
-        tables.insert(_r->getTable());
+        
+        tables.insert(string(_r->getTable()->getTableName()));
+        cout << string(_r->getTable()->getTableName()) << endl;
     }
-    for(Table _table : tables) {
-        for(Index* _index : _table.getIndex()) {
+    for(string table_name : tables) {
+        Table* _table = database->getTable(table_name.c_str());
+        printf("Table %s, index num %d\n", _table->getTableName(), _table->getIndex().size());
+        for(Index* _index : _table->getIndex()) {
+            cout<<_index->getJSON()<<endl;
             inputs = this->lookForIndex(_index, inputs);
         }
     }
@@ -187,15 +192,18 @@ vector<Result*> Select::lookForIndex(Index* index, vector<Result*> inputs) {
     for(int col_id = 0; col_id < index->getColNumber(); ++col_id) {
         vector<Result*> _left;
         char* col_name = index->getColName(col_id);
-        
+        printf("index col %s\n", col_name);
         for(Result* result : left) {
+            printf("%d\n", result->hasColumn(col_name));
             if(result->hasColumn(col_name)) {
                 _left.push_back(result);
             }
         }
-        if(left.size() == 0 && col_id == 0) return inputs;
+        printf("%d/%d %d Name: %s, col: %s\n", col_id, index->getColNumber(), left.size(), index->getName(), col_name);
+        if(_left.size() == 0 && col_id == 0) return inputs;
         left = _left;
     }
+    printf("Found index");
     return left;
 }
 

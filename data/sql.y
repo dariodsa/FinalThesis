@@ -433,12 +433,16 @@ join_options:
             ;
 
 join_options_part_two: 
-                      JOIN table_reference ON condition { $$ = $2; }
-                     | JOIN table_reference ON USING '(' list_names_sep_comma  ')' 
-                     {
-                         $$ = $2;
-                     }
-                     ;           
+                    JOIN table_reference ON condition 
+                    {
+                        $$ = $2;
+                        
+                    }
+                    | JOIN table_reference ON USING '(' list_names_sep_comma  ')' 
+                    {
+                        $$ = $2;
+                    }
+                    ;           
 
 join_options_part_one: 
                      INNER 
@@ -960,6 +964,7 @@ group_by_clause: GROUP BY columns_sep_comma
 
 where_clause: WHERE condition 
             {
+                Select* s = new Select(database, $2, (*sp)->tables, (*sp)->select_variable);
                 $$ = $2;
             }
 

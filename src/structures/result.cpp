@@ -97,45 +97,55 @@ Select::Select(Database* database, node* root, vector<table_name*>* tables, vect
     
 }
 
-vector<Result*> Select::dfs(node *root) {
+void Select::process(vector<Result*> inputs) {
+    //try to find index
+    set<string> tables;
+    for(Result* _r : inputs) {
+        tables.insert(string(_r->getTable()->getTableName()));
+    }
+    for(string table_name : tables) {
+        Table* _table = database->getTable(table_name.c_str());
+        vector<Index*> indexes = _table->getIndex();
+        if(indexes.size() == 0) continue;
+
+        while(true) {
+            Index* best_index = indexes[0];
+            int mini_len = MAX_INTEGER;
+            for(Index* _index : indexes) {
+                int len = this->lookForIndex(_index, inputs).size();
+                if(len < mini_len) {
+                    mini_len = len;
+                    best_index = _index;
+                }
+            }
+            if(mini_len == inputs.size()) break;
+            inputs = this->createIndexScan(best_index, inputs);
+        }
+    }
+}
+
+vector<Result*> Select::dfs(node *root, int depth) {
     
     vector<Result*> results;
     if(!root->terminal) {
         
-        auto r1 = dfs(root->left);
-        auto r2 = dfs(root->right);
-            
         if(strcmp(root->name, AND_STR) == 0) { // and
-            //try construct is
-            //merge rest
-            for(Result* _r : r1) {
-                results.push_back(_r);
-            }
+            auto r1 = dfs(root->left, depth + 1);
+            auto r2 = dfs(root->right, depth + 1);    
 
-            //right subtree
-            for(Result* _r : r2) {
-                results.push_back(_r);
-            }
+            results.insert(results.end(), r1.begin(), r2.end());
+            results.insert(results.end(), r2.begin(), r2.end());
 
-            results = this->processAnd(results); //try construct is
-
+            if(depth == 0) process(results);
         } else { // or
-            //merge two subtree
-            //block and
-            
-            //left subtree
-            for(Result* _r : r1) {
-                _r->removeAndFlood();
-                results.push_back(_r);
-            }
+            auto r1 = dfs(root->left, depth + 1);
+            auto r2 = dfs(root->right, depth + 1);    
 
-            //right subtree
-            for(Result* _r : r2) {
-                _r->removeAndFlood();
-                results.push_back(_r);
-            }
+            process(r1);
+            process(r2);
         }
         return results;
+        
     } else { //terminal root
 
         vector<Result*> list;
@@ -168,22 +178,10 @@ vector<Result*> Select::dfs(node *root) {
     
 }
 
-vector<Result*> Select::processAnd(vector<Result*> inputs) {
-    set<string> tables;
-    for(Result* _r : inputs) {
-        
-        tables.insert(string(_r->getTable()->getTableName()));
-        cout << string(_r->getTable()->getTableName()) << endl;
-    }
-    for(string table_name : tables) {
-        Table* _table = database->getTable(table_name.c_str());
-        printf("Table %s, index num %d\n", _table->getTableName(), _table->getIndex().size());
-        for(Index* _index : _table->getIndex()) {
-            cout<<_index->getJSON()<<endl;
-            inputs = this->lookForIndex(_index, inputs);
-        }
-    }
-    return inputs;
+vector<Result*> Select::createIndexScan(Index* index, vector<Result*> inputs) {
+    vector<Result*> output = this->lookForIndex(index, inputs);
+    //add this index into list of actions
+    return output;
 }
 
 vector<Result*> Select::lookForIndex(Index* index, vector<Result*> inputs) {

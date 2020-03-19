@@ -57,10 +57,11 @@ class Select{
         Select(Database *database, std::vector<table_name*>* tables, std::vector<variable> *variables);
         Select(Database* database, node* root, std::vector<table_name*>* tables, std::vector<variable>* variables);
     private:
-        vector<Result*> dfs(node *node);
+        vector<Result*> dfs(node *node, int depth);
 
-        vector<Result*> processAnd(vector<Result*> inputs);
+        void process(vector<Result*> inputs);
         vector<Result*> lookForIndex(Index* index, vector<Result*> inputs);
+        vector<Result*> createIndexScan(Index* index, vector<Result*> inputs);
 
         node* de_morgan(node* root);
         Database* database;

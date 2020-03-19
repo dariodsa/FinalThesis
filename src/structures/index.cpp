@@ -11,14 +11,12 @@ Index::Index(web::json::value json) : Index(){
     this->setTable(json["table"].as_string().c_str());
     
     this->setUnique(json["unique"].as_bool());
-    this->size = 0;//json["size"].as_integer();
     this->hash = json["hash"].as_integer();
 
     web::json::array col_names = json["col_names"].as_array();
     web::json::array col_types = json["col_types"].as_array();
     int it = 0;
     for(auto col_name : col_names) {
-        this->size++;
         int col_type = col_types[it].as_integer();
         if(col_type == 1) {
             addColumn(col_name.as_string().c_str(), ASC_ORDER);
@@ -39,7 +37,6 @@ web::json::value Index::getJSON() {
     value["table"] = json::value::string(string(table));
 
     value["unique"] = json::value::boolean(unique);
-    value["size"] = json::value::number(size);
     value["hash"] = json::value::number(hash);
 
     value["col_names"] = json::value::array(col_names.size());
@@ -64,7 +61,6 @@ void Index::addColumn(const char* col_name, TYPE_COL type) {
     strcpy(name, col_name);
     this->col_names.push_back(name);
     this->types.push_back(type);
-    this->size++;
 
     for(int i = 0, len = strlen(col_name); i < len; ++i) {
         hash = hash * P + col_name[i];
@@ -88,7 +84,7 @@ void Index::setName(const char *name) {
 }
 
 int Index::getColNumber() {
-    return this->size;
+    return this->col_names.size();
 }
 
 int Index::getHash() {

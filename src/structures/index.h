@@ -54,7 +54,6 @@ class Index {
        char name[MAX_LEN];
 
        bool unique;
-       size_t size;
 };
 
 #endif

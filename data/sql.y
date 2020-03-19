@@ -107,7 +107,6 @@ extern vector<SearchType>* searchTypes;
 %type <expression_info> list_function_exp
 
 %type <node> condition
-%type <node> having_clause
 %type <node> where_clause
 
 %%
@@ -884,9 +883,9 @@ column_name:
 
 relation_operator: CMP {printf("CMP %s\n", $1);}
 
-having_clause : HAVING condition
+having_clause: HAVING condition
         {
-            $$ = $2;
+            
         }
 
 order_type: 
@@ -1009,18 +1008,12 @@ from_clause: FROM from_clauses_list
 select_options: 
                 projection_clause from_clause where_clause group_by_clause having_clause
                 {
-                    node *root = new node();
-                    strcpy(root->name, AND_STR);
-                    root->left = $3;
-                    root->right = $5;
+                   
                     
                 }  
                 | projection_clause from_clause where_clause having_clause
                 {
-                    node *root = new node();
-                    strcpy(root->name, AND_STR);
-                    root->left = $3;
-                    root->right = $4;
+                    
                 }
                 | projection_clause from_clause where_clause group_by_clause
                 {
@@ -1032,7 +1025,7 @@ select_options:
                 }
                 | projection_clause from_clause group_by_clause having_clause
                 {
-                    node *root = $4;
+                    //node *root = $4;
                 }
                 | projection_clause from_clause where_clause 
                 {
@@ -1048,7 +1041,7 @@ select_options_more:
                    | UNION SELECT select_options
                    ;
 
-select_statement: 
+select_statement:  //Select* s = new Select(database, $2, (*sp)->tables, (*sp)->select_variable);
                  select_word select_options
                  {
                      --depth;

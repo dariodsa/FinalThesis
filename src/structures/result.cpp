@@ -181,6 +181,24 @@ vector<Result*> Select::processAnd(vector<Result*> inputs) {
     return inputs;
 }
 
+vector<Result*> Select::lookForIndex(Index* index, vector<Result*> inputs) {
+    vector<Result*> left = inputs;
+
+    for(int col_id = 0; col_id < index->getColNumber(); ++col_id) {
+        vector<Result*> _left;
+        char* col_name = index->getColName(col_id);
+        
+        for(Result* result : left) {
+            if(result->hasColumn(col_name)) {
+                _left.push_back(result);
+            }
+        }
+        if(left.size() == 0 && col_id == 0) return inputs;
+        left = _left;
+    }
+    return left;
+}
+
 node* Select::de_morgan(node* root) {
     
     if(root->terminal) {

@@ -32,12 +32,14 @@ class Result{
         void setLock();
         void print();
         void addElement(Result *result);
+        bool hasColumn(char* col_name);
 
         Table getTable();
         vector<Column*> getColumns();
         vector<Result*> getResults();
 
     private:
+        
         Table *table;
         
         SEARCH_TYPE type;
@@ -58,6 +60,7 @@ class Select{
         vector<Result*> dfs(node *node);
 
         vector<Result*> processAnd(vector<Result*> inputs);
+        vector<Result*> lookForIndex(Index* index, vector<Result*> inputs);
 
         node* de_morgan(node* root);
         Database* database;

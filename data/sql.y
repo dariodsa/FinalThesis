@@ -107,6 +107,8 @@ extern vector<SearchType>* searchTypes;
 %type <expression_info> list_function_exp
 
 %type <node> condition
+%type <node> having_clause
+%type <node> where_clause
 
 %%
 
@@ -883,6 +885,9 @@ column_name:
 relation_operator: CMP {printf("CMP %s\n", $1);}
 
 having_clause : HAVING condition
+        {
+            $$ = $2;
+        }
 
 order_type: 
           ASC 
@@ -940,11 +945,23 @@ values_clause:
              | VALUES '(' NULL_STR ')'
              ;
 
-group_by_clause: GROUP BY list_names_sep_comma
+columns_sep_comma: column_name ',' columns_sep_comma
+                {
+                    (*sp)->select_variable->push_back(*$1);
+                }
+                | column_name 
+                {
+                    (*sp)->select_variable->push_back(*$1);
+                }
 
-where_clause : WHERE condition 
+group_by_clause: GROUP BY columns_sep_comma 
             {
-                Select* s = new Select(database, $2, (*sp)->tables, (*sp)->select_variable);
+
+            }
+
+where_clause: WHERE condition 
+            {
+                $$ = $2;
             }
 
 table_reference: 
@@ -991,15 +1008,39 @@ from_clause: FROM from_clauses_list
 
 select_options: 
                 projection_clause from_clause where_clause group_by_clause having_clause
-              | projection_clause from_clause where_clause having_clause
-              | projection_clause from_clause where_clause group_by_clause
-              | projection_clause from_clause group_by_clause
-              | projection_clause from_clause group_by_clause having_clause
-              | projection_clause from_clause where_clause 
-              | projection_clause from_clause
-              | projection_clause
-              
-              
+                {
+                    node *root = new node();
+                    strcpy(root->name, AND_STR);
+                    root->left = $3;
+                    root->right = $5;
+                    
+                }  
+                | projection_clause from_clause where_clause having_clause
+                {
+                    node *root = new node();
+                    strcpy(root->name, AND_STR);
+                    root->left = $3;
+                    root->right = $4;
+                }
+                | projection_clause from_clause where_clause group_by_clause
+                {
+                    node *root = $3;
+                }
+                | projection_clause from_clause group_by_clause
+                {
+
+                }
+                | projection_clause from_clause group_by_clause having_clause
+                {
+                    node *root = $4;
+                }
+                | projection_clause from_clause where_clause 
+                {
+                    node *root = $3;
+                }
+                | projection_clause from_clause
+                
+                | projection_clause
               ;
 
 select_options_more:

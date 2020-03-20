@@ -16,12 +16,6 @@ Result::Result(Table* table, std::vector<Column*>* columns) {
     for(Column* c : *columns) {
         this->columns.push_back(c);
     }
-    this->type = SEQ_SCAN;
-    this->locked = false;
-}
-
-void Result::removeAndFlood() {
-    this->and_flood = false;
 }
 
 void Result::print() {
@@ -43,6 +37,10 @@ void Result::setParent(Result* parent) {
     this->parent = parent;
 }
 
+void Result::setEqualType(int equalType) {
+    this->equaltype = equalType;
+}
+
 Table* Result::getTable() {
     return this->table;
 }
@@ -53,7 +51,12 @@ Result* Result::getParent() {
     return this->parent;
 }
 
+int Result::getEqualType() {
+    return this->equaltype;
+}
+
 bool Result::hasColumn(char* col_name) {
+    if(this->getParent()->locked == true) return false;
     for(Column* col : columns) {
         if(strcmp(col->getName(), col_name) == 0) return true;
     }
@@ -90,7 +93,7 @@ Select::Select(Database* database, node* root, vector<table_name*>* tables, vect
         }
     }
 
-    vector<Result*> p = dfs(root);
+    vector<Result*> p = dfs(root, 0);
     for(auto r : p) {
         r->print();
     }
@@ -110,15 +113,15 @@ void Select::process(vector<Result*> inputs) {
 
         while(true) {
             Index* best_index = indexes[0];
-            int mini_len = MAX_INTEGER;
+            int max_len = MIN_INTEGER;
             for(Index* _index : indexes) {
                 int len = this->lookForIndex(_index, inputs).size();
-                if(len < mini_len) {
-                    mini_len = len;
+                if(len > max_len) {
+                    max_len = len;
                     best_index = _index;
                 }
             }
-            if(mini_len == inputs.size()) break;
+            if(max_len == 0) break;
             inputs = this->createIndexScan(best_index, inputs);
         }
     }
@@ -179,9 +182,22 @@ vector<Result*> Select::dfs(node *root, int depth) {
 }
 
 vector<Result*> Select::createIndexScan(Index* index, vector<Result*> inputs) {
-    vector<Result*> output = this->lookForIndex(index, inputs);
-    //add this index into list of actions
-    return output;
+    vector<Result*> outputs = this->lookForIndex(index, inputs);
+    
+    int inputs_len = inputs.size();
+    int outputs_len = outputs.size();
+    int delta = inputs_len - outputs_len;
+
+    char* col_name = index->getColName(delta);
+    for(Result* result : inputs) {
+        if(result->hasColumn(col_name)) {
+            if(result->getColumns().size() == 1 && result->
+č            
+        }
+    }    
+    
+    
+    return outputs;
 }
 
 vector<Result*> Select::lookForIndex(Index* index, vector<Result*> inputs) {
@@ -190,14 +206,14 @@ vector<Result*> Select::lookForIndex(Index* index, vector<Result*> inputs) {
     for(int col_id = 0; col_id < index->getColNumber(); ++col_id) {
         vector<Result*> _left;
         char* col_name = index->getColName(col_id);
-        printf("index col %s\n", col_name);
+        
         for(Result* result : left) {
-            printf("%d\n", result->hasColumn(col_name));
+            
             if(result->hasColumn(col_name)) {
                 _left.push_back(result);
             }
         }
-        printf("%d/%d %d Name: %s, col: %s\n", col_id, index->getColNumber(), left.size(), index->getName(), col_name);
+        
         if(_left.size() == 0 && col_id == 0) return inputs;
         left = _left;
     }

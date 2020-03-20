@@ -14,8 +14,8 @@ using namespace std;
 #define MAX_LEN 50
 #endif
 
-#ifndef MAX_INTEGER
-#define MAX_INTEGER 0x3f3f3f3f
+#ifndef MIN_INTEGER
+#define MIN_INTEGER -0x3f3f3f3f
 #endif
 
 #ifndef DATABASE_H

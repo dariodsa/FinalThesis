@@ -28,26 +28,22 @@ class Result{
     public:
         Result();
         Result(Table* table, std::vector<Column*>* columns);
-        void removeAndFlood();
-        void setLock();
         void setParent(Result* result);
+        void setLock();
+        void setEqualType(int equalType);
         void print();
         bool hasColumn(char* col_name);
 
         Table* getTable();
         vector<Column*> getColumns();
         Result* getParent();
+        int getEqualType();
 
     private:
-        
         Table *table;
-        
-        SEARCH_TYPE type;
-        
-        bool locked;
-        bool and_flood;
-
         Result* parent;
+        int equaltype = 0;
+        bool locked;
         std::vector<Column*> columns;
         
 };

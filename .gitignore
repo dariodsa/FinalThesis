@@ -53,10 +53,13 @@ dkms.conf
 
 data/lex.yy.c
 data/y.tab.h
+data/y.tab.c
 data/sql.tab.c
 data/sql.tab.h
 
 src/main
+
+main
 
 data/i1
 

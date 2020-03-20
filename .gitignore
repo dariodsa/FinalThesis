@@ -52,6 +52,7 @@ Mkfile.old
 dkms.conf
 
 data/lex.yy.c
+data/y.tab.h
 data/sql.tab.c
 data/sql.tab.h
 

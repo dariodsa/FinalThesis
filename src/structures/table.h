@@ -31,7 +31,12 @@ class Table {
         web::json::value getJSON();
 
         bool operator<(const Table &t1) const {
-            return strcmp(name, t1.name) < 0;
+            if(t1.numOfRows == numOfRows) {
+                return strcmp(name, t1.name) < 0;
+            } else {
+                return numOfRows > t1.numOfRows;
+            }
+
         }
 
     private:

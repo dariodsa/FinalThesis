@@ -4,6 +4,14 @@ Operation::Operation(Table *table) {
     this->table = table;
 }
 
-void Operation::setChild(Operation* chlid) {
-    this->child = child;
+void Operation::addChild(Operation* chlid) {
+    this->children.push_back(chlid);
+}
+
+float Operation::getCost() {
+    float ans = 0;
+    for(Operation* op : children) {
+        ans += op->getCost();
+    }
+    return ans * myCost();
 }

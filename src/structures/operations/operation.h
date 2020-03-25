@@ -6,11 +6,12 @@
 class Operation{
     public:
         Operation(Table* table);
-        void setChild(Operation* child);
+        void addChild(Operation* child);
         float getCost();
     private:
-        Operation* child;
+        std::vector<Operation*> children;
         Table *table;
+        float myCost();
 };
 
 #endif

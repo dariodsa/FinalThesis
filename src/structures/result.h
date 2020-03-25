@@ -55,12 +55,12 @@ class Select{
         Select(Database *database, std::vector<table_name*>* tables, std::vector<variable> *variables);
         Select(Database* database, node* root, std::vector<table_name*>* tables, std::vector<variable>* variables);
     private:
-        void dfs(node *node);
-
+        void dfs(node *root);
+        vector<vector<expression_info*> > getAreas(node *root);
         node* de_morgan(node* root);
         Database* database;
 
-        std::set<Table> tables;
+        std::set<Table> tables_set;
         int or_node;
         int table_count;
 };

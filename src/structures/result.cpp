@@ -2,6 +2,8 @@
 #include <stdio.h>
 #include <queue>
 #include <string>
+#include <queue>
+
 using namespace std;
 
 char AND_STR[] = "AND";
@@ -98,12 +100,72 @@ Select::Select(Database* database, node* root, vector<table_name*>* tables, vect
     
     if(this->or_node > 0 && this->table_count > 1) {
         //seq scan na sve
-    } else if(this->or_node > 0 && this->table_count == 1) {
-        //pretraga indeksa po područjima
-    } else if(this->or_node == 0) {
-        //jedno područje
+    } else {
+        
+        vector<vector<expression_info*> > areas = this->getAreas(root);
+        
+        if(this->or_node > 0 && this->table_count == 1) {
+           //pretraga indeksa po područjima
+        } else if(this->or_node == 0) {
+            //jedno područje and-a
+            for(Table table : tables_set) {
+                
+            }
+        }
     }
+}
 
+vector<vector<expression_info*> > Select::getAreas(node *root) {
+    vector<vector<expression_info*>> res;
+    if(root->terminal) {
+        vector<expression_info*> v1;
+        v1.push_back(root->e1);
+        res.push_back(v1);
+    } else {
+        auto left = getAreas(root->left);
+        auto right = getAreas(root->right);
+
+        int size_left = left.size();
+        int size_right = right.size();
+        
+        for(int i = 0; i < size_left - 1; ++i) {
+            res.push_back(left[i]);
+        }
+        for(int i = 0; i < size_right - 1; ++i) {
+            res.push_back(right[i]);
+        }
+
+        if(strcmp(root->name, AND_STR) == 0) {
+            //AND
+            vector<expression_info*>v1;
+            v1.insert(v1.end(), left[size_left-1].begin(), left[size_left-1].end() - 1);
+            v1.insert(v1.end(), right[size_right-1].begin(), right[size_right-1].end() - 1);
+            res.push_back(v1);
+        } else if(strcmp(root->name, OR_STR) == 0) {
+            //OR
+            if(left[size_left-1].size() != 0) {
+                res.push_back(left[size_left-1]);
+
+                vector<expression_info*>v1;
+                left.push_back(v1);
+                ++size_left;
+                
+            } else if(right[size_right-1].size() != 0) {
+                res.push_back(right[size_right-1]);
+
+                vector<expression_info*>v1;
+                right.push_back(v1);
+                ++size_right;
+            }
+
+            vector<expression_info*>v2;
+            v2.insert(v2.end(), left[size_left-1].begin(), left[size_left-1].end() - 1);
+            v2.insert(v2.end(), right[size_right-1].begin(), right[size_right-1].end() - 1);
+            
+            res.push_back(v2);
+        }
+    }
+    return res;
 }
 
 void Select::dfs(node *root) {
@@ -123,7 +185,7 @@ void Select::dfs(node *root) {
         vector<variable> variables = *root->e1->variables;
         for(auto v : variables) {
             Table table = *database->getTable(v.table);
-            tables.insert(table);
+            tables_set.insert(table);
         }
     }
     

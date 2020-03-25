@@ -1,3 +1,11 @@
+#ifndef MAX_LEN
+#define MAX_LEN 50
+#endif
+
+#ifndef INDEX_H
+#define INDEX_H
+
+#include "database.h"
 #include <vector>
 #include <string.h>
 #include <string>
@@ -6,12 +14,6 @@
 
 using namespace std;
 
-#ifndef MAX_LEN
-#define MAX_LEN 50
-#endif
-
-#ifndef INDEX_H
-#define INDEX_H
 
 
 enum TYPE_COL{
@@ -22,6 +24,8 @@ enum TYPE_COL{
 #define DEFAULT_INDEX_ORDER ASC_ORDER
 
 const int P = 103;
+
+class Database;
 
 class Index {
     public:
@@ -41,7 +45,7 @@ class Index {
         char* getTable();
         char* getName();
         TYPE_COL getColType(int index);
-
+        float getCost(Database* database);
         web::json::value getJSON();
 
     private:

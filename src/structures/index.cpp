@@ -105,3 +105,7 @@ char* Index::getName() {
 TYPE_COL Index::getColType(int index) {
     return this->types[index];
 }
+
+float Index::getCost(Database* database) {
+    return 0;
+}

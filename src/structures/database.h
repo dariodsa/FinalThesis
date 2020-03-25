@@ -1,26 +1,21 @@
+#ifndef MAX_LEN
+#define MAX_LEN 50
+#endif
+
+#ifndef DATABASE_H
+#define DATABASE_H
+
 #include <string.h>
 #include <pqxx/pqxx> 
 #include <stdio.h>
 #include <map>
 #include <string>
 #include <vector>
-#include "table.h"
 #include "libpq-fe.h"
+#include "table.h"
 
 using namespace pqxx;
 using namespace std;
-
-#ifndef MAX_LEN
-#define MAX_LEN 50
-#endif
-
-#ifndef MIN_INTEGER
-#define MIN_INTEGER -0x3f3f3f3f
-#endif
-
-#ifndef DATABASE_H
-#define DATABASE_H
-
 
 struct variable {
 
@@ -98,6 +93,9 @@ enum SearchType{
     , CREATE_TYPE
     , ALTER_TYPE
 };
+
+class Table;
+class Index;
 
 class Database {
     public:

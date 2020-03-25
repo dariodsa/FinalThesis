@@ -67,6 +67,10 @@ Column* Table::getColumn(const char *name) {
     return NULL;
 }
 
+float Table::getCost(Database* database) {
+    return 0;
+}
+
 void Table::addIndex(Index *index) {
     this->indexs.push_back(index);
     return;

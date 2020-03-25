@@ -7,7 +7,9 @@
 #include "../src/structures/index.h"
 #include "../src/structures/table.h"
 #include "../src/structures/column.h"
-#include "../src/structures/result.h"
+extern "C++" {
+    #include "../src/structures/result.h"
+}
 
 using namespace std;
 
@@ -827,12 +829,6 @@ condition_with_subquery:
                            $$ = $1;
                            //TODO add result of subquery to the some tree structure
                        }
-                       | EXISTS '(' subquery ')'
-                       {
-                           $$ = new expression_info();
-                           //TODO add result of subquery to the some tree structure
-
-                       }
                        | expression relation_operator '(' subquery ')'
                        {
                            $$ = $1;
@@ -842,6 +838,12 @@ condition_with_subquery:
                        {
                            $$ = $1;
                            //TODO add result of subquery to the some tree structure
+                       }
+                       | EXISTS '(' subquery ')'
+                       {
+                           $$ = new expression_info();
+                           //TODO add result of subquery to the some tree structure
+
                        }
                        ;
 

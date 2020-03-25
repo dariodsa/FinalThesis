@@ -1,7 +1,6 @@
 #include "result.h"
 #include <stdio.h>
 #include <queue>
-#include <set>
 #include <string>
 using namespace std;
 
@@ -93,133 +92,43 @@ Select::Select(Database* database, node* root, vector<table_name*>* tables, vect
         }
     }
 
-    vector<Result*> p = dfs(root, 0);
-    for(auto r : p) {
-        r->print();
-    }
+    this->or_node = 0;
+    this->table_count = 0;
+    dfs(root);
     
+    if(this->or_node > 0 && this->table_count > 1) {
+        //seq scan na sve
+    } else if(this->or_node > 0 && this->table_count == 1) {
+        //pretraga indeksa po područjima
+    } else if(this->or_node == 0) {
+        //jedno područje
+    }
+
 }
 
-void Select::process(vector<Result*> inputs) {
-    //try to find index
-    set<string> tables;
-    for(Result* _r : inputs) {
-        tables.insert(string(_r->getTable()->getTableName()));
-    }
-    for(string table_name : tables) {
-        Table* _table = database->getTable(table_name.c_str());
-        vector<Index*> indexes = _table->getIndex();
-        if(indexes.size() == 0) continue;
-
-        while(true) {
-            Index* best_index = indexes[0];
-            int max_len = MIN_INTEGER;
-            for(Index* _index : indexes) {
-                int len = this->lookForIndex(_index, inputs).size();
-                if(len > max_len) {
-                    max_len = len;
-                    best_index = _index;
-                }
-            }
-            if(max_len == 0) break;
-            inputs = this->createIndexScan(best_index, inputs);
-        }
-    }
-}
-
-vector<Result*> Select::dfs(node *root, int depth) {
+void Select::dfs(node *root) {
     
-    vector<Result*> results;
     if(!root->terminal) {
         
         if(strcmp(root->name, AND_STR) == 0) { // and
-            auto r1 = dfs(root->left, depth + 1);
-            auto r2 = dfs(root->right, depth + 1);    
-
-            results.insert(results.end(), r1.begin(), r2.end());
-            results.insert(results.end(), r2.begin(), r2.end());
-
-            if(depth == 0) process(results);
+            dfs(root->left);
+            dfs(root->right);    
         } else { // or
-            auto r1 = dfs(root->left, depth + 1);
-            auto r2 = dfs(root->right, depth + 1);    
-
-            process(r1);
-            process(r2);
+            dfs(root->left);
+            dfs(root->right);    
+            ++or_node;
         }
-        return results;
-        
     } else { //terminal root
 
-        vector<Result*> list;
         vector<variable> variables = *root->e1->variables;
-        set<string> tables;
         for(auto v : variables) {
-            tables.insert(string(v.table));
+            Table table = *database->getTable(v.table);
+            tables.insert(table);
         }
-        int size = tables.size();
-        Result* parent = new Result();
-        if(root->e1->locked) {
-            parent->setLock();
-        }
-
-        for(string t : tables) {
-            Table* table = database->getTable(t.c_str());
-            vector<Column*>* columns = new vector<Column*>();
-            for(auto v: variables) {
-                if(strcmp(table->getTableName(), v.table) == 0) {
-                    columns->push_back(table->getColumn(v.name));
-                }
-            }
-            Result* _r = new Result(table, columns);
-            _r->setParent(parent);    
-            list.push_back(_r);
-        }
-        
-        return list;
     }
     
 }
 
-vector<Result*> Select::createIndexScan(Index* index, vector<Result*> inputs) {
-    vector<Result*> outputs = this->lookForIndex(index, inputs);
-    
-    int inputs_len = inputs.size();
-    int outputs_len = outputs.size();
-    int delta = inputs_len - outputs_len;
-
-    char* col_name = index->getColName(delta);
-    for(Result* result : inputs) {
-        if(result->hasColumn(col_name)) {
-            if(result->getColumns().size() == 1 && result->
-č            
-        }
-    }    
-    
-    
-    return outputs;
-}
-
-vector<Result*> Select::lookForIndex(Index* index, vector<Result*> inputs) {
-    vector<Result*> left = inputs;
-
-    for(int col_id = 0; col_id < index->getColNumber(); ++col_id) {
-        vector<Result*> _left;
-        char* col_name = index->getColName(col_id);
-        
-        for(Result* result : left) {
-            
-            if(result->hasColumn(col_name)) {
-                _left.push_back(result);
-            }
-        }
-        
-        if(_left.size() == 0 && col_id == 0) return inputs;
-        left = _left;
-    }
-    printf("Found index");
-    return left;
-}
 
 node* Select::de_morgan(node* root) {
     

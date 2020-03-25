@@ -1,5 +1,7 @@
 #include <string.h>
 #include <vector>
+#include <set>
+
 #include "database.h"
 #include "index.h"
 
@@ -53,14 +55,14 @@ class Select{
         Select(Database *database, std::vector<table_name*>* tables, std::vector<variable> *variables);
         Select(Database* database, node* root, std::vector<table_name*>* tables, std::vector<variable>* variables);
     private:
-        vector<Result*> dfs(node *node, int depth);
-
-        void process(vector<Result*> inputs);
-        vector<Result*> lookForIndex(Index* index, vector<Result*> inputs);
-        vector<Result*> createIndexScan(Index* index, vector<Result*> inputs);
+        void dfs(node *node);
 
         node* de_morgan(node* root);
         Database* database;
+
+        std::set<Table> tables;
+        int or_node;
+        int table_count;
 };
 
 

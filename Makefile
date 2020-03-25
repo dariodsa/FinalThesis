@@ -1,5 +1,7 @@
 STRUCTURES_PATH = src/structures/
 DB_PATH = src/db/
+ALG_PATH = src/algorithm/
+
 
 DATA_PATH = data/
 
@@ -16,6 +18,8 @@ SOURCE_RESULT   = $(STRUCTURES_PATH)result.cpp
 SOURCE_PROGRAM = $(DB_PATH)program.cpp
 SOURCE_CONFIG  = $(DB_PATH)config.cpp
 SOURCE_PROXY   = $(DB_PATH)proxy.cpp
+
+SOURCE_NETWORK = $(ALG_PATH)network.cpp
 
 SOURCE_MAIN = src/main.cpp
 
@@ -36,13 +40,17 @@ OBJECT_DATABASE  = ${SOURCE_DATABASE:.cpp=.o}
 OBJECT_PROXY     = ${SOURCE_PROXY:.cpp=.o}
 OBJECT_RESULT = ${SOURCE_RESULT:.cpp=.o}
 
+OBJECT_NETWORK = ${SOURCE_NETWORK:.cpp=.o}
+
 OBJECT_PROGRAM = ${SOURCE_PROGRAM:.cpp=.o}
 OBJECT_CONFIG = ${SOURCE_CONFIG:.cpp=.o}
 MAIN=main
  
-main: lex_yacc_part index column table result database program proxy  config
+main: lex_yacc_part network index column table result database program proxy  config
 	$(CXX) $(CXXFLAGS)  -o $@  src/main.cpp  $(OBJECT_PROXY) $(OBJECT_TOKEN) $(OBJECT_CONFIG)  $(OBJECT_PROGRAM) $(OBJECT_RESULT) $(OBJECT_DATABASE) $(OBJECT_TABLE) $(OBJECT_COLUMN) $(OBJECT_INDEX)  $(LEX_YACC_FLAGS)  $(POSTGE_FLAGS)
 
+network:
+	$(CXX) $(CXXFLAGS) -c $(SOURCE_NETWORK) -o $(OBJECT_NETWORK)
 index: 
 	$(CXX) $(CXXFLAGS) -c $(SOURCE_INDEX) -o $(OBJECT_INDEX)
 

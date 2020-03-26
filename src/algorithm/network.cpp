@@ -27,11 +27,11 @@ Network::Network(Database* database, Table table, std::vector<Index*> indexes, v
     }
     
     for(Index* index : unique_indexes) {
-        expression_infos = useIndex(index, expression_infos);
+        useIndex(index, expression_infos);
     }
 
     for(Index* index : other_indexes) {
-        expression_infos = useIndex(index, expression_infos);
+        useIndex(index, expression_infos);
     }
 
     vector<string> t;
@@ -45,11 +45,10 @@ Network::Network(Database* database, Table table, std::vector<Index*> indexes, v
 
 }
 
-vector<expression_info*> Network::useIndex(Index* index, vector<expression_info*> expression_infos) {
+void Network::useIndex(Index* index, vector<expression_info*> expression_infos) {
     
     int cnt = 0;
     int isScan = 0;
-    vector<expression_info*> res;
 
     for(int col_id = 0, len = index->getColNumber(); col_id < len; ++col_id ) {
         bool found = false;
@@ -69,21 +68,19 @@ vector<expression_info*> Network::useIndex(Index* index, vector<expression_info*
                     
                     auto P = make_pair(index, make_pair(isScan, cnt));
                     used_indexes.push_back(P);
-                    return res;
+                    return;
 
                 }
-            } else {
-                res.push_back(exp_info);
             }
         }
         if(!found) {
-            if(col_id == 0) return res;
+            if(col_id == 0) return;
             cnt = col_id;
             isScan = 0;
             
             auto P = make_pair(index, make_pair(isScan, cnt));
             used_indexes.push_back(P);
-            return res;
+            return;
         }
     }
     
@@ -93,7 +90,7 @@ vector<expression_info*> Network::useIndex(Index* index, vector<expression_info*
     auto P = make_pair(index, make_pair(isScan, cnt));
     used_indexes.push_back(P);
 
-    return res;
+    return;
 }
 
 bool Network::getRetrData() {

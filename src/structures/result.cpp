@@ -72,6 +72,9 @@ bool Result::hasColumn(char* col_name) {
     return false;
 }
 
+float Select::getCost() {
+    return this->operation->getCost();
+}
 
 Select::Select(Database* database, vector<table_name*>* tables, vector<variable>* variables) {
 }
@@ -106,14 +109,15 @@ Select::Select(Database* database, node* root, vector<table_name*>* tables, vect
     this->table_count = 0;
     dfs(root);
 
-    Operation *operation = new Operation(0);
+    
     if(this->or_node > 0 && this->table_count > 1) {
         //seq scan na sve
+        Operation *parent = operation;
         for(table_name* t : *tables) {
             Table* table = database->getTable(t->real_name);
             Operation *_op = new SeqScan(table);
-            operation->addChild(_op);
-            operation = _op;
+            parent->addChild(_op);
+            parent = _op;
         }
     } else {
         

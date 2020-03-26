@@ -26,7 +26,7 @@ class Network {
 
         bool retr_data;
 
-        vector<expression_info*> useIndex(Index* index, vector<expression_info*> expression_infos);
+        void useIndex(Index* index, vector<expression_info*> expression_infos);
 
 };
 

@@ -5,7 +5,7 @@
 
 class IndexScan : public Operation{
     public:
-        IndexScan(Table *table, Index* index);
+        IndexScan(Table *table, Index* index, int len);
     private:
         Index* index;
 };

@@ -5,7 +5,10 @@
 
 class IndexCon : public Operation{
     public:
-        IndexCon(Table *table, Index* index);
+        IndexCon(Table *table, Index* index, int len);
+    private:
+        Index* index;
+        
 };
 
 #endif

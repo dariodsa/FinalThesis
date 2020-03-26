@@ -42,6 +42,7 @@ class Index {
         int getColNumber();
         int getHash();
         char* getColName(int index);
+        bool getUnique();
         char* getTable();
         char* getName();
         TYPE_COL getColType(int index);

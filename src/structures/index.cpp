@@ -4,6 +4,7 @@ using namespace web;
 
 Index::Index() {
     memset(this->name, 0, MAX_LEN * sizeof(char));
+    this->unique = false;
 }
 
 Index::Index(web::json::value json) : Index(){
@@ -54,6 +55,10 @@ web::json::value Index::getJSON() {
     }
 
     return value;
+}
+
+bool Index::getUnique() {
+    return this->unique;
 }
 
 void Index::addColumn(const char* col_name, TYPE_COL type) {

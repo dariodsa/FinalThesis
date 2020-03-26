@@ -17,6 +17,9 @@
 using namespace pqxx;
 using namespace std;
 
+class Table;
+class Index;
+
 struct variable {
 
     int depth;
@@ -72,6 +75,24 @@ struct expression_info {
         variables = new std::vector<variable>();
         locked = false;
     }
+    bool hasFromTables(vector<string> tables) {
+        for(variable var : *variables) {
+            for(string table_name : tables) {
+                if(strcmp(table_name.c_str(), var.table) == 0) {
+                    return true;
+                }
+            }
+        }
+        return false;
+    }
+    bool hasVariable(const char* table, const char *var) {
+        for(variable _var : *variables) {
+            if(strcmp(_var.name, var) == 0 && strcmp(_var.table, table) == 0) {
+                return true;
+            }
+        }
+        return false;
+    }
 };
 
 struct node {
@@ -94,8 +115,7 @@ enum SearchType{
     , ALTER_TYPE
 };
 
-class Table;
-class Index;
+
 
 class Database {
     public:

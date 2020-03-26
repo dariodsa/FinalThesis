@@ -1,4 +1,12 @@
 #include "result.h"
+#include "../algorithm/network.h"
+
+#include "operations/operation.h"
+#include "operations/indexscan.h"
+#include "operations/indexcon.h"
+#include "operations/retrdata.h"
+#include "operations/seqscan.h"
+
 #include <stdio.h>
 #include <queue>
 #include <string>
@@ -97,19 +105,59 @@ Select::Select(Database* database, node* root, vector<table_name*>* tables, vect
     this->or_node = 0;
     this->table_count = 0;
     dfs(root);
-    
+
+    Operation *operation = new Operation(0);
     if(this->or_node > 0 && this->table_count > 1) {
         //seq scan na sve
+        for(table_name* t : *tables) {
+            Table* table = database->getTable(t->real_name);
+            Operation *_op = new SeqScan(table);
+            operation->addChild(_op);
+            operation = _op;
+        }
     } else {
         
         vector<vector<expression_info*> > areas = this->getAreas(root);
         
         if(this->or_node > 0 && this->table_count == 1) {
-           //pretraga indeksa po područjima
+           //pretraga indeksa po područjima, jedna tablica
+           vector<string> indexed_tables;
+            for(Table table : tables_set) {
+                for(auto area : areas) {
+                    //construct  network
+                    Network* network = new Network(database, table, table.getIndex(), area, indexed_tables);
+                    
+                    for(pair<Index*, pair<int, int> > pair : network->getUsedIndexes()) {
+                        int type = pair.second.first;
+                        int len  = pair.second.second;
+                        if(type == 0) {
+                            Operation *op = new IndexCon(&table, pair.first, len);
+                        } else {
+                            Operation *op = new IndexScan(&table, pair.first, len);
+                        }
+                    }
+                }
+
+            }
+
+
         } else if(this->or_node == 0) {
             //jedno područje and-a
+            vector<expression_info*> area = areas[0];
+            map<Table, bool> seq_scan_tables;
+            vector<string> indexed_tables;
+
             for(Table table : tables_set) {
-                
+                if(!seq_scan_tables[table]) continue;
+                //construct  network
+                Network* network = new Network(database, table, table.getIndex(), area, indexed_tables);
+                if(network->getUsedIndexes().size() > 0) {
+                    indexed_tables.push_back(string(table.getTableName()));
+                }
+
+                for(Table _t : network->getSeqScan()) {
+                    seq_scan_tables[_t] = true;
+                }
             }
         }
     }

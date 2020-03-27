@@ -7,6 +7,8 @@
 #include "operations/retrdata.h"
 #include "operations/seqscan.h"
 
+#include "../db/program.h"
+
 #include <stdio.h>
 #include <queue>
 #include <string>
@@ -76,11 +78,16 @@ float Select::getCost() {
     return this->operation->getCost();
 }
 
+bool Select::compare_index_pointer(pair<Index*, pair<int, int> > a, pair<Index*, pair<int, int> > b) {
+    return strcmp(a.first->getTable(), b.first->getTable()) < 0;
+}
+
 Select::Select(Database* database, vector<table_name*>* tables, vector<variable>* variables) {
 }
 
 Select::Select(Database* database, node* root, vector<table_name*>* tables, vector<variable>* variables) {
 
+    Program* program = Program::getInstance();
     this->database = database;
     //remove not nodes
     root = this->de_morgan(root);
@@ -108,8 +115,10 @@ Select::Select(Database* database, node* root, vector<table_name*>* tables, vect
     this->or_node = 0;
     this->table_count = 0;
     dfs(root);
+    table_count = tables_set.size();
 
-    
+    printf("Tc: %d or_node: %d\n", table_count, or_node);
+
     if(this->or_node > 0 && this->table_count > 1) {
         //seq scan na sve
         Operation *parent = operation;
@@ -123,8 +132,11 @@ Select::Select(Database* database, node* root, vector<table_name*>* tables, vect
         
         vector<vector<expression_info*> > areas = this->getAreas(root);
         
+        printf("Areas num %d %d\n", areas.size(), areas[0].size());
+        
         if(this->or_node > 0 && this->table_count == 1) {
            //pretraga indeksa po područjima, jedna tablica
+           
            vector<string> indexed_tables;
             for(Table table : tables_set) {
                 for(auto area : areas) {
@@ -132,16 +144,23 @@ Select::Select(Database* database, node* root, vector<table_name*>* tables, vect
                     Network* network = new Network(database, table, table.getIndex(), area, indexed_tables);
                     
                     for(pair<Index*, pair<int, int> > pair : network->getUsedIndexes()) {
-                        int type = pair.second.first;
+                        int isScan = pair.second.first;
                         int len  = pair.second.second;
-                        if(type == 0) {
-                            Operation *op = new IndexCon(&table, pair.first, len);
-                        } else {
-                            Operation *op = new IndexScan(&table, pair.first, len);
-                        }
-                    }
-                }
+                        Operation *op;
 
+                        if(!isScan) {
+                            op = new IndexCon(&table, pair.first, len);
+                        } else {
+                            op = new IndexScan(&table, pair.first, len);
+                        }
+                        operation->addChild(op);
+                    }
+
+                    if(network->getUsedIndexes().size() == 0) {
+                        Operation *op = new SeqScan(&table);
+                        operation->addChild(op);
+                    }   
+                }
             }
 
 
@@ -150,19 +169,69 @@ Select::Select(Database* database, node* root, vector<table_name*>* tables, vect
             vector<expression_info*> area = areas[0];
             map<Table, bool> seq_scan_tables;
             vector<string> indexed_tables;
+            Operation *parent = operation;
 
+            vector<pair<Index*, pair<int, int> >> used_indexes; 
+            printf("OrNode %d Table_set %d\n", or_node, tables_set.size());
             for(Table table : tables_set) {
-                if(!seq_scan_tables[table]) continue;
+                if(seq_scan_tables[table]) continue;
                 //construct  network
+                printf("Table %s, num of indexes %d\n", table.getTableName(), table.getIndex().size());
                 Network* network = new Network(database, table, table.getIndex(), area, indexed_tables);
+                printf("NUm index: %d\n", network->getUsedIndexes().size());
                 if(network->getUsedIndexes().size() > 0) {
                     indexed_tables.push_back(string(table.getTableName()));
+                    for(auto in : network->getUsedIndexes()) {
+                        used_indexes.push_back(in);
+                    }
                 }
 
                 for(Table _t : network->getSeqScan()) {
                     seq_scan_tables[_t] = true;
                 }
             }
+            Operation *first = operation;
+            for(auto it = seq_scan_tables.begin(); it != seq_scan_tables.end(); ++it) {
+                if(seq_scan_tables[it->first] == true) {
+                    Table* t = (Table*)&(it->first);
+                    Operation *op = new SeqScan(t);
+                    parent->addChild(op);
+                    parent = op;
+                }
+            }
+            printf("Size %d\n", used_indexes.size());
+            sort(used_indexes.begin(), used_indexes.end(), Select::compare_index_pointer);
+            char *p = 0;
+            
+            
+
+            for(auto _index : used_indexes) {
+                Index* index = _index.first;
+                int isScan = _index.second.first;
+                int len = _index.second.second;
+                Table* table = database->getTable(index->getTable());
+
+                Operation *op;
+                if(isScan) {   
+                    op = new IndexScan(table, index, len);
+                } else {
+                    op = new IndexCon(table, index, len);
+                }
+
+                if(p == 0 || p != index->getTable()) {
+                    Operation *table_in = new Operation(0);
+                    parent->addChild(table_in);
+
+                    parent = table_in;
+                    parent->addChild(op);
+                    p = index->getTable();
+                } else {
+                    parent->addChild(op);
+                }
+            }
+            printf("===============\n");
+            first->print();
+            printf("===============\n");
         }
     }
 }
@@ -190,8 +259,8 @@ vector<vector<expression_info*> > Select::getAreas(node *root) {
         if(strcmp(root->name, AND_STR) == 0) {
             //AND
             vector<expression_info*>v1;
-            v1.insert(v1.end(), left[size_left-1].begin(), left[size_left-1].end() - 1);
-            v1.insert(v1.end(), right[size_right-1].begin(), right[size_right-1].end() - 1);
+            v1.insert(v1.end(), left[size_left-1].begin(), left[size_left-1].end());
+            v1.insert(v1.end(), right[size_right-1].begin(), right[size_right-1].end());
             res.push_back(v1);
         } else if(strcmp(root->name, OR_STR) == 0) {
             //OR
@@ -211,8 +280,8 @@ vector<vector<expression_info*> > Select::getAreas(node *root) {
             }
 
             vector<expression_info*>v2;
-            v2.insert(v2.end(), left[size_left-1].begin(), left[size_left-1].end() - 1);
-            v2.insert(v2.end(), right[size_right-1].begin(), right[size_right-1].end() - 1);
+            v2.insert(v2.end(), left[size_left-1].begin(), left[size_left-1].end());
+            v2.insert(v2.end(), right[size_right-1].begin(), right[size_right-1].end());
             
             res.push_back(v2);
         }

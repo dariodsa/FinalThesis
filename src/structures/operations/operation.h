@@ -8,10 +8,14 @@ class Operation{
         Operation(Table* table);
         void addChild(Operation* child);
         float getCost();
-    private:
+        
+        virtual void print();
+
         std::vector<Operation*> children;
         Table *table;
-        float myCost();
+    private:
+        
+        virtual float myCost();
 };
 
 #endif

@@ -19,3 +19,8 @@ float Operation::getCost() {
     }
     return ans * myCost();
 }
+
+void Operation::print() {
+    printf("Operation %d kids\n", this->children.size());
+    for(auto kid : children) kid->print();
+}

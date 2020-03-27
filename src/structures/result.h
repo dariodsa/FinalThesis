@@ -5,6 +5,8 @@
 #include "database.h"
 #include "index.h"
 
+#include "operations/operation.h"
+
 #ifndef RESULT_H
 #define RESULT_H 
 
@@ -47,7 +49,7 @@ class Result{
         int equaltype = 0;
         bool locked;
         std::vector<Column*> columns;
-        
+
 };
 
 class Select{
@@ -56,10 +58,12 @@ class Select{
         Select(Database* database, node* root, std::vector<table_name*>* tables, std::vector<variable>* variables);
     
         float getCost();
+        static bool compare_index_pointer(pair<Index*, pair<int, int> > a, pair<Index*, pair<int, int> > b);
 
     private:
         void dfs(node *root);
         vector<vector<expression_info*> > getAreas(node *root);
+        
         node* de_morgan(node* root);
         Database* database;
 

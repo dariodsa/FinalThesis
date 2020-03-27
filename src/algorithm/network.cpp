@@ -18,6 +18,8 @@ Network::Network(Database* database, Table table, std::vector<Index*> indexes, v
     this->indexes = indexes;
     this->indexed_tables = indexed_tables;
     this->database = database;
+    this->table = table;
+
 
     vector<Index*> unique_indexes;
     vector<Index*> other_indexes;
@@ -49,13 +51,20 @@ void Network::useIndex(Index* index, vector<expression_info*> expression_infos) 
     
     int cnt = 0;
     int isScan = 0;
-
+    printf("Probam index len: %d\n", index->getColNumber());
     for(int col_id = 0, len = index->getColNumber(); col_id < len; ++col_id ) {
         bool found = false;
+        printf("sie %d\n", expression_infos.size());
         for(expression_info* exp_info : expression_infos) {
+            printf("Probaj ..\n");
             if(exp_info->hasFromTables(indexed_tables)) continue;
-
+            printf("Index %d. %s\n", col_id, index->getColName(col_id));
+            for(variable v : *exp_info->variables) {
+                printf(" var %s %s\n", v.name, v.table);
+            }
+            printf("== %s %s\n", table.getTableName(), index->getColName(col_id));
             if(exp_info->hasVariable(table.getTableName(), index->getColName(col_id))) {
+                printf("Found\n");
                 for(variable var : *exp_info->variables) {
                     if(strcmp(var.table, table.getTableName()) != 0) {
                         seq_scan.insert(*database->getTable(var.table));

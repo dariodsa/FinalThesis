@@ -6,6 +6,14 @@
 class SeqScan : public Operation{
     public:
         SeqScan(Table *table);
+
+        void print() {
+            printf("SeqScan Table: %s, %d kids\n", table->getTableName(), this->children.size());
+            for(auto kid : children) {
+                kid->print();
+            }
+        }
+
     private:
         
 };

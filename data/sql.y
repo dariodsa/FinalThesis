@@ -142,6 +142,7 @@ command :
             Table *t = database->getTable($1->getTable());
             if(t == NULL) {
                 yyerror("Ne postoji tablica.");
+                return 1;
             }
             t->addIndex($1);
             searchTypes->push_back(CREATE_TYPE);
@@ -158,6 +159,7 @@ insert_statement:
                     Table *t = database->getTable($3);
                     if(t == NULL) {
                         yyerror("Ne postoji tablica.");
+                        return 1;
                     }
                     t->addRow();
                 }
@@ -166,6 +168,7 @@ insert_statement:
                     Table *t = database->getTable($3);
                     if(t == NULL) {
                         yyerror("Ne postoji tablica.");
+                        return 1;
                     }
                     t->addRow();
                 }
@@ -176,6 +179,7 @@ alter_table_statement: ALTER TABLE ONLY NAME ADD multiple_column_constraint
                         Table *table = database->getTable($4);
                         if(table == NULL) {
                             yyerror("Ne postoji tablica.");
+                            return 1;
                         }
                         if($6 != NULL) {
                             table->addIndex($6);
@@ -186,6 +190,7 @@ alter_table_statement: ALTER TABLE ONLY NAME ADD multiple_column_constraint
                         Table *table = database->getTable($3);
                         if(table == NULL) {
                             yyerror("Ne postoji tablica.");
+                            return 1;
                         }
                         if($5 != NULL) {
                             table->addIndex($5);
@@ -881,6 +886,10 @@ column_name:
                     vector<table_name*>* tables = (*sp)->tables;
                     
                     char* table_name = database->getTableNameByVar($1, tables);
+                    if(table_name == NULL) {
+                        yyerror("Ne postoji stupac pod nazivom.");
+                        return 1;
+                    }
                     V->setTable(table_name);
                     $$ = V;
                }
@@ -1152,7 +1161,7 @@ extern YY_BUFFER_STATE yy_scan_string(const char * str);
 extern void yy_delete_buffer(YY_BUFFER_STATE buffer);
 
 
-void parse(const char* query, Database* _database, vector<SearchType>* _searchTypes)
+int parse(const char* query, Database* _database, vector<SearchType>* _searchTypes)
 {
     sp = stack;
     database = _database;
@@ -1161,11 +1170,10 @@ void parse(const char* query, Database* _database, vector<SearchType>* _searchTy
 
     YY_BUFFER_STATE buffer = yy_scan_string(query);
 
-    yyparse();
+    int res = yyparse();
     yy_delete_buffer(buffer);
-    /*for(int i=0;i<tables.size();++i) {
-        printf("Table: %s\n", tables[i].name);
-    }*/
+    
+    return res;
 }
 
 void yyerror(const char *s) {

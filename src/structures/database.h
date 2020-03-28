@@ -135,17 +135,23 @@ class Database {
 
         web::json::value getJSON();
 
+        bool isTableLoaded(const char* table_name);
+        bool isIndexLoaded(Index* index);
+
+        void loadTable(const char* table_name);
+        void loadIndex(Index* index);
+
     private:
-    char dbName[MAX_LEN];
-    char ipAddress[MAX_LEN];
-    char username[MAX_LEN];
-    char password[MAX_LEN];
+        char dbName[MAX_LEN];
+        char ipAddress[MAX_LEN];
+        char username[MAX_LEN];
+        char password[MAX_LEN];
 
-    int port;
+        int port;
 
-    PGconn* C;
+        PGconn* C;
 
-    std::map<string, Table*>tables;
+        std::map<string, Table*>tables;
 };
 
 #endif

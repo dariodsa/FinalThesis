@@ -67,8 +67,23 @@ Column* Table::getColumn(const char *name) {
     return NULL;
 }
 
-float Table::getCost(Database* database) {
-    return 0;
+float Table::getCost(Database* database, bool full_table) {
+    float cost = 0;
+    if(!database->isTableLoaded(name) && full_table) {
+        //not loaded, higher cost
+        database->loadTable(name);
+    } else if(!database->isTableLoaded(name) && !full_table) {
+        //not loaded, retr data, not full table, 
+        //increment
+    } else if(database->isTableLoaded(name)) {
+        if(full_table) {
+            //full table scan
+            
+        } else {
+            //retr data
+        }
+    }
+    return cost;
 }
 
 void Table::addIndex(Index *index) {

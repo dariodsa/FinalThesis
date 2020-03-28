@@ -116,4 +116,9 @@ clean:
 	-rm -f data/y.tab.*
 	-rm -f src/db/config.o
 	-rm -f $(MAIN)
+	-rm -f $(OBJECT_NETWORK) 
+	-rm -f $(OBJECT_INDEXCON)
+	-rm -f $(OBJECT_INDEXSCAN)
+	-rm -f $(OBJECT_OPERATION)
+	-rm -f $(OBJECT_SEQSCAN)
 	

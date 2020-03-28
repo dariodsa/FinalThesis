@@ -1,16 +1,18 @@
-#include <vector>
 #include <string.h>
 #include "network.h"
+#include "../structures/table.h"
+#include "../structures/index.h"
+#include "../structures/database.h"
 using namespace std;
 
-Network::Network(Database* database, Table table, std::vector<Index*> indexes, vector<expression_info*> expression_infos, vector<string> indexed_tables) {
+Network::Network(Database* database, Table* table, std::vector<Index*> indexes, vector<expression_info*> expression_infos, vector<string> indexed_tables) {
     for(expression_info *exp : expression_infos) {
         int cnt = 0;
         for(variable var : *exp->variables) {
-            if(strcmp(var.table, table.getTableName()) == 0) ++cnt;
+            if(strcmp(var.table, table->getTableName()) == 0) ++cnt;
         }
         if(cnt > 1) {
-            this->seq_scan.insert(table);
+            this->seq_scan.insert(*table);
             return;
         }
     }
@@ -37,7 +39,7 @@ Network::Network(Database* database, Table table, std::vector<Index*> indexes, v
     }
 
     vector<string> t;
-    t.push_back(string(table.getTableName()));
+    t.push_back(string(table->getTableName()));
 
     for(expression_info* exp : expression_infos) {
         if(exp->hasFromTables(t)) {
@@ -62,11 +64,11 @@ void Network::useIndex(Index* index, vector<expression_info*> expression_infos) 
             for(variable v : *exp_info->variables) {
                 printf(" var %s %s\n", v.name, v.table);
             }
-            printf("== %s %s\n", table.getTableName(), index->getColName(col_id));
-            if(exp_info->hasVariable(table.getTableName(), index->getColName(col_id))) {
+            printf("== %s %s\n", table->getTableName(), index->getColName(col_id));
+            if(exp_info->hasVariable(table->getTableName(), index->getColName(col_id))) {
                 printf("Found\n");
                 for(variable var : *exp_info->variables) {
-                    if(strcmp(var.table, table.getTableName()) != 0) {
+                    if(strcmp(var.table, table->getTableName()) != 0) {
                         seq_scan.insert(*database->getTable(var.table));
                     }
                 }

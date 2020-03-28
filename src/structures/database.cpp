@@ -1,8 +1,11 @@
-#include "database.h"
 #include "../db/program.h"
 #include <stdexcept>
 #include <iostream>
 #include <libpq-fe.h>
+
+#include "database.h"
+#include "cache.h"
+#include "table.h"
 
 using namespace web;
 
@@ -10,8 +13,8 @@ Database::Database() {}
 
 Database::Database(const char *ipAddress, const char* dbName, int port, const char* username, const char* password) {
     
-    setCacheSize(DEFAULT_CACHE_SIZE);
-
+    setCacheSize(Program::DEFAULT_CACHE_SIZE);
+    
     if(ipAddress == NULL) {
         throw std::invalid_argument("Ip address is pointing to zero.\n");
     }
@@ -24,6 +27,10 @@ Database::Database(const char *ipAddress, const char* dbName, int port, const ch
     strcpy(this->password, password);
     strcpy(this->username, username);
     strcpy(this->dbName, dbName);
+
+    //setup cache system
+    cache = new Cache(this);
+
 }
 
 Database::Database(web::json::value _json) : Database(
@@ -129,10 +136,13 @@ char * Database::getTableNameByVar(char* variable, vector<table_name*>* tables) 
     return NULL;
 }
 
-size_t Database::getNumOfTables() {
+signed int Database::getNumOfTables() {
     return this->tables.size();
 }
 
+signed int Database::getCacheSize() {
+    return this->cache_size;
+}
 
 web::json::value Database::getJSON() {
     json::value json;
@@ -151,4 +161,38 @@ web::json::value Database::getJSON() {
     }
 
     return json;
+}
+
+signed int Database::statusLoaded(const char* table_name) {
+    Table* table = getTable(table_name);
+    return cache->getLoadedStatus(table);
+}
+
+signed int Database::statusLoaded(Index* index) {
+    return cache->getLoadedStatus(index);
+}
+
+void Database::loadInCache(Index *index) {
+
+}
+
+void Database::loadInCache(const char* table_name) {
+
+}
+
+signed int Database::getCurrRamLoaded(vector<Table*> full_table
+                                    , vector<Index*> indexes
+                                    , vector<Table*> retr_data) {
+    signed int ans = 0;
+    for(Table* table : full_table) {
+        ans += statusLoaded(table->getTableName());
+    }
+    for(Index* index : indexes) {
+        ans += statusLoaded(index);
+    }
+    for(Table* table : retr_data) {
+        ans += statusLoaded(table->getTableName());
+    }
+
+    return ans;
 }

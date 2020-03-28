@@ -140,7 +140,7 @@ Select::Select(Database* database, node* root, vector<table_name*>* tables, vect
             for(Table table : tables_set) {
                 for(auto area : areas) {
                     //construct  network
-                    Network* network = new Network(database, table, table.getIndex(), area, indexed_tables);
+                    Network* network = new Network(database, &table, table.getIndex(), area, indexed_tables);
                     
                     for(pair<Index*, pair<int, int> > pair : network->getUsedIndexes()) {
                         int isScan = pair.second.first;
@@ -171,13 +171,18 @@ Select::Select(Database* database, node* root, vector<table_name*>* tables, vect
             Operation *parent = operation;
 
             vector<pair<Index*, pair<int, int> >> used_indexes; 
+            
+            map<Table, bool> retr_data_tables;
+            
             printf("OrNode %d Table_set %d\n", or_node, tables_set.size());
             for(Table table : tables_set) {
                 if(seq_scan_tables[table]) continue;
                 //construct  network
-                printf("Table %s, num of indexes %d\n", table.getTableName(), table.getIndex().size());
-                Network* network = new Network(database, table, table.getIndex(), area, indexed_tables);
-                printf("NUm index: %d\n", network->getUsedIndexes().size());
+                
+                Network* network = new Network(database, &table, table.getIndex(), area, indexed_tables);
+                
+                if(network->getRetrData()) retr_data_tables[table] = true;
+
                 if(network->getUsedIndexes().size() > 0) {
                     indexed_tables.push_back(string(table.getTableName()));
                     for(auto in : network->getUsedIndexes()) {
@@ -211,10 +216,11 @@ Select::Select(Database* database, node* root, vector<table_name*>* tables, vect
                 Table* table = database->getTable(index->getTable());
 
                 Operation *op;
+                bool retr_data = retr_data_tables[*table];
                 if(isScan) {   
-                    op = new IndexScan(table, index, len);
+                    op = new IndexScan(table, index, len, retr_data);
                 } else {
-                    op = new IndexCon(table, index, len);
+                    op = new IndexCon(table, index, len, retr_data);
                 }
 
                 if(p == 0 || p != index->getTable()) {

@@ -1,7 +1,7 @@
 #include "operation.h"
 
-#ifndef SEQSCAN_CLASS
-#define SEQSCAN_CLASS 1
+#ifndef SEQSCAN_H
+#define SEQSCAN_H
 
 class SeqScan : public Operation{
     public:

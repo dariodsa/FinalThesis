@@ -1,4 +1,5 @@
 #include "table.h"
+#include "../db/program.h"
 
 using namespace web;
 
@@ -69,7 +70,7 @@ Column* Table::getColumn(const char *name) {
 
 float Table::getCost(Database* database, bool full_table) {
     float cost = 0;
-    if(!database->isTableLoaded(name) && full_table) {
+    /*if(!database->isTableLoaded(name) && full_table) {
         //not loaded, higher cost
         database->loadTable(name);
     } else if(!database->isTableLoaded(name) && !full_table) {
@@ -82,13 +83,13 @@ float Table::getCost(Database* database, bool full_table) {
         } else {
             //retr data
         }
-    }
+    }*/
     return cost;
 }
 
 
 signed int Table::getSize() {
-    return this->numOfRows * this->columns.size() * Database::AVERAGE_DATA_SIZE;
+    return this->numOfRows * this->columns.size() * Program::AVERAGE_DATA_SIZE;
 }
 
 void Table::addIndex(Index *index) {

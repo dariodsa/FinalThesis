@@ -25,7 +25,6 @@ enum TYPE_COL{
 
 const int P = 103;
 
-class Database;
 
 class Index {
     public:

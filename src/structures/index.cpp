@@ -1,4 +1,5 @@
 #include "index.h"
+#include "../db/program.h"
 
 using namespace web;
 
@@ -112,12 +113,12 @@ TYPE_COL Index::getColType(int index) {
 }
 
 signed int Index::getSize() {
-    return this->getColNumber() * Database::AVERAGE_DATA_SIZE;
+    return this->getColNumber() * Program::AVERAGE_DATA_SIZE;
 }
 
 float Index::getCost(Database* database, int len) {
     float cost = 0;
-    if(database->isIndexLoaded(this)) {
+    if(true) {
         //index is loaded
         //TODO
     } else {

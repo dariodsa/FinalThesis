@@ -1,14 +1,16 @@
 #ifndef TABLE_H
 #define TABLE_H
 
+class Index;
+class Database;
+
 #include <vector>
 #include "column.h"
 #include "index.h"
 #include "database.h"
 using namespace std;
 
-class Index;
-class Database;
+
 
 class Table { 
     public:

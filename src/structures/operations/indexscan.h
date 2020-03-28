@@ -1,7 +1,7 @@
-#include "operation.h"
+#ifndef INDEXSCAN_H
+#define INDEXSCAN_H
 
-#ifndef INDEXSCAN_CLASS
-#define INDEXSCAN_CLASS 1
+#include "operation.h"
 
 class IndexScan : public Operation{
     public:

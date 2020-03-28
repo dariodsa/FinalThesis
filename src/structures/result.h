@@ -1,14 +1,13 @@
+#ifndef RESULT_H
+#define RESULT_H 
+
 #include <string.h>
 #include <vector>
 #include <set>
 
 #include "database.h"
 #include "index.h"
-
 #include "operations/operation.h"
-
-#ifndef RESULT_H
-#define RESULT_H 
 
 extern char AND_STR[4];
 extern char NOT_STR[4];

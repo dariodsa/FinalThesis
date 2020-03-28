@@ -1,7 +1,7 @@
-#include "../table.h"
+#ifndef OPERATION_H
+#define OPERATION_H
 
-#ifndef OPERATION_CLASS
-#define OPERATION_CLASS 1
+#include "../table.h"
 
 class Operation{
     public:

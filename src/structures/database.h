@@ -2,6 +2,10 @@
 #define MAX_LEN 50
 #endif
 
+#ifndef MAX_INTEGER
+#define MAX_INTEGER 0x3f3f3f3f
+#endif
+
 #ifndef DATABASE_H
 #define DATABASE_H
 
@@ -11,14 +15,16 @@
 #include <map>
 #include <string>
 #include <vector>
+#include <cpprest/json.h>
 #include "libpq-fe.h"
-#include "table.h"
+
 
 using namespace pqxx;
 using namespace std;
 
-class Table;
+class Cache;
 class Index;
+class Table;
 
 struct variable {
 
@@ -55,6 +61,14 @@ struct table_name {
         strcpy(name, _name);
         strcpy(real_name, _real_name);
     }
+};
+
+
+enum SearchType{
+      SELECT_TYPE
+    , INSERT_TYPE
+    , CREATE_TYPE
+    , ALTER_TYPE
 };
 
 struct select_state {
@@ -107,16 +121,6 @@ struct node {
     }
 };
 
-
-enum SearchType{
-      SELECT_TYPE
-    , INSERT_TYPE
-    , CREATE_TYPE
-    , ALTER_TYPE
-};
-
-
-
 class Database {
     public:
         Database();
@@ -131,22 +135,26 @@ class Database {
         Table* getTable(const char* table_name);
         char * getTableNameByVar(char* variable, vector<table_name*>* tables);
 
-        size_t getNumOfTables();
-
+        signed int getNumOfTables();
+        signed int getCacheSize();
         void setCacheSize(signed int cache_size);
 
         web::json::value getJSON();
 
-        bool isTableLoaded(const char* table_name);
-        bool isIndexLoaded(Index* index);
+        signed int statusLoaded(const char* table_name);
+        signed int statusLoaded(Index* index);
 
-        void loadTable(const char* table_name);
-        void loadIndex(Index* index);
+        void loadInCache(const char* table_name);
+        void loadInCache(Index* index);
 
-        static const signed int DEFAULT_CACHE_SIZE = 32*1024*1024;
-        static const signed int AVERAGE_DATA_SIZE = 32;
+        signed int getCurrRamLoaded(vector<Table*> full_table
+                                  , vector<Index*> indexes
+                                  , vector<Table*> retr_data);
 
     private:
+
+        
+
         char dbName[MAX_LEN];
         char ipAddress[MAX_LEN];
         char username[MAX_LEN];
@@ -155,6 +163,7 @@ class Database {
         int port;
 
         signed int cache_size;
+        Cache* cache;
 
         PGconn* C;
 

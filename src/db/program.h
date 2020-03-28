@@ -19,6 +19,10 @@ class Program {
         char* getIP();
         const char *data_location;
 
+        static const signed int DEFAULT_CACHE_SIZE = 32*1024*1024;
+        static const signed int AVERAGE_DATA_SIZE = 32;
+        static constexpr float DEFAULT_TABLE_FETCH_SIZE = 0.20;
+
     private:
         static Program* singleton;
         int log_level = 5;

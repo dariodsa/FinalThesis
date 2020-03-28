@@ -1,7 +1,7 @@
-#include "operation.h"
+#ifndef INDEXCON_H
+#define INDEXCON_H
 
-#ifndef INDEXCON_CLASS
-#define INDEXCON_CLASS 1
+#include "operation.h"
 
 class IndexCon : public Operation{
     public:

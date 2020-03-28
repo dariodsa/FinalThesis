@@ -13,6 +13,7 @@ SOURCE_COLUMN   = $(STRUCTURES_PATH)column.cpp
 SOURCE_TABLE    = $(STRUCTURES_PATH)table.cpp
 SOURCE_DATABASE = $(STRUCTURES_PATH)database.cpp
 SOURCE_RESULT   = $(STRUCTURES_PATH)result.cpp
+SOURCE_CACHE   = $(STRUCTURES_PATH)cache.cpp
 
 
 SOURCE_PROGRAM = $(DB_PATH)program.cpp
@@ -44,6 +45,7 @@ OBJECT_TABLE  = ${SOURCE_TABLE:.cpp=.o}
 OBJECT_DATABASE  = ${SOURCE_DATABASE:.cpp=.o}
 OBJECT_PROXY     = ${SOURCE_PROXY:.cpp=.o}
 OBJECT_RESULT = ${SOURCE_RESULT:.cpp=.o}
+OBJECT_CACHE  = ${SOURCE_CACHE:.cpp=.o}
 
 OBJECT_NETWORK = ${SOURCE_NETWORK:.cpp=.o}
 
@@ -56,11 +58,15 @@ OBJECT_PROGRAM = ${SOURCE_PROGRAM:.cpp=.o}
 OBJECT_CONFIG = ${SOURCE_CONFIG:.cpp=.o}
 MAIN=main
  
-main: lex_yacc_part network operations index column table result database program proxy  config
-	$(CXX) $(CXXFLAGS)  -o $@  src/main.cpp  $(OBJECT_NETWORK) $(OBJECT_SEQSCAN)  $(OBJECT_INDEXCON) $(OBJECT_INDEXSCAN) $(OBJECT_OPERATION) $(OBJECT_PROXY) $(OBJECT_TOKEN) $(OBJECT_CONFIG)  $(OBJECT_PROGRAM) $(OBJECT_RESULT) $(OBJECT_DATABASE) $(OBJECT_TABLE) $(OBJECT_COLUMN) $(OBJECT_INDEX)  $(LEX_YACC_FLAGS)  $(POSTGE_FLAGS)
+main: lex_yacc_part network cache operations index column table result database program proxy  config
+	$(CXX) $(CXXFLAGS)  -o $@  src/main.cpp  $(OBJECT_CACHE) $(OBJECT_NETWORK) $(OBJECT_SEQSCAN)  $(OBJECT_INDEXCON) $(OBJECT_INDEXSCAN) $(OBJECT_OPERATION) $(OBJECT_PROXY) $(OBJECT_TOKEN) $(OBJECT_CONFIG)  $(OBJECT_PROGRAM) $(OBJECT_RESULT) $(OBJECT_DATABASE) $(OBJECT_TABLE) $(OBJECT_COLUMN) $(OBJECT_INDEX)  $(LEX_YACC_FLAGS)  $(POSTGE_FLAGS)
 
 operations: indexcon indexscan seqscan
 	$(CXX) $(CXXFLAGS) -c $(SOURCE_OPERATION) -o $(OBJECT_OPERATION)
+
+cache:
+	$(CXX) $(CXXFLAGS) -c $(SOURCE_CACHE) -o $(OBJECT_CACHE)
+
 indexcon:
 	$(CXX) $(CXXFLAGS) -c $(SOURCE_INDEXCON) -o $(OBJECT_INDEXCON)
 indexscan:

@@ -112,5 +112,13 @@ TYPE_COL Index::getColType(int index) {
 }
 
 float Index::getCost(Database* database) {
-    return 0;
+    float cost = 0;
+    if(database->isIndexLoaded(this)) {
+        //index is loaded
+        //TODO
+    } else {
+        //TODO
+        //index is not loaded
+    }
+    return cost;
 }

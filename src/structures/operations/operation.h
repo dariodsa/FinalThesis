@@ -7,7 +7,7 @@ class Operation{
     public:
         Operation(Table* table);
         void addChild(Operation* child);
-        float getCost();
+        float getCost(Database* database);
         
         virtual void print();
 
@@ -15,7 +15,7 @@ class Operation{
         Table *table;
     private:
         
-        virtual float myCost();
+        virtual float myCost(Database* database);
 };
 
 #endif

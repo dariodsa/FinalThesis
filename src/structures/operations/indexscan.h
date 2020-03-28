@@ -14,6 +14,8 @@ class IndexScan : public Operation{
             }
         }
 
+        
+
     private:
         Index* index;
         int len;

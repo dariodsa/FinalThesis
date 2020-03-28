@@ -8,16 +8,16 @@ void Operation::addChild(Operation* chlid) {
     this->children.push_back(chlid);
 }
 
-float Operation::myCost() {
+float Operation::myCost(Database* database) {
     return 1;
 }
 
-float Operation::getCost() {
+float Operation::getCost(Database *database) {
     float ans = 0;
     for(Operation* op : children) {
-        ans += op->getCost();
+        ans += op->getCost(database);
     }
-    return ans * myCost();
+    return ans * myCost(database);
 }
 
 void Operation::print() {

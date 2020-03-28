@@ -19,7 +19,7 @@ class Table {
         char* getTableName();
         vector<Index*> getIndex();
         Column* getColumn(const char *name);
-        float getCost(Database* database);
+        float getCost(Database* database, bool full_table);
         web::json::value getJSON();
 
         bool isIndex(vector<char*> column);

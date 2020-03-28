@@ -57,7 +57,7 @@ class Select{
         Select(Database *database, std::vector<table_name*>* tables, std::vector<variable> *variables);
         Select(Database* database, node* root, std::vector<table_name*>* tables, std::vector<variable>* variables);
     
-        float getCost();
+        float getCost(Database *database);
         static bool compare_index_pointer(pair<Index*, pair<int, int> > a, pair<Index*, pair<int, int> > b);
 
     private:

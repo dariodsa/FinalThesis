@@ -21,6 +21,7 @@ class Table {
         Column* getColumn(const char *name);
         float getCost(Database* database, bool full_table);
         web::json::value getJSON();
+        signed int getSize();
 
         bool isIndex(vector<char*> column);
         bool isColumn(char* name);

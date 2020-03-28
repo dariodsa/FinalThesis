@@ -14,6 +14,11 @@ class SeqScan : public Operation{
             }
         }
 
+        float myCost(Database* database) {
+            float cost = table->getCost(database, true);
+            return cost;
+        }
+
     private:
         
 };

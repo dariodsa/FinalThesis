@@ -133,6 +133,8 @@ class Database {
 
         size_t getNumOfTables();
 
+        void setCacheSize(signed int cache_size);
+
         web::json::value getJSON();
 
         bool isTableLoaded(const char* table_name);
@@ -141,6 +143,9 @@ class Database {
         void loadTable(const char* table_name);
         void loadIndex(Index* index);
 
+        static const signed int DEFAULT_CACHE_SIZE = 32*1024*1024;
+        static const signed int AVERAGE_DATA_SIZE = 32;
+
     private:
         char dbName[MAX_LEN];
         char ipAddress[MAX_LEN];
@@ -148,6 +153,8 @@ class Database {
         char password[MAX_LEN];
 
         int port;
+
+        signed int cache_size;
 
         PGconn* C;
 

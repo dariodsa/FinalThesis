@@ -14,7 +14,14 @@ class IndexScan : public Operation{
             }
         }
 
-        
+        float myCost(Database* database) {
+            float cost = index->getCost(database, len);
+            if(retr_data) {
+                float table_cost = table->getCost(database, false);
+                cost += table_cost;
+            }
+            return cost;
+        }
 
     private:
         Index* index;

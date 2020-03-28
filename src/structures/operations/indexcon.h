@@ -13,6 +13,12 @@ class IndexCon : public Operation{
                 kid->print();
             }
         }
+
+        float myCost(Database* database) {
+            float cost = index->getCost(database, len);
+            return cost;
+        }
+
     private:
         Index* index;
         int len;

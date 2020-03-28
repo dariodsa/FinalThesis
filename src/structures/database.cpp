@@ -9,6 +9,9 @@ using namespace web;
 Database::Database() {}
 
 Database::Database(const char *ipAddress, const char* dbName, int port, const char* username, const char* password) {
+    
+    setCacheSize(DEFAULT_CACHE_SIZE);
+
     if(ipAddress == NULL) {
         throw std::invalid_argument("Ip address is pointing to zero.\n");
     }
@@ -31,6 +34,7 @@ Database::Database(web::json::value _json) : Database(
                                           , _json["password"].as_string().c_str()) {
     
     Program* program = Program::getInstance();
+
     std::ifstream data;
     data.open(program->data_location);
     
@@ -104,6 +108,11 @@ void Database::addTable(Table *t) {
     }
     this->tables[table_name] = t;
 }
+
+void Database::setCacheSize(signed int cache_size) {
+    this->cache_size = cache_size;
+}
+
 Table* Database::getTable(const char* name) {
     string table_name(name);
     return this->tables[table_name];

@@ -111,7 +111,11 @@ TYPE_COL Index::getColType(int index) {
     return this->types[index];
 }
 
-float Index::getCost(Database* database) {
+signed int Index::getSize() {
+    return this->getColNumber() * Database::AVERAGE_DATA_SIZE;
+}
+
+float Index::getCost(Database* database, int len) {
     float cost = 0;
     if(database->isIndexLoaded(this)) {
         //index is loaded

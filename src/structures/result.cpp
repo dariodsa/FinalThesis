@@ -4,7 +4,6 @@
 #include "operations/operation.h"
 #include "operations/indexscan.h"
 #include "operations/indexcon.h"
-#include "operations/retrdata.h"
 #include "operations/seqscan.h"
 
 #include "../db/program.h"
@@ -74,8 +73,8 @@ bool Result::hasColumn(char* col_name) {
     return false;
 }
 
-float Select::getCost() {
-    return this->operation->getCost();
+float Select::getCost(Database* database) {
+    return this->operation->getCost(database);
 }
 
 bool Select::compare_index_pointer(pair<Index*, pair<int, int> > a, pair<Index*, pair<int, int> > b) {
@@ -149,9 +148,9 @@ Select::Select(Database* database, node* root, vector<table_name*>* tables, vect
                         Operation *op;
 
                         if(!isScan) {
-                            op = new IndexCon(&table, pair.first, len);
+                            op = new IndexCon(&table, pair.first, len, network->getRetrData());
                         } else {
-                            op = new IndexScan(&table, pair.first, len);
+                            op = new IndexScan(&table, pair.first, len, network->getRetrData());
                         }
                         operation->addChild(op);
                     }

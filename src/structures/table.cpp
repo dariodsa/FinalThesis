@@ -78,12 +78,17 @@ float Table::getCost(Database* database, bool full_table) {
     } else if(database->isTableLoaded(name)) {
         if(full_table) {
             //full table scan
-            
+
         } else {
             //retr data
         }
     }
     return cost;
+}
+
+
+signed int Table::getSize() {
+    return this->numOfRows * this->columns.size() * Database::AVERAGE_DATA_SIZE;
 }
 
 void Table::addIndex(Index *index) {

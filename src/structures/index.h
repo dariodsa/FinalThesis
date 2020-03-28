@@ -41,12 +41,15 @@ class Index {
         
         int getColNumber();
         int getHash();
+        signed int getSize();
+
         char* getColName(int index);
-        bool getUnique();
         char* getTable();
         char* getName();
+        
+        bool getUnique();
         TYPE_COL getColType(int index);
-        float getCost(Database* database);
+        float getCost(Database* database, int len);
         web::json::value getJSON();
 
     private:

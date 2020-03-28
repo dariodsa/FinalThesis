@@ -63,35 +63,32 @@ void Cache::addNode(Index* index) {
 
 void Cache::addNode(Table* table, bool full) {
     Node node = Node(table, full);
-    if(getLoadedStatus(table) != 0) {
-        //increment table
-        //remove old 
+    if(getRatio(table) != 0) {
+        incrementTable(node);
     } else {
         //add node in nodes
-
-        //remove old
+        node.setTime(++time_idx);
+        insertNode(node);
     }
+    removeOld();
 }   
 
-signed int Cache::getLoadedStatus(Table* table) {
+float Cache::getRatio(Table* table) {
     Node node = Node(table);
     auto iterator = nodes.find(node);
     if(iterator != nodes.end()) {
         //found
-        
-        return iterator->getSize();
-    } else {
-        //not found
-        return 0;
-    }
+        return iterator->ratio;
+    } 
+    return 0;
 }
 
-signed int Cache::getLoadedStatus(Index* index) {
+float Cache::getRatio(Index* index) {
     Node node = Node(index);
     auto iterator = nodes.find(node);
     if(iterator != nodes.end()) {
         //found
-        return iterator->getSize();
+        return iterator->ratio;
     } else {
         //not found
         return 0;
@@ -103,6 +100,7 @@ void Cache::incrementTable(Node node) {
     if(node.ratio >= 1.00) {
         node.ratio = 1.00;
     }
+    node.setTime(++time_idx);
 }
 
 void Cache::removeOld() {

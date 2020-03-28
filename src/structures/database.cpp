@@ -165,11 +165,13 @@ web::json::value Database::getJSON() {
 
 signed int Database::statusLoaded(const char* table_name) {
     Table* table = getTable(table_name);
-    return cache->getLoadedStatus(table);
+    float ratio = cache->getRatio(table);
+    return table->getSize() * ratio;
 }
 
 signed int Database::statusLoaded(Index* index) {
-    return cache->getLoadedStatus(index);
+    float ratio = cache->getRatio(index);
+    return index->getSize() * ratio;
 }
 
 void Database::loadInCache(Index *index) {
@@ -195,4 +197,13 @@ signed int Database::getCurrRamLoaded(vector<Table*> full_table
     }
 
     return ans;
+}
+
+float Database::getRatioInCache(const char* table_name) {
+    Table* table = getTable(table_name);
+    return cache->getRatio(table);
+}
+
+float Database::getRatioInCache(Index *index) {
+    return cache->getRatio(index);
 }

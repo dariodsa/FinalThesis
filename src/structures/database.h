@@ -144,6 +144,11 @@ class Database {
         signed int statusLoaded(const char* table_name);
         signed int statusLoaded(Index* index);
 
+        float getRatioInCache(const char* table_name);
+        float getRatioInCache(Index* index);
+
+        
+
         void loadInCache(const char* table_name);
         void loadInCache(Index* index);
 

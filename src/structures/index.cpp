@@ -118,7 +118,7 @@ signed int Index::getSize() {
 
 float Index::getCost(Database* database, int len) {
     float cost = 0;
-    if(true) {
+    if(database->getRatioInCache(this) > 0) {
         //index is loaded
         //TODO
     } else {

@@ -16,8 +16,8 @@ class Cache{
         Cache(Database* database);
         void addNode(Table* table, bool full);
         void addNode(Index* index);
-        signed int getLoadedStatus(Table* table);
-        signed int getLoadedStatus(Index* index);
+        float getRatio(Table* table);
+        float getRatio(Index* index);
     private:
         void incrementTable(Node node);
         void removeOld();

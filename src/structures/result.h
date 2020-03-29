@@ -4,6 +4,7 @@
 #include <string.h>
 #include <vector>
 #include <set>
+#include <tuple>
 
 #include "database.h"
 #include "index.h"
@@ -13,19 +14,14 @@ extern char AND_STR[4];
 extern char NOT_STR[4];
 extern char OR_STR[4];
 
-enum SEARCH_TYPE{
-    INDEX_SCAN,
-    INDEX_CONST,
-    SEQ_SCAN
+struct index_pointer_cmp{
+    bool operator()(const Index* A, const Index* B) const {
+        return A->getHash() < B->getHash();
+    }
 };
 
-class Sorting{
-    public:
-        Sorting(int num_rows, bool disc);
-    private:
-        int num_rows;
-        bool disc;
-};
+typedef std::tuple<std::set<std::string>, std::set<Index*, index_pointer_cmp>, std::set<std::string>> resursi;
+
 
 class Result{
     public:
@@ -56,10 +52,11 @@ class Select{
         Select();
         Select(Database* database, node* root, std::vector<table_name*>* tables, std::vector<variable>* variables);
 
+        float getFinalCost(Database *database);
+        float getLoadingCost(Database* database);
 
-
-        float getCost(Database *database);
         static bool compare_index_pointer(pair<Index*, pair<int, int> > a, pair<Index*, pair<int, int> > b);
+        static resursi mergeResource(resursi A, resursi B);
 
         void addSort();
         void addGroup();
@@ -71,8 +68,13 @@ class Select{
     private:
         void dfs(node *root);
         vector<vector<expression_info*> > getAreas(node *root);
-        
+        float getCost(Database *database);
+
         node* de_morgan(node* root);
+        
+        resursi getResource();
+
+        resursi resouce;
         Database* database;
 
         std::set<Table> tables_set;

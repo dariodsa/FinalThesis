@@ -12,6 +12,7 @@
 #include <queue>
 #include <string>
 #include <queue>
+#include <iostream>
 
 using namespace std;
 
@@ -85,6 +86,20 @@ float Select::getCost(Database* database) {
     }
 
     return ans;
+}
+
+float Select::getFinalCost(Database* database) {
+    return this->getCost(database) + this->getLoadingCost(database);
+}
+
+resursi Select::getResource() {
+    for(Select* sibling : siblings) {
+        this->resouce = Select::mergeResource(sibling->getResource(), resouce);
+    }
+    for(Select* kid : kids) {
+        this->resouce = Select::mergeResource(kid->getResource(), resouce);
+    }
+    return resouce;
 }
 
 bool Select::compare_index_pointer(pair<Index*, pair<int, int> > a, pair<Index*, pair<int, int> > b) {
@@ -234,7 +249,7 @@ Select::Select(Database* database, node* root, vector<table_name*>* tables, vect
                 }
             }
             printf("Size %d\n", used_indexes.size());
-            //sort(used_indexes.begin(), used_indexes.end(), Select::compare_index_pointer);
+            sort(used_indexes.begin(), used_indexes.end(), Select::compare_index_pointer);
             char *p = 0;
             
             
@@ -429,4 +444,33 @@ void Select::addSibling(Select* sibling) {
 }
 void Select::addKid(Select* kid) {
     kids.push_back(kid);
+}
+
+resursi Select::mergeResource(resursi A, resursi B) {
+    set<string> full_scan_tables; 
+    set<Index*, index_pointer_cmp> indexes;
+    set<string> retr_tables;
+
+    for(Index* index : get<1>(A)) {
+        indexes.insert(index);
+    }
+    for(Index* index : get<1>(B)) {
+        indexes.insert(index);
+    }
+
+    for(string table : get<0>(A)) {
+        full_scan_tables.insert(table);
+    }
+    for(string table : get<0>(B)) {
+        full_scan_tables.insert(table);
+    }
+
+    for(string table : get<2>(A)) {
+        if(full_scan_tables.find(table) != full_scan_tables.end()) {
+            continue;
+        }
+        retr_tables.insert(table);
+    }
+
+    return make_tuple(full_scan_tables, indexes, retr_tables);
 }

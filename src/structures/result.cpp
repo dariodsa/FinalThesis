@@ -74,6 +74,9 @@ bool Result::hasColumn(char* col_name) {
 }
 
 float Select::getCost(Database* database) {
+    if(this->pipeline && limit != -1) {
+        
+    }
     return this->operation->getCost(database);
 }
 
@@ -81,8 +84,7 @@ bool Select::compare_index_pointer(pair<Index*, pair<int, int> > a, pair<Index*,
     return strcmp(a.first->getTable(), b.first->getTable()) < 0;
 }
 
-Select::Select(Database* database, vector<table_name*>* tables, vector<variable>* variables) {
-}
+Select::Select() {}
 
 Select::Select(Database* database, node* root, vector<table_name*>* tables, vector<variable>* variables) {
 
@@ -90,7 +92,6 @@ Select::Select(Database* database, node* root, vector<table_name*>* tables, vect
     this->database = database;
     //remove not nodes
     root = this->de_morgan(root);
-    printf("Root name: %s\n", root->name);
 
     for(table_name* t : *tables) {
         printf("Table: %s %s\n", t->name, t->real_name);
@@ -118,7 +119,9 @@ Select::Select(Database* database, node* root, vector<table_name*>* tables, vect
 
     printf("Tc: %d or_node: %d\n", table_count, or_node);
 
-    if(this->or_node > 0 && this->table_count > 1) {
+    Operation *first = operation;
+
+    if((this->or_node > 0 && this->table_count > 1) || root == 0) {
         //seq scan na sve
         Operation *parent = operation;
         for(table_name* t : *tables) {
@@ -214,7 +217,7 @@ Select::Select(Database* database, node* root, vector<table_name*>* tables, vect
                     seq_scan_tables[_t] = true;
                 }
             }
-            Operation *first = operation;
+            
             for(auto it = seq_scan_tables.begin(); it != seq_scan_tables.end(); ++it) {
                 if(seq_scan_tables[it->first] == true) {
                     Table* t = (Table*)&(it->first);
@@ -256,11 +259,13 @@ Select::Select(Database* database, node* root, vector<table_name*>* tables, vect
                     parent->addChild(op);
                 }
             }
-            printf("===============\n");
-            first->print();
-            printf("===============\n");
+            
         }
     }
+
+    printf("===============\n");
+    first->print();
+    printf("===============\n");
 }
 
 vector<vector<expression_info*> > Select::getAreas(node *root) {
@@ -318,6 +323,7 @@ vector<vector<expression_info*> > Select::getAreas(node *root) {
 
 void Select::dfs(node *root) {
     
+    if(root == 0) return;
     if(!root->terminal) {
         
         if(strcmp(root->name, AND_STR) == 0) { // and
@@ -342,6 +348,7 @@ void Select::dfs(node *root) {
 
 node* Select::de_morgan(node* root) {
     
+    if(root == 0) return root;
     if(root->terminal) {
         return root;
     }
@@ -396,4 +403,23 @@ node* Select::de_morgan(node* root) {
         }
     }
     return root;
+}
+
+
+void Select::addSort() {
+    this->pipeline = false;
+}
+void Select::addGroup() {
+    this->pipeline = false;
+}
+
+void Select::addLimit(int limit) {
+    this->limit = limit;
+}
+
+void Select::addSibling(Select* sibling) {
+    siblings.push_back(sibling);
+}
+void Select::addKid(Select* kid) {
+    kids.push_back(kid);
 }

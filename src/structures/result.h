@@ -53,11 +53,20 @@ class Result{
 
 class Select{
     public: 
-        Select(Database *database, std::vector<table_name*>* tables, std::vector<variable> *variables);
+        Select();
         Select(Database* database, node* root, std::vector<table_name*>* tables, std::vector<variable>* variables);
-    
+
+
+
         float getCost(Database *database);
         static bool compare_index_pointer(pair<Index*, pair<int, int> > a, pair<Index*, pair<int, int> > b);
+
+        void addSort();
+        void addGroup();
+        void addLimit(int limit);
+
+        void addSibling(Select* sibling);
+        void addKid(Select* kid);
 
     private:
         void dfs(node *root);
@@ -70,7 +79,13 @@ class Select{
         int or_node;
         int table_count;
 
+        bool pipeline = true;
+        int limit = -1;
+
         Operation *operation = new Operation(0);
+
+        std::vector<Select*> siblings;
+        std::vector<Select*> kids;
 };
 
 

@@ -175,11 +175,12 @@ signed int Database::statusLoaded(Index* index) {
 }
 
 void Database::loadInCache(Index *index) {
-
+    cache->addNode(index);
 }
 
-void Database::loadInCache(const char* table_name) {
-
+void Database::loadInCache(const char* table_name, bool full) {
+    Table* table = getTable(table_name);
+    cache->addNode(table, full);
 }
 
 signed int Database::getCurrRamLoaded(vector<Table*> full_table

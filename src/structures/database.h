@@ -149,7 +149,7 @@ class Database {
 
         
 
-        void loadInCache(const char* table_name);
+        void loadInCache(const char* table_name, bool full);
         void loadInCache(Index* index);
 
         signed int getCurrRamLoaded(vector<Table*> full_table

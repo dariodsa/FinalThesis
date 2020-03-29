@@ -37,23 +37,26 @@ extern vector<SearchType>* searchTypes;
 
 %union
 {
-   double fvalue;
-   char *text;  
-   Column* column;
-   Index* index;
-   Table* table;
+    double fvalue;
+    char *text;  
+    Column* column;
+    Index* index;
+    Table* table;
 
-   int number;
 
-   vector<table_name*>* tables;
-   vector<char*>* names;
 
-   table_name* table_name;
-   
-   variable* variable;
-   expression_info* expression_info;
+    int number;
 
-   node *node;
+    vector<table_name*>* tables;
+    vector<char*>* names;
+
+    table_name* table_name;
+
+    variable* variable;
+    expression_info* expression_info;
+
+    node *node;
+    Select* select;
 }
 
 
@@ -111,6 +114,14 @@ extern vector<SearchType>* searchTypes;
 %type <node> condition
 %type <node> where_clause
 
+%type <select> select_options
+%type <select> select_options_more
+%type <select> select_statement
+%type <select> subquery
+%type <select> projection_clause
+%type <select> select_list
+
+%type <number> limit_offset_clause
 %%
 
 
@@ -398,34 +409,83 @@ single_column_constraint:
 
 subquery: select_statement 
         {
-            
+            $$ = $1;
         }
 
 select_list:
             expression AS NAME ',' select_list
+            {
+                $$ = $5;
+            }
            | expression NAME ',' select_list
+           {
+               $$ = $4;
+           }
            | expression NAME
+           {
+               $$ = new Select();
+           }
            | expression AS NAME
+           {
+               $$ = new Select();
+           }
            | expression ',' select_list
+           {
+               $$ = $3;
+           }
            | expression 
-
+           {
+               $$ = new Select();
+           } 
            | '(' subquery ')' ',' select_list
+           {
+               $$ = $2;
+               $$->addSibling($5);
+           }
            | '(' subquery ')' AS NAME ',' select_list
+           {
+               $$ = $2;
+               $$->addSibling($7);
+           }
            | '(' subquery ')' NAME ',' select_list
+           {
+               $$ = $2;
+               $$->addSibling($6);
+           }
            | '(' subquery ')'
+           {
+               $$ = $2;
+           }
            | '(' subquery ')' AS NAME 
+           {
+               $$ = $2;
+           }
            | '(' subquery ')' NAME 
-           
+           {
+               $$ = $2;
+           }
            | NAME '.' '*' ',' select_list
+           {
+               $$ = $5;
+           }
            | NAME '.' '*' 
+           {
+               $$ = new Select();
+           }
            ;
 
 projection_clause:
                   '*'
+                  {
+                      $$ = new Select();
+                  }
                  | select_types  select_list                  
+                 {
+                    $$ = $2;
+                 }
                  | select_list 
                  {
-                    
+                    $$ = $1;
                  }
                  ;
 
@@ -975,7 +1035,6 @@ group_by_clause: GROUP BY columns_sep_comma
 
 where_clause: WHERE condition 
             {
-                Select* s = new Select(database, $2, (*sp)->tables, (*sp)->select_variable);
                 $$ = $2;
             }
 
@@ -1024,67 +1083,97 @@ from_clause: FROM from_clauses_list
 select_options: 
                 projection_clause from_clause where_clause group_by_clause having_clause
                 {
-                   
-                    
-                }  
-                | projection_clause from_clause where_clause having_clause
-                {
-                    
+                    Select* s = new Select(database, $3, (*sp)->tables, (*sp)->select_variable);
+                    s->addKid($1);
+                    s->addGroup();
+                    $$ = s;
                 }
                 | projection_clause from_clause where_clause group_by_clause
                 {
-                    node *root = $3;
+                    Select* s = new Select(database, $3, (*sp)->tables, (*sp)->select_variable);
+                    s->addKid($1);
+                    s->addGroup();
+                    $$ = s;
                 }
                 | projection_clause from_clause group_by_clause
                 {
-
+                    node* root = 0;
+                    Select* s = new Select(database, root, (*sp)->tables, (*sp)->select_variable);
+                    s->addKid($1);
+                    s->addGroup();
+                    $$ = s;
                 }
                 | projection_clause from_clause group_by_clause having_clause
                 {
-                    //node *root = $4;
+                    node* root = 0;
+                    Select* s = new Select(database, root, (*sp)->tables, (*sp)->select_variable);
+                    s->addKid($1);
+                    s->addGroup();
+                    $$ = s;
                 }
                 | projection_clause from_clause where_clause 
                 {
-                    node *root = $3;
+                    Select* s = new Select(database, $3, (*sp)->tables, (*sp)->select_variable);
+                    s->addKid($1);
+                    $$ = s;
                 }
                 | projection_clause from_clause
-                
-                | projection_clause
+                {
+                    node* root = 0;
+                    Select* s = new Select(database, root, (*sp)->tables, (*sp)->select_variable);
+                    s->addKid($1);
+                    $$ = s;
+                }
               ;
 
 select_options_more:
-                    UNION ALL SELECT select_options
-                   | UNION SELECT select_options
+                    UNION ALL SELECT select_options { $$ = $4; }
+                   | UNION SELECT select_options { $$ = $3; }
                    ;
 
 select_statement:  //Select* s = new Select(database, $2, (*sp)->tables, (*sp)->select_variable);
                  select_word select_options
                  {
+                     $$ = $2;
                      --depth;
                      pop(sp);
                  }
                 | select_word select_options select_options_more order_by_clause limit_offset_clause
                 {
+                    $$ = $2;
+                    $$->addSort();
+                    $$->addLimit($5);
+                    $$->addSibling($3);
                     --depth;
                     pop(sp);
                 }
                 | select_word select_options select_options_more order_by_clause
                 {
+                    $$ = $2;
+                    $$->addSort();
+                    $$->addSibling($3);
                     --depth;
                     pop(sp);
                 }
                 | select_word select_options order_by_clause limit_offset_clause
                 {
+                    $2->addSort();
+                    $2->addLimit($4);
+                    $$ = $2;
                     --depth;
                     pop(sp);
                 }
                 | select_word select_options limit_offset_clause
                 {
+                    $2->addLimit($3);
+                    $$ = $2;
                     --depth;
                     pop(sp);
                 }
                 | select_word select_options order_by_clause
                 {
+                    $2->addSort();
+                    $$ = $2;
                     --depth;
                     pop(sp);
                 }

@@ -137,10 +137,12 @@ Select::Select(Database* database, node* root, vector<table_name*>* tables, vect
            //pretraga indeksa po područjima, jedna tablica
            
            vector<string> indexed_tables;
-            for(Table table : tables_set) {
+            for(Table _table : tables_set) {
                 for(auto area : areas) {
                     //construct  network
-                    Network* network = new Network(database, &table, table.getIndex(), area, indexed_tables);
+                    Table* table = database->getTable(_table.getTableName());
+
+                    Network* network = new Network(database, table, table->getIndex(), area, indexed_tables);
                     
                     for(pair<Index*, pair<int, int> > pair : network->getUsedIndexes()) {
                         int isScan = pair.second.first;
@@ -148,15 +150,15 @@ Select::Select(Database* database, node* root, vector<table_name*>* tables, vect
                         Operation *op;
 
                         if(!isScan) {
-                            op = new IndexCon(&table, pair.first, len, network->getRetrData());
+                            op = new IndexCon(table, pair.first, len, network->getRetrData());
                         } else {
-                            op = new IndexScan(&table, pair.first, len, network->getRetrData());
+                            op = new IndexScan(table, pair.first, len, network->getRetrData());
                         }
                         operation->addChild(op);
                     }
 
                     if(network->getUsedIndexes().size() == 0) {
-                        Operation *op = new SeqScan(&table);
+                        Operation *op = new SeqScan(table);
                         operation->addChild(op);
                     }   
                 }
@@ -165,26 +167,44 @@ Select::Select(Database* database, node* root, vector<table_name*>* tables, vect
 
         } else if(this->or_node == 0) {
             //jedno područje and-a
+
+            Operation *parent = operation;
+
+            //seq scan nad onima koji se ne spominju
+            for(table_name* table_name : *tables) {
+                Table _table = *(database->getTable(table_name->real_name));
+                printf("table_name %s %s\n", table_name->name, table_name->real_name);
+                auto i1 = tables_set.find(_table);
+                if(i1 == tables_set.end()) {
+                    Operation *op = new SeqScan(&_table);
+                    parent->addChild(op);
+                    parent = op;
+                }
+            }
+
+
             vector<expression_info*> area = areas[0];
             map<Table, bool> seq_scan_tables;
             vector<string> indexed_tables;
-            Operation *parent = operation;
 
             vector<pair<Index*, pair<int, int> >> used_indexes; 
             
             map<Table, bool> retr_data_tables;
             
             printf("OrNode %d Table_set %d\n", or_node, tables_set.size());
-            for(Table table : tables_set) {
-                if(seq_scan_tables[table]) continue;
+            for(Table _table : tables_set) {
+                if(seq_scan_tables[_table]) continue;
                 //construct  network
                 
-                Network* network = new Network(database, &table, table.getIndex(), area, indexed_tables);
+                Table* table = database->getTable(_table.getTableName());
+                printf("table json: %s\n", table->getTableName());
+                printf("%d %d\n", table->getIndex().size(), table);
+                Network* network = new Network(database, table, table->getIndex(), area, indexed_tables);
                 
-                if(network->getRetrData()) retr_data_tables[table] = true;
+                if(network->getRetrData()) retr_data_tables[_table] = true;
 
                 if(network->getUsedIndexes().size() > 0) {
-                    indexed_tables.push_back(string(table.getTableName()));
+                    indexed_tables.push_back(string(table->getTableName()));
                     for(auto in : network->getUsedIndexes()) {
                         used_indexes.push_back(in);
                     }
@@ -204,7 +224,7 @@ Select::Select(Database* database, node* root, vector<table_name*>* tables, vect
                 }
             }
             printf("Size %d\n", used_indexes.size());
-            sort(used_indexes.begin(), used_indexes.end(), Select::compare_index_pointer);
+            //sort(used_indexes.begin(), used_indexes.end(), Select::compare_index_pointer);
             char *p = 0;
             
             
@@ -214,7 +234,9 @@ Select::Select(Database* database, node* root, vector<table_name*>* tables, vect
                 int isScan = _index.second.first;
                 int len = _index.second.second;
                 Table* table = database->getTable(index->getTable());
-
+                
+                printf("Table name: %s\n", index->getTable());
+                printf("Table name: %s\n", table->getTableName());
                 Operation *op;
                 bool retr_data = retr_data_tables[*table];
                 if(isScan) {   

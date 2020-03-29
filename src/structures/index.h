@@ -39,7 +39,7 @@ class Index {
         void addColumn(const char* col_name, TYPE_COL type);
         
         int getColNumber();
-        int getHash();
+        int getHash() const;
         signed int getSize();
 
         char* getColName(int index);

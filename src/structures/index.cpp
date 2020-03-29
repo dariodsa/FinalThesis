@@ -94,7 +94,7 @@ int Index::getColNumber() {
     return this->col_names.size();
 }
 
-int Index::getHash() {
+int Index::getHash() const{
     return this->hash;
 }
 

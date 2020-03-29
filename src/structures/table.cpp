@@ -12,7 +12,7 @@ Table::Table(web::json::value json) : Table(json["table_name"].as_string().c_str
     web::json::array indexs = json["indexs"].as_array();
     for(web::json::value index : indexs) {
         Index* i1 = new Index(index);
-        this->indexs.push_back(i1);
+        addIndex(i1);
     }
 
     web::json::array columns = json["columns"].as_array();
@@ -84,6 +84,7 @@ signed int Table::getSize() {
 
 void Table::addIndex(Index *index) {
     this->indexs.push_back(index);
+    index->setTable(name);
     return;
 }
 

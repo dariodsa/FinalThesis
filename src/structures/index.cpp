@@ -82,6 +82,7 @@ void Index::setUnique(bool unique) {
 }
 
 void Index::setTable(const char *table_name) {
+    memset(this->table, 0, sizeof(char) * MAX_LEN);
     strcpy(this->table, table_name);
 }
 

@@ -74,10 +74,17 @@ bool Result::hasColumn(char* col_name) {
 }
 
 float Select::getCost(Database* database) {
-    if(this->pipeline && limit != -1) {
-        
+    float ans = 0;
+    float my_cost = this->operation->getCost(database);
+    ans += my_cost;
+    for(Select* sibling : siblings) {
+        ans += sibling->getCost(database);
     }
-    return this->operation->getCost(database);
+    for(Select* kid : kids) {
+        ans += my_cost * kid->getCost(database);
+    }
+
+    return ans;
 }
 
 bool Select::compare_index_pointer(pair<Index*, pair<int, int> > a, pair<Index*, pair<int, int> > b) {

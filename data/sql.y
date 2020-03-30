@@ -137,6 +137,7 @@ command :
         { 
             searchTypes->push_back(SELECT_TYPE);
             printf("SELECT\n");
+            select_result = $1;
             
         }
         | insert_statement
@@ -1249,8 +1250,9 @@ typedef struct yy_buffer_state * YY_BUFFER_STATE;
 extern YY_BUFFER_STATE yy_scan_string(const char * str);
 extern void yy_delete_buffer(YY_BUFFER_STATE buffer);
 
+Select* select_result = 0;
 
-int parse(const char* query, Database* _database, vector<SearchType>* _searchTypes)
+Select* parse(const char* query, Database* _database, vector<SearchType>* _searchTypes)
 {
     sp = stack;
     database = _database;
@@ -1262,7 +1264,7 @@ int parse(const char* query, Database* _database, vector<SearchType>* _searchTyp
     int res = yyparse();
     yy_delete_buffer(buffer);
     
-    return res;
+    return select_result;
 }
 
 void yyerror(const char *s) {

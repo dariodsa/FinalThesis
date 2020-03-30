@@ -53,8 +53,7 @@ class Select{
         Select(Database* database, node* root, std::vector<table_name*>* tables, std::vector<variable>* variables);
 
         float getFinalCost(Database *database);
-        float getLoadingCost(Database* database);
-
+        
         static bool compare_index_pointer(pair<Index*, pair<int, int> > a, pair<Index*, pair<int, int> > b);
         static resursi mergeResource(resursi A, resursi B);
 
@@ -69,6 +68,7 @@ class Select{
         void dfs(node *root);
         vector<vector<expression_info*> > getAreas(node *root);
         float getCost(Database *database);
+        float getLoadingCost(Database* database);
 
         node* de_morgan(node* root);
         

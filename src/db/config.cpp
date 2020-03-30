@@ -3,6 +3,7 @@
 #define CONFIG_CPP
 
 #include "config.h"
+#include <sys/time.h>
 
 extern "C"{
 #include "../../data/y.tab.c"
@@ -12,35 +13,51 @@ extern "C"{
 #define ARG_NUMBERS 2
 #define MAX_PORT 65535
 
-bool connect_and_listen(char *ip, int port, std::vector<Database*> replicas) {
-    Program* program = Program::getInstance();
+float timedifference_msec(struct timeval t0, struct timeval t1)
+{
+    return (t1.tv_sec - t0.tv_sec) * 1000.0f + (t1.tv_usec - t0.tv_usec) / 1000.0f;
+}
 
-    if(port < 0 || port > MAX_PORT) {
-        program->log(LOG_WARNING, "Port number (%d) is not in valid range.\n", port);
-        return false;
-    }
-    if(ip == NULL) {
-        program->log(LOG_WARNING, "IP is not initialized.\n");
-        return false;
-    }
+std::pair<float, float> connect_and_listen(char *ip, int port, std::vector<Database*>* replicas, const char* query) {
+    
+    Program* program = Program::getInstance();
 
     //connect and listen to CONNECT postgres queries
     FILE *yyin = fopen("/home/dario/Documents/diplomski/FinalThesis/data/i1", "r");
-    Database *database = replicas[0];
-    
+    Database *database = (*replicas)[0];
+
     printf("Call parse:\n");
-    printf("Num of tables %d\n", database->getNumOfTables());
+
     vector<SearchType> searchTypes;
+
+
+    /*FILE* p1 = fopen("d1", "w");
+    fprintf(p1, "%s\n", database->getJSON().serialize().c_str());*/
+
+
+    //const char *p = "SELECT d.dashboardid,d.name,d.userid FROM dashboard d, graphs_items gi;";
+    Select* result = parse(query, database, &searchTypes);
+
+    float cost = result->getFinalCost(database);
+
+    printf("Done parsing.\n");
+
+
+    struct timeval t0;
+    struct timeval t1;
+    float elapsed;
+
+    gettimeofday(&t0, 0);
+    PGresult *res = database->executeQuery(query);
     
-    const char *p = "SELECT * from task where status = 320 and proxy_hostid = 32 and clock = 32;";
-    int result = parse(p, database, &searchTypes);
-    if(result != 0) return false;
-    
-    printf("Done parse:\n");
-    
-    
-    PGresult *res = database->executeQuery(p);
-    int rec_count = PQntuples(res);
+    gettimeofday(&t1, 0);
+
+    elapsed = timedifference_msec(t0, t1);
+
+    //printf("Code executed in %f milliseconds.\n", elapsed);
+    return make_pair(cost, elapsed);
+
+    /*int rec_count = PQntuples(res);
     int col_count = PQnfields(res);
     printf("We have %d rows.\n", rec_count);
     for(int row = 0; row < rec_count; ++row) {
@@ -49,7 +66,7 @@ bool connect_and_listen(char *ip, int port, std::vector<Database*> replicas) {
         }
         printf("\n");
     }
-
+    */
     /*fseek(yyin, 0, SEEK_END);
     long size = ftell(yyin);
     rewind(yyin);
@@ -59,12 +76,55 @@ bool connect_and_listen(char *ip, int port, std::vector<Database*> replicas) {
         fread(&query[i], 1, 1, yyin);
     }
     query[size] = 0;
-    //printf("%s\n", query);
-    //database->executeQuery(query);
-    FILE* p1 = fopen("d1", "w");
-    fprintf(p1, "%s\n", database->getJSON().serialize().c_str());
+    //printf("%s\n", query);struct timeval t1;
+    float elapsed;
+
+    gettimeofday(&t0, 0);
+
+
+    PGresult *res = database->executeQuery(p);
+    int rec_count = PQntuples(res);
+    int col_count = PQnfields(res);
+    printf("We have %d rows.\n", rec_count);
+    for(int row = 0; row < rec_count; ++row) {
+        for(
+    //database->executeQuerystruct timeval t1;
+    float elapsed;
+
+    gettimeofday(&t0, 0);
+
+
+    PGresult *res = database->executeQuery(p);
+    int rec_count = PQntuples(res);
+    int col_count = PQnfields(res);
+    printf("We have %d rows.\n", rec_count);
+    for(int row = 0; row < rec_count; ++row) {
+        for(query);
+    FILE* p1 = fopen("d1", "struct timeval t1;
+    float elapsed;
+
+    gettimeofday(&t0, 0);
+
+
+    PGresult *res = database->executeQuery(p);
+    int rec_count = PQntuples(res);
+    int col_count = PQnfields(res);
+    printf("We have %d rows.\n", rec_count);
+    for(int row = 0; row < rec_count; ++row) {
+        for(");
+    fprintf(p1, "%s\n", datastruct timeval t1;
+    float elapsed;
+
+    gettimeofday(&t0, 0);
+
+
+    PGresult *res = database->executeQuery(p);
+    int rec_count = PQntuples(res);
+    int col_count = PQnfields(res);
+    printf("We have %d rows.\n", rec_count);
+    for(int row = 0; row < rec_count; ++row) {
+        for(ase->getJSON().serialize().c_str());
     */
-    return true;
 }
 
 bool connect_to_replicas(std::vector<Database*> replicas) {

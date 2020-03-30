@@ -51,7 +51,11 @@ int main(int argc, char* argv[]) {
     
     //Proxy* p = new Proxy(55432, replicas[0]);
 
-    bool value = connect_and_listen(program->getIP(), program->getPort(), replicas);
+    vector<const char*> queries;
+    queries.push_back("SELECT d.dashboardid,d.name,d.userid FROM dashboard d, graphs_items gi;");
 
+    for(const char* query : queries) {
+        pair<float, float> res = connect_and_listen(program->getIP(), program->getPort(), &replicas, query);
+    }
     return 0;
 }

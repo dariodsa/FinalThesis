@@ -15,7 +15,7 @@ class IndexScan : public Operation{
         }
 
         float myCost(Database* database) {
-            float cost = index->getCost(database, len);
+            float cost = index->getCost(database, len, true);
             if(retr_data) {
                 float table_cost = table->getCost(database, false);
                 cost += table_cost;

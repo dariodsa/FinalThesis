@@ -52,10 +52,15 @@ int main(int argc, char* argv[]) {
     //Proxy* p = new Proxy(55432, replicas[0]);
 
     vector<const char*> queries;
-    queries.push_back("SELECT d.dashboardid,d.name,d.userid FROM dashboard d, graphs_items gi;");
+    queries.push_back("SELECT * FROM sbtest1, sbtest2 limit 5;");
+    queries.push_back("SELECT * from sbtest1 where k = 2;");
+    queries.push_back("SELECT * from sbtest1 where k < 2;");
+    queries.push_back("SELECT * from sbtest1 where k = 2 and id = 2;");
+    queries.push_back("select * from sbtest1 where k = 3 and c is not null;");
 
     for(const char* query : queries) {
         pair<float, float> res = connect_and_listen(program->getIP(), program->getPort(), &replicas, query);
+        printf("%f,%f\n", res.first, res.second);
     }
     return 0;
 }

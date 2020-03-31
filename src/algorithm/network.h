@@ -3,6 +3,7 @@
 
 #include <vector>
 #include <set>
+#include <map>
 #include <utility>
 #include <string>
 
@@ -30,13 +31,15 @@ class Network {
         std::vector<Index*> indexes;
         std::vector<std::string> indexed_tables;
         std::vector<expression_info*> expression_infos;
-        
+
+        std::map<expression_info*, bool> used_expression;
+
         Table* table;
         Database* database;
 
         bool retr_data;
 
-        void useIndex(Index* index, std::vector<expression_info*> expression_infos);
+        bool useIndex(Index* index, std::vector<expression_info*> expression_infos);
 
 };
 

@@ -1,4 +1,5 @@
 #include "index.h"
+#include "table.h"
 #include "../db/program.h"
 
 using namespace web;
@@ -117,14 +118,9 @@ signed int Index::getSize() {
     return this->getColNumber() * Program::AVERAGE_DATA_SIZE;
 }
 
-float Index::getCost(Database* database, int len) {
+float Index::getCost(Database* database, int len, bool isScan) {
     float cost = 0;
-    if(database->getRatioInCache(this) > 0) {
-        //index is loaded
-        //TODO
-    } else {
-        //TODO
-        //index is not loaded
-    }
+    int numOfElem = database->getTable(table)->getNumOfRows();
+    
     return cost;
 }

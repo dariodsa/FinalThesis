@@ -25,6 +25,8 @@ enum TYPE_COL{
 
 const int P = 103;
 
+class Database;
+class Column;
 
 class Index {
     public:
@@ -48,7 +50,7 @@ class Index {
         
         bool getUnique();
         TYPE_COL getColType(int index);
-        float getCost(Database* database, int len);
+        float getCost(Database* database, int len, bool isScan);
         web::json::value getJSON();
 
     private:

@@ -730,6 +730,7 @@ comparison_condition:
                 for(variable v : *$3->variables) {
                     $$->variables->push_back(v);
                 }
+                printf("%s %d\n", $2, $$->equal);
              }
 		    | expression NOT BETWEEN expression AND expression 
             {
@@ -957,7 +958,7 @@ column_name:
              }
            ;
 
-relation_operator: CMP {printf("CMP %s\n", $1);}
+relation_operator: CMP {}
 
 having_clause: HAVING condition
         {

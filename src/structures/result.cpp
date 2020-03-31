@@ -88,6 +88,10 @@ float Select::getCost(Database* database) {
     return ans;
 }
 
+float Select::getLoadingCost(Database* database) {
+    return 0;
+}
+
 float Select::getFinalCost(Database* database) {
     return this->getCost(database) + this->getLoadingCost(database);
 }
@@ -114,7 +118,7 @@ Select::Select(Database* database, node* root, vector<table_name*>* tables, vect
     this->database = database;
     //remove not nodes
     root = this->de_morgan(root);
-
+    printf("Table num: %d\n", tables->size());
     for(table_name* t : *tables) {
         printf("Table: %s %s\n", t->name, t->real_name);
     }
@@ -222,8 +226,7 @@ Select::Select(Database* database, node* root, vector<table_name*>* tables, vect
                 //construct  network
                 
                 Table* table = database->getTable(_table.getTableName());
-                printf("table json: %s\n", table->getTableName());
-                printf("%d %d\n", table->getIndex().size(), table);
+                
                 Network* network = new Network(database, table, table->getIndex(), area, indexed_tables);
                 
                 if(network->getRetrData()) retr_data_tables[_table] = true;
@@ -260,8 +263,8 @@ Select::Select(Database* database, node* root, vector<table_name*>* tables, vect
                 int len = _index.second.second;
                 Table* table = database->getTable(index->getTable());
                 
-                printf("Table name: %s\n", index->getTable());
-                printf("Table name: %s\n", table->getTableName());
+                printf("Table name: %s, %d\n", index->getTable(), isScan);
+                
                 Operation *op;
                 bool retr_data = retr_data_tables[*table];
                 if(isScan) {   

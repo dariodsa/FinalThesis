@@ -29,69 +29,71 @@ Network::Network(Database* database, Table* table, std::vector<Index*> indexes, 
         if(index->getUnique()) unique_indexes.push_back(index);
         else other_indexes.push_back(index);
     }
+    bool done = false;
     
     for(Index* index : unique_indexes) {
-        useIndex(index, expression_infos);
+        done = useIndex(index, expression_infos);
+        if(done) break;
     }
 
+    if(!done)
     for(Index* index : other_indexes) {
-        useIndex(index, expression_infos);
+        done = useIndex(index, expression_infos);
+        if(done) break;
     }
 
     vector<string> t;
     t.push_back(string(table->getTableName()));
 
+    this->retr_data = false;
+    
     for(expression_info* exp : expression_infos) {
-        if(exp->hasFromTables(t)) {
+        if(exp->hasOnlyFromTables(t) && !used_expression[exp]) {
             this->retr_data = true;
         }
     }
-
 }
 
-void Network::useIndex(Index* index, vector<expression_info*> expression_infos) {
+bool Network::useIndex(Index* index, vector<expression_info*> expression_infos) {
     
     int cnt = 0;
     int isScan = 0;
-    printf("Probam index len: %d\n", index->getColNumber());
+
     for(int col_id = 0, len = index->getColNumber(); col_id < len; ++col_id ) {
         bool found = false;
-        printf("sie %d\n", expression_infos.size());
+        
         for(expression_info* exp_info : expression_infos) {
-            printf("Probaj ..\n");
+            
             if(exp_info->hasFromTables(indexed_tables)) continue;
-            printf("Index %d. %s\n", col_id, index->getColName(col_id));
-            for(variable v : *exp_info->variables) {
-                printf(" var %s %s\n", v.name, v.table);
-            }
-            printf("== %s %s\n", table->getTableName(), index->getColName(col_id));
+            
             if(exp_info->hasVariable(table->getTableName(), index->getColName(col_id))) {
-                printf("Found\n");
+            
+                used_expression[exp_info] = true;
                 for(variable var : *exp_info->variables) {
                     if(strcmp(var.table, table->getTableName()) != 0) {
                         seq_scan.insert(*database->getTable(var.table));
                     }
                 }
                 found = true;
+                
                 if(exp_info->equal != 1) {
                     cnt = col_id + 1;
                     isScan = 1;
-                    
                     auto P = make_pair(index, make_pair(isScan, cnt));
                     used_indexes.push_back(P);
-                    return;
+                    return false;
 
                 }
             }
         }
         if(!found) {
-            if(col_id == 0) return;
+            if(col_id == 0) return false;
             cnt = col_id;
             isScan = 0;
             
             auto P = make_pair(index, make_pair(isScan, cnt));
             used_indexes.push_back(P);
-            return;
+            return false;
         }
     }
     
@@ -101,7 +103,8 @@ void Network::useIndex(Index* index, vector<expression_info*> expression_infos) 
     auto P = make_pair(index, make_pair(isScan, cnt));
     used_indexes.push_back(P);
 
-    return;
+    if(index->getUnique()) return true;
+    return false;
 }
 
 bool Network::getRetrData() {

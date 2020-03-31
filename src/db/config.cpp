@@ -13,8 +13,7 @@ extern "C"{
 #define ARG_NUMBERS 2
 #define MAX_PORT 65535
 
-float timedifference_msec(struct timeval t0, struct timeval t1)
-{
+float timedifference_msec(struct timeval t0, struct timeval t1) {
     return (t1.tv_sec - t0.tv_sec) * 1000.0f + (t1.tv_usec - t0.tv_usec) / 1000.0f;
 }
 
@@ -23,7 +22,6 @@ std::pair<float, float> connect_and_listen(char *ip, int port, std::vector<Datab
     Program* program = Program::getInstance();
 
     //connect and listen to CONNECT postgres queries
-    FILE *yyin = fopen("/home/dario/Documents/diplomski/FinalThesis/data/i1", "r");
     Database *database = (*replicas)[0];
 
     printf("Call parse:\n");
@@ -34,30 +32,41 @@ std::pair<float, float> connect_and_listen(char *ip, int port, std::vector<Datab
     /*FILE* p1 = fopen("d1", "w");
     fprintf(p1, "%s\n", database->getJSON().serialize().c_str());*/
 
+    /*FILE *f = fopen("sql/init.sql", "rb");
+    fseek(f, 0, SEEK_END);
+    long fsize = ftell(f);
+    fseek(f, 0, SEEK_SET);
 
-    //const char *p = "SELECT d.dashboardid,d.name,d.userid FROM dashboard d, graphs_items gi;";
+    char *string = (char *)malloc(fsize + 1);
+    fread(string, fsize, 1, f);
+    fclose(f);
+
+    string[fsize] = 0;*/
+
+
     Select* result = parse(query, database, &searchTypes);
-
+    cout << query << endl;
     float cost = result->getFinalCost(database);
 
     printf("Done parsing.\n");
-
 
     struct timeval t0;
     struct timeval t1;
     float elapsed;
 
     gettimeofday(&t0, 0);
+
+
     PGresult *res = database->executeQuery(query);
     
     gettimeofday(&t1, 0);
 
     elapsed = timedifference_msec(t0, t1);
 
-    //printf("Code executed in %f milliseconds.\n", elapsed);
-    return make_pair(cost, elapsed);
+    printf("Code executed in %f milliseconds.\n", elapsed);
+    
 
-    /*int rec_count = PQntuples(res);
+    int rec_count = PQntuples(res);
     int col_count = PQnfields(res);
     printf("We have %d rows.\n", rec_count);
     for(int row = 0; row < rec_count; ++row) {
@@ -66,7 +75,7 @@ std::pair<float, float> connect_and_listen(char *ip, int port, std::vector<Datab
         }
         printf("\n");
     }
-    */
+    return make_pair(cost, elapsed);
     /*fseek(yyin, 0, SEEK_END);
     long size = ftell(yyin);
     rewind(yyin);

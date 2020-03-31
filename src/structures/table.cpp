@@ -56,6 +56,9 @@ char* Table::getTableName() {
     return this->name;
 }
 
+int Table::getNumOfRows() {
+    return this->numOfRows;
+}
 
 vector<Index*> Table::getIndex() {
     return this->indexs;
@@ -72,7 +75,7 @@ float Table::getCost(Database* database, bool full_table) {
     float cost = 0;
     float ratio = database->getRatioInCache(name);
     
-    database->addTable(this);
+    //database->addTable(this);
     
     return cost;
 }

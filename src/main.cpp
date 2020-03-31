@@ -52,11 +52,14 @@ int main(int argc, char* argv[]) {
     //Proxy* p = new Proxy(55432, replicas[0]);
 
     vector<const char*> queries;
-    queries.push_back("SELECT * FROM sbtest1, sbtest2 limit 5;");
+    for(int i=0;i<5000;++i) {
+        queries.push_back("select * from sbtest1 where k = 3 and c is not null;");
+    queries.push_back("SELECT * FROM sbtest1;");
     queries.push_back("SELECT * from sbtest1 where k = 2;");
     queries.push_back("SELECT * from sbtest1 where k < 2;");
     queries.push_back("SELECT * from sbtest1 where k = 2 and id = 2;");
     queries.push_back("select * from sbtest1 where k = 3 and c is not null;");
+    }
 
     for(const char* query : queries) {
         pair<float, float> res = connect_and_listen(program->getIP(), program->getPort(), &replicas, query);

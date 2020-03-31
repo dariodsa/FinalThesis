@@ -23,6 +23,12 @@ class Program {
         static const signed int AVERAGE_DATA_SIZE = 32;
         static constexpr float DEFAULT_TABLE_FETCH_SIZE = 0.20;
 
+        static const signed int BLOCK_SIZE = 8192;
+        
+        static const int SEQ_PAGE_COST = 1;
+        static constexpr float CPU_TUPLE_COST = 0.01;
+        static constexpr float CPU_FILTER_COST= 0.0025;
+
     private:
         static Program* singleton;
         int log_level = 5;

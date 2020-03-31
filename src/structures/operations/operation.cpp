@@ -17,6 +17,7 @@ float Operation::getCost(Database *database) {
     for(Operation* op : children) {
         ans += op->getCost(database);
     }
+    if(ans == 0) ans = 1;
     return ans * myCost(database);
 }
 

@@ -77,6 +77,7 @@ bool Result::hasColumn(char* col_name) {
 float Select::getCost(Database* database) {
     float ans = 0;
     float my_cost = this->operation->getCost(database);
+    
     ans += my_cost;
     for(Select* sibling : siblings) {
         ans += sibling->getCost(database);

@@ -57,7 +57,7 @@ std::pair<float, float> connect_and_listen(char *ip, int port, std::vector<Datab
     gettimeofday(&t0, 0);
 
 
-    PGresult *res = database->executeQuery(query);
+    //PGresult *res = database->executeQuery(query);
     
     gettimeofday(&t1, 0);
 
@@ -66,15 +66,16 @@ std::pair<float, float> connect_and_listen(char *ip, int port, std::vector<Datab
     printf("Code executed in %f milliseconds.\n", elapsed);
     
 
-    int rec_count = PQntuples(res);
-    int col_count = PQnfields(res);
-    printf("We have %d rows.\n", rec_count);
-    for(int row = 0; row < rec_count; ++row) {
+    //int rec_count = PQntuples(res);
+    //int col_count = PQnfields(res);
+    //printf("We have %d rows.\n", rec_count);
+    /*for(int row = 0; row < rec_count; ++row) {
         for(int col = 0; col < col_count; ++col) {
             printf("%s ", PQgetvalue(res, row, col));
         }
         printf("\n");
-    }
+    }*/
+
     return make_pair(cost, elapsed);
     /*fseek(yyin, 0, SEEK_END);
     long size = ftell(yyin);

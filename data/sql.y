@@ -915,8 +915,8 @@ condition_with_subquery:
                        ;
 
 limit_offset_clause: 
-                    LIMIT expression
-                   | LIMIT expression OFFSET  expression
+                    LIMIT NUMBER { $$ = $2;}
+                   | LIMIT NUMBER OFFSET  NUMBER {$$ = $2; }
                    ;
 
 column_name: 

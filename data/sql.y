@@ -1189,7 +1189,9 @@ select_word: SELECT {
     depth++;
 }
 
-binary_operator: ""
+binary_operator: '+'
+                | '-'
+                | '*'
                ;
 constant: 
            NUMBER 

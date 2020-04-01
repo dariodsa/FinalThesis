@@ -146,7 +146,7 @@ Select::Select(Database* database, node* root, vector<table_name*>* tables, vect
 
     printf("Tc: %d or_node: %d\n", table_count, or_node);
 
-    Operation *first = operation;
+    Operation** first = &operation;
 
     if((this->or_node > 0 && this->table_count > 1) || root == 0) {
         //seq scan na sve
@@ -165,15 +165,20 @@ Select::Select(Database* database, node* root, vector<table_name*>* tables, vect
         
         if(this->or_node > 0 && this->table_count == 1) {
            //pretraga indeksa po područjima, jedna tablica
-           
+           bool found = false;
            vector<string> indexed_tables;
             for(Table _table : tables_set) {
                 for(auto area : areas) {
                     //construct  network
+                    printf("Area num: %d\n", area.size());
                     Table* table = database->getTable(_table.getTableName());
 
                     Network* network = new Network(database, table, table->getIndex(), area, indexed_tables);
-                    
+                    if(network->getUsedIndexes().size() == 0) {
+                        operation = new Operation(0);
+                        operation->addChild(new SeqScan(table));
+                        break;
+                    }
                     for(pair<Index*, pair<int, int> > pair : network->getUsedIndexes()) {
                         int isScan = pair.second.first;
                         int len  = pair.second.second;
@@ -290,7 +295,7 @@ Select::Select(Database* database, node* root, vector<table_name*>* tables, vect
     }
 
     printf("===============\n");
-    first->print();
+    (*first)->print();
     printf("===============\n");
 }
 

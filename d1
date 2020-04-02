@@ -1,1 +1,510 @@
-{"dbName":"zabbix","ipAddress":"127.0.0.1","password":"12345","port":5432,"tables":[{"columns":[{"name":"id","primary_key_or_unique":false,"type":"integer"},{"name":"k","primary_key_or_unique":false,"type":"integer"},{"name":"c","primary_key_or_unique":false,"type":"character"},{"name":"pad","primary_key_or_unique":false,"type":"character"}],"database":"","indexs":[{"col_names":["id"],"col_types":[1],"hash":10915,"name":"","table":"sbtest1","unique":false},{"col_names":["k"],"col_types":[1],"hash":107,"name":"k_1","table":"sbtest1","unique":false}],"numOfRows":300000,"table_name":"sbtest1"},{"columns":[{"name":"id","primary_key_or_unique":false,"type":"integer"},{"name":"k","primary_key_or_unique":false,"type":"integer"},{"name":"c","primary_key_or_unique":false,"type":"character"},{"name":"pad","primary_key_or_unique":false,"type":"character"}],"database":"","indexs":[{"col_names":["id"],"col_types":[1],"hash":10915,"name":"","table":"sbtest10","unique":false},{"col_names":["k"],"col_types":[1],"hash":107,"name":"k_10","table":"sbtest10","unique":false}],"numOfRows":300000,"table_name":"sbtest10"},{"columns":[{"name":"id","primary_key_or_unique":false,"type":"integer"},{"name":"k","primary_key_or_unique":false,"type":"integer"},{"name":"c","primary_key_or_unique":false,"type":"character"},{"name":"pad","primary_key_or_unique":false,"type":"character"}],"database":"","indexs":[{"col_names":["id"],"col_types":[1],"hash":10915,"name":"","table":"sbtest11","unique":false},{"col_names":["k"],"col_types":[1],"hash":107,"name":"k_11","table":"sbtest11","unique":false}],"numOfRows":300000,"table_name":"sbtest11"},{"columns":[{"name":"id","primary_key_or_unique":false,"type":"integer"},{"name":"k","primary_key_or_unique":false,"type":"integer"},{"name":"c","primary_key_or_unique":false,"type":"character"},{"name":"pad","primary_key_or_unique":false,"type":"character"}],"database":"","indexs":[{"col_names":["id"],"col_types":[1],"hash":10915,"name":"","table":"sbtest12","unique":false},{"col_names":["k"],"col_types":[1],"hash":107,"name":"k_12","table":"sbtest12","unique":false}],"numOfRows":300000,"table_name":"sbtest12"},{"columns":[{"name":"id","primary_key_or_unique":false,"type":"integer"},{"name":"k","primary_key_or_unique":false,"type":"integer"},{"name":"c","primary_key_or_unique":false,"type":"character"},{"name":"pad","primary_key_or_unique":false,"type":"character"}],"database":"","indexs":[{"col_names":["id"],"col_types":[1],"hash":10915,"name":"","table":"sbtest13","unique":false},{"col_names":["k"],"col_types":[1],"hash":107,"name":"k_13","table":"sbtest13","unique":false}],"numOfRows":300000,"table_name":"sbtest13"},{"columns":[{"name":"id","primary_key_or_unique":false,"type":"integer"},{"name":"k","primary_key_or_unique":false,"type":"integer"},{"name":"c","primary_key_or_unique":false,"type":"character"},{"name":"pad","primary_key_or_unique":false,"type":"character"}],"database":"","indexs":[{"col_names":["id"],"col_types":[1],"hash":10915,"name":"","table":"sbtest14","unique":false},{"col_names":["k"],"col_types":[1],"hash":107,"name":"k_14","table":"sbtest14","unique":false}],"numOfRows":300000,"table_name":"sbtest14"},{"columns":[{"name":"id","primary_key_or_unique":false,"type":"integer"},{"name":"k","primary_key_or_unique":false,"type":"integer"},{"name":"c","primary_key_or_unique":false,"type":"character"},{"name":"pad","primary_key_or_unique":false,"type":"character"}],"database":"","indexs":[{"col_names":["id"],"col_types":[1],"hash":10915,"name":"","table":"sbtest15","unique":false},{"col_names":["k"],"col_types":[1],"hash":107,"name":"k_15","table":"sbtest15","unique":false}],"numOfRows":300000,"table_name":"sbtest15"},{"columns":[{"name":"id","primary_key_or_unique":false,"type":"integer"},{"name":"k","primary_key_or_unique":false,"type":"integer"},{"name":"c","primary_key_or_unique":false,"type":"character"},{"name":"pad","primary_key_or_unique":false,"type":"character"}],"database":"","indexs":[{"col_names":["id"],"col_types":[1],"hash":10915,"name":"","table":"sbtest16","unique":false},{"col_names":["k"],"col_types":[1],"hash":107,"name":"k_16","table":"sbtest16","unique":false}],"numOfRows":300000,"table_name":"sbtest16"},{"columns":[{"name":"id","primary_key_or_unique":false,"type":"integer"},{"name":"k","primary_key_or_unique":false,"type":"integer"},{"name":"c","primary_key_or_unique":false,"type":"character"},{"name":"pad","primary_key_or_unique":false,"type":"character"}],"database":"","indexs":[{"col_names":["id"],"col_types":[1],"hash":10915,"name":"","table":"sbtest17","unique":false},{"col_names":["k"],"col_types":[1],"hash":107,"name":"k_17","table":"sbtest17","unique":false}],"numOfRows":300000,"table_name":"sbtest17"},{"columns":[{"name":"id","primary_key_or_unique":false,"type":"integer"},{"name":"k","primary_key_or_unique":false,"type":"integer"},{"name":"c","primary_key_or_unique":false,"type":"character"},{"name":"pad","primary_key_or_unique":false,"type":"character"}],"database":"","indexs":[{"col_names":["id"],"col_types":[1],"hash":10915,"name":"","table":"sbtest18","unique":false},{"col_names":["k"],"col_types":[1],"hash":107,"name":"k_18","table":"sbtest18","unique":false}],"numOfRows":300000,"table_name":"sbtest18"},{"columns":[{"name":"id","primary_key_or_unique":false,"type":"integer"},{"name":"k","primary_key_or_unique":false,"type":"integer"},{"name":"c","primary_key_or_unique":false,"type":"character"},{"name":"pad","primary_key_or_unique":false,"type":"character"}],"database":"","indexs":[{"col_names":["id"],"col_types":[1],"hash":10915,"name":"","table":"sbtest19","unique":false},{"col_names":["k"],"col_types":[1],"hash":107,"name":"k_19","table":"sbtest19","unique":false}],"numOfRows":300000,"table_name":"sbtest19"},{"columns":[{"name":"id","primary_key_or_unique":false,"type":"integer"},{"name":"k","primary_key_or_unique":false,"type":"integer"},{"name":"c","primary_key_or_unique":false,"type":"character"},{"name":"pad","primary_key_or_unique":false,"type":"character"}],"database":"","indexs":[{"col_names":["id"],"col_types":[1],"hash":10915,"name":"","table":"sbtest2","unique":false},{"col_names":["k"],"col_types":[1],"hash":107,"name":"k_2","table":"sbtest2","unique":false}],"numOfRows":300000,"table_name":"sbtest2"},{"columns":[{"name":"id","primary_key_or_unique":false,"type":"integer"},{"name":"k","primary_key_or_unique":false,"type":"integer"},{"name":"c","primary_key_or_unique":false,"type":"character"},{"name":"pad","primary_key_or_unique":false,"type":"character"}],"database":"","indexs":[{"col_names":["id"],"col_types":[1],"hash":10915,"name":"","table":"sbtest20","unique":false},{"col_names":["k"],"col_types":[1],"hash":107,"name":"k_20","table":"sbtest20","unique":false}],"numOfRows":300000,"table_name":"sbtest20"},{"columns":[{"name":"id","primary_key_or_unique":false,"type":"integer"},{"name":"k","primary_key_or_unique":false,"type":"integer"},{"name":"c","primary_key_or_unique":false,"type":"character"},{"name":"pad","primary_key_or_unique":false,"type":"character"}],"database":"","indexs":[{"col_names":["id"],"col_types":[1],"hash":10915,"name":"","table":"sbtest21","unique":false},{"col_names":["k"],"col_types":[1],"hash":107,"name":"k_21","table":"sbtest21","unique":false}],"numOfRows":300000,"table_name":"sbtest21"},{"columns":[{"name":"id","primary_key_or_unique":false,"type":"integer"},{"name":"k","primary_key_or_unique":false,"type":"integer"},{"name":"c","primary_key_or_unique":false,"type":"character"},{"name":"pad","primary_key_or_unique":false,"type":"character"}],"database":"","indexs":[{"col_names":["id"],"col_types":[1],"hash":10915,"name":"","table":"sbtest22","unique":false},{"col_names":["k"],"col_types":[1],"hash":107,"name":"k_22","table":"sbtest22","unique":false}],"numOfRows":300000,"table_name":"sbtest22"},{"columns":[{"name":"id","primary_key_or_unique":false,"type":"integer"},{"name":"k","primary_key_or_unique":false,"type":"integer"},{"name":"c","primary_key_or_unique":false,"type":"character"},{"name":"pad","primary_key_or_unique":false,"type":"character"}],"database":"","indexs":[{"col_names":["id"],"col_types":[1],"hash":10915,"name":"","table":"sbtest23","unique":false},{"col_names":["k"],"col_types":[1],"hash":107,"name":"k_23","table":"sbtest23","unique":false}],"numOfRows":300000,"table_name":"sbtest23"},{"columns":[{"name":"id","primary_key_or_unique":false,"type":"integer"},{"name":"k","primary_key_or_unique":false,"type":"integer"},{"name":"c","primary_key_or_unique":false,"type":"character"},{"name":"pad","primary_key_or_unique":false,"type":"character"}],"database":"","indexs":[{"col_names":["id"],"col_types":[1],"hash":10915,"name":"","table":"sbtest24","unique":false},{"col_names":["k"],"col_types":[1],"hash":107,"name":"k_24","table":"sbtest24","unique":false}],"numOfRows":300000,"table_name":"sbtest24"},{"columns":[{"name":"id","primary_key_or_unique":false,"type":"integer"},{"name":"k","primary_key_or_unique":false,"type":"integer"},{"name":"c","primary_key_or_unique":false,"type":"character"},{"name":"pad","primary_key_or_unique":false,"type":"character"}],"database":"","indexs":[{"col_names":["id"],"col_types":[1],"hash":10915,"name":"","table":"sbtest3","unique":false},{"col_names":["k"],"col_types":[1],"hash":107,"name":"k_3","table":"sbtest3","unique":false}],"numOfRows":300000,"table_name":"sbtest3"},{"columns":[{"name":"id","primary_key_or_unique":false,"type":"integer"},{"name":"k","primary_key_or_unique":false,"type":"integer"},{"name":"c","primary_key_or_unique":false,"type":"character"},{"name":"pad","primary_key_or_unique":false,"type":"character"}],"database":"","indexs":[{"col_names":["id"],"col_types":[1],"hash":10915,"name":"","table":"sbtest4","unique":false},{"col_names":["k"],"col_types":[1],"hash":107,"name":"k_4","table":"sbtest4","unique":false}],"numOfRows":300000,"table_name":"sbtest4"},{"columns":[{"name":"id","primary_key_or_unique":false,"type":"integer"},{"name":"k","primary_key_or_unique":false,"type":"integer"},{"name":"c","primary_key_or_unique":false,"type":"character"},{"name":"pad","primary_key_or_unique":false,"type":"character"}],"database":"","indexs":[{"col_names":["id"],"col_types":[1],"hash":10915,"name":"","table":"sbtest5","unique":false},{"col_names":["k"],"col_types":[1],"hash":107,"name":"k_5","table":"sbtest5","unique":false}],"numOfRows":300000,"table_name":"sbtest5"},{"columns":[{"name":"id","primary_key_or_unique":false,"type":"integer"},{"name":"k","primary_key_or_unique":false,"type":"integer"},{"name":"c","primary_key_or_unique":false,"type":"character"},{"name":"pad","primary_key_or_unique":false,"type":"character"}],"database":"","indexs":[{"col_names":["id"],"col_types":[1],"hash":10915,"name":"","table":"sbtest6","unique":false},{"col_names":["k"],"col_types":[1],"hash":107,"name":"k_6","table":"sbtest6","unique":false}],"numOfRows":300000,"table_name":"sbtest6"},{"columns":[{"name":"id","primary_key_or_unique":false,"type":"integer"},{"name":"k","primary_key_or_unique":false,"type":"integer"},{"name":"c","primary_key_or_unique":false,"type":"character"},{"name":"pad","primary_key_or_unique":false,"type":"character"}],"database":"","indexs":[{"col_names":["id"],"col_types":[1],"hash":10915,"name":"","table":"sbtest7","unique":false},{"col_names":["k"],"col_types":[1],"hash":107,"name":"k_7","table":"sbtest7","unique":false}],"numOfRows":300000,"table_name":"sbtest7"},{"columns":[{"name":"id","primary_key_or_unique":false,"type":"integer"},{"name":"k","primary_key_or_unique":false,"type":"integer"},{"name":"c","primary_key_or_unique":false,"type":"character"},{"name":"pad","primary_key_or_unique":false,"type":"character"}],"database":"","indexs":[{"col_names":["id"],"col_types":[1],"hash":10915,"name":"","table":"sbtest8","unique":false},{"col_names":["k"],"col_types":[1],"hash":107,"name":"k_8","table":"sbtest8","unique":false}],"numOfRows":300000,"table_name":"sbtest8"},{"columns":[{"name":"id","primary_key_or_unique":false,"type":"integer"},{"name":"k","primary_key_or_unique":false,"type":"integer"},{"name":"c","primary_key_or_unique":false,"type":"character"},{"name":"pad","primary_key_or_unique":false,"type":"character"}],"database":"","indexs":[{"col_names":["id"],"col_types":[1],"hash":10915,"name":"","table":"sbtest9","unique":false},{"col_names":["k"],"col_types":[1],"hash":107,"name":"k_9","table":"sbtest9","unique":false}],"numOfRows":300000,"table_name":"sbtest9"}],"username":"postgres"}
+﻿{
+  "dbName": "zabbix",
+  "ipAddress": "127.0.0.1",
+  "password": "12345",
+  "port": 5432,
+  "tables": [
+    {
+      "columns": [
+        {
+          "name": "c_custkey",
+          "primary_key_or_unique": false,
+          "type": "integer"
+        },
+        {
+          "name": "c_name",
+          "primary_key_or_unique": true,
+          "type": "character"
+        },
+        {
+          "name": "c_address",
+          "primary_key_or_unique": false,
+          "type": "character"
+        },
+        {
+          "name": "c_nationkey",
+          "primary_key_or_unique": true,
+          "type": "integer"
+        },
+        {
+          "name": "c_phone",
+          "primary_key_or_unique": false,
+          "type": "character"
+        },
+        {
+          "name": "c_acctbal",
+          "primary_key_or_unique": false,
+          "type": "numeric"
+        },
+        {
+          "name": "c_mktsegment",
+          "primary_key_or_unique": false,
+          "type": "character"
+        },
+        {
+          "name": "c_comment",
+          "primary_key_or_unique": false,
+          "type": "character"
+        }
+      ],
+      "database": "",
+      "indexs": [
+        {
+          "col_names": [
+            "c_name"
+          ],
+          "col_types": [
+            1
+          ],
+          "hash": -1146262297,
+          "name": "c_name",
+          "table": "",
+          "unique": false
+        },
+        {
+          "col_names": [
+            "c_nationkey"
+          ],
+          "col_types": [
+            1
+          ],
+          "hash": 86988076,
+          "name": "c_nationkey",
+          "table": "",
+          "unique": false
+        },
+        {
+          "col_names": [
+            "c_custkey"
+          ],
+          "col_types": [
+            1
+          ],
+          "hash": -1804394744,
+          "name": "",
+          "table": "customer",
+          "unique": false
+        }
+      ],
+      "numOfRows": 150000,
+      "table_name": "customer"
+    },
+    {
+      "columns": [
+        {
+          "name": "l_orderkey",
+          "primary_key_or_unique": false,
+          "type": "integer"
+        },
+        {
+          "name": "l_partkey",
+          "primary_key_or_unique": false,
+          "type": "integer"
+        },
+        {
+          "name": "l_suppkey",
+          "primary_key_or_unique": false,
+          "type": "integer"
+        },
+        {
+          "name": "l_linenumber",
+          "primary_key_or_unique": false,
+          "type": "integer"
+        },
+        {
+          "name": "l_quantity",
+          "primary_key_or_unique": false,
+          "type": "numeric"
+        },
+        {
+          "name": "l_extendedprice",
+          "primary_key_or_unique": false,
+          "type": "numeric"
+        },
+        {
+          "name": "l_discount",
+          "primary_key_or_unique": false,
+          "type": "numeric"
+        },
+        {
+          "name": "l_tax",
+          "primary_key_or_unique": false,
+          "type": "numeric"
+        },
+        {
+          "name": "l_returnflag",
+          "primary_key_or_unique": false,
+          "type": "character"
+        },
+        {
+          "name": "l_linestatus",
+          "primary_key_or_unique": false,
+          "type": "character"
+        },
+        {
+          "name": "l_shipdate",
+          "primary_key_or_unique": false,
+          "type": "date"
+        },
+        {
+          "name": "l_commitdate",
+          "primary_key_or_unique": false,
+          "type": "date"
+        },
+        {
+          "name": "l_receiptdate",
+          "primary_key_or_unique": false,
+          "type": "date"
+        },
+        {
+          "name": "l_shipinstruct",
+          "primary_key_or_unique": false,
+          "type": "character"
+        },
+        {
+          "name": "l_shipmode",
+          "primary_key_or_unique": false,
+          "type": "character"
+        },
+        {
+          "name": "l_comment",
+          "primary_key_or_unique": false,
+          "type": "character"
+        }
+      ],
+      "database": "",
+      "indexs": [
+        {
+          "col_names": [
+            "l_orderkey",
+            "l_linenumber"
+          ],
+          "col_types": [
+            1,
+            1
+          ],
+          "hash": 993561252,
+          "name": "",
+          "table": "lineitem",
+          "unique": false
+        }
+      ],
+      "numOfRows": 6001215,
+      "table_name": "lineitem"
+    },
+    {
+      "columns": [
+        {
+          "name": "n_nationkey",
+          "primary_key_or_unique": false,
+          "type": "integer"
+        },
+        {
+          "name": "n_name",
+          "primary_key_or_unique": false,
+          "type": "character"
+        },
+        {
+          "name": "n_regionkey",
+          "primary_key_or_unique": false,
+          "type": "integer"
+        },
+        {
+          "name": "n_comment",
+          "primary_key_or_unique": false,
+          "type": "character"
+        }
+      ],
+      "database": "",
+      "indexs": [
+        {
+          "col_names": [
+            "n_nationkey"
+          ],
+          "col_types": [
+            1
+          ],
+          "hash": -1472419257,
+          "name": "",
+          "table": "nation",
+          "unique": false
+        }
+      ],
+      "numOfRows": 25,
+      "table_name": "nation"
+    },
+    {
+      "columns": [
+        {
+          "name": "o_orderkey",
+          "primary_key_or_unique": false,
+          "type": "integer"
+        },
+        {
+          "name": "o_custkey",
+          "primary_key_or_unique": false,
+          "type": "integer"
+        },
+        {
+          "name": "o_orderstatus",
+          "primary_key_or_unique": false,
+          "type": "character"
+        },
+        {
+          "name": "o_totalprice",
+          "primary_key_or_unique": false,
+          "type": "numeric"
+        },
+        {
+          "name": "o_orderdate",
+          "primary_key_or_unique": false,
+          "type": "date"
+        },
+        {
+          "name": "o_orderpriority",
+          "primary_key_or_unique": false,
+          "type": "character"
+        },
+        {
+          "name": "o_clerk",
+          "primary_key_or_unique": false,
+          "type": "character"
+        },
+        {
+          "name": "o_shippriority",
+          "primary_key_or_unique": false,
+          "type": "integer"
+        },
+        {
+          "name": "o_comment",
+          "primary_key_or_unique": false,
+          "type": "character"
+        }
+      ],
+      "database": "",
+      "indexs": [
+        {
+          "col_names": [
+            "o_orderkey"
+          ],
+          "col_types": [
+            1
+          ],
+          "hash": 692131433,
+          "name": "",
+          "table": "orders",
+          "unique": false
+        }
+      ],
+      "numOfRows": 1500000,
+      "table_name": "orders"
+    },
+    {
+      "columns": [
+        {
+          "name": "p_partkey",
+          "primary_key_or_unique": false,
+          "type": "integer"
+        },
+        {
+          "name": "p_name",
+          "primary_key_or_unique": false,
+          "type": "character"
+        },
+        {
+          "name": "p_mfgr",
+          "primary_key_or_unique": false,
+          "type": "character"
+        },
+        {
+          "name": "p_brand",
+          "primary_key_or_unique": false,
+          "type": "character"
+        },
+        {
+          "name": "p_type",
+          "primary_key_or_unique": false,
+          "type": "character"
+        },
+        {
+          "name": "p_size",
+          "primary_key_or_unique": false,
+          "type": "integer"
+        },
+        {
+          "name": "p_container",
+          "primary_key_or_unique": false,
+          "type": "character"
+        },
+        {
+          "name": "p_retailprice",
+          "primary_key_or_unique": false,
+          "type": "numeric"
+        },
+        {
+          "name": "p_comment",
+          "primary_key_or_unique": false,
+          "type": "character"
+        }
+      ],
+      "database": "",
+      "indexs": [
+        {
+          "col_names": [
+            "p_partkey"
+          ],
+          "col_types": [
+            1
+          ],
+          "hash": -559483771,
+          "name": "",
+          "table": "part",
+          "unique": false
+        }
+      ],
+      "numOfRows": 200000,
+      "table_name": "part"
+    },
+    {
+      "columns": [
+        {
+          "name": "ps_partkey",
+          "primary_key_or_unique": false,
+          "type": "integer"
+        },
+        {
+          "name": "ps_suppkey",
+          "primary_key_or_unique": false,
+          "type": "integer"
+        },
+        {
+          "name": "ps_availqty",
+          "primary_key_or_unique": false,
+          "type": "integer"
+        },
+        {
+          "name": "ps_supplycost",
+          "primary_key_or_unique": false,
+          "type": "numeric"
+        },
+        {
+          "name": "ps_comment",
+          "primary_key_or_unique": false,
+          "type": "character"
+        }
+      ],
+      "database": "",
+      "indexs": [
+        {
+          "col_names": [
+            "ps_partkey",
+            "ps_suppkey"
+          ],
+          "col_types": [
+            1,
+            1
+          ],
+          "hash": -1395794671,
+          "name": "",
+          "table": "partsupp",
+          "unique": false
+        }
+      ],
+      "numOfRows": 800000,
+      "table_name": "partsupp"
+    },
+    {
+      "columns": [
+        {
+          "name": "r_regionkey",
+          "primary_key_or_unique": false,
+          "type": "integer"
+        },
+        {
+          "name": "r_name",
+          "primary_key_or_unique": false,
+          "type": "character"
+        },
+        {
+          "name": "r_comment",
+          "primary_key_or_unique": false,
+          "type": "character"
+        }
+      ],
+      "database": "",
+      "indexs": [
+        {
+          "col_names": [
+            "r_regionkey"
+          ],
+          "col_types": [
+            1
+          ],
+          "hash": 152571214,
+          "name": "",
+          "table": "region",
+          "unique": false
+        }
+      ],
+      "numOfRows": 5,
+      "table_name": "region"
+    },
+    {
+      "columns": [
+        {
+          "name": "s_suppkey",
+          "primary_key_or_unique": false,
+          "type": "integer"
+        },
+        {
+          "name": "s_name",
+          "primary_key_or_unique": false,
+          "type": "character"
+        },
+        {
+          "name": "s_address",
+          "primary_key_or_unique": false,
+          "type": "character"
+        },
+        {
+          "name": "s_nationkey",
+          "primary_key_or_unique": false,
+          "type": "integer"
+        },
+        {
+          "name": "s_phone",
+          "primary_key_or_unique": false,
+          "type": "character"
+        },
+        {
+          "name": "s_acctbal",
+          "primary_key_or_unique": false,
+          "type": "numeric"
+        },
+        {
+          "name": "s_comment",
+          "primary_key_or_unique": false,
+          "type": "character"
+        }
+      ],
+      "database": "",
+      "indexs": [
+        {
+          "col_names": [
+            "s_suppkey"
+          ],
+          "col_types": [
+            1
+          ],
+          "hash": -1557204311,
+          "name": "",
+          "table": "supplier",
+          "unique": false
+        }
+      ],
+      "numOfRows": 10000,
+      "table_name": "supplier"
+    }
+  ],
+  "username": "postgres"
+}

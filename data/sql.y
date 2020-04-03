@@ -127,7 +127,7 @@ extern vector<SearchType>* searchTypes;
 
 commands:
          command ';' commands  
-        | command ';'
+        | command
        
       
         ;
@@ -323,13 +323,25 @@ data_types:
           
 
 column_definition:
-                  NAME data_types single_column_constraint 
+                  NAME data_types data_types single_column_constraint 
+                  {
+                      $$ = new Column($1, $2);
+                      if($4y == UNIQUE || $4 == PRIMARY) {
+                          
+                          $$->setPrimaryOrUnique(true);
+                      }
+                  }
+                 | NAME data_types single_column_constraint 
                   {
                       $$ = new Column($1, $2);
                       if($3 == UNIQUE || $3 == PRIMARY) {
                           
                           $$->setPrimaryOrUnique(true);
                       }
+                  }
+                 | NAME data_types data_types
+                  {
+                      $$ = new Column($1, $2);
                   }
                  | NAME data_types 
                   {

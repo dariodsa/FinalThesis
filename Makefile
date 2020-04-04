@@ -8,26 +8,35 @@ DATA_PATH = data/
 LEX_FILE = sql.l
 YACC_FILE = sql.y
 
-SOURCE_INDEX    = $(STRUCTURES_PATH)index.cpp
-SOURCE_COLUMN   = $(STRUCTURES_PATH)column.cpp
-SOURCE_TABLE    = $(STRUCTURES_PATH)table.cpp
-SOURCE_DATABASE = $(STRUCTURES_PATH)database.cpp
-SOURCE_RESULT   = $(STRUCTURES_PATH)result.cpp
-SOURCE_CACHE   = $(STRUCTURES_PATH)cache.cpp
-SOURCE_FOREIGN_KEY = $(STRUCTURES_PATH)foreign-key.cpp
+SRC_INDEX    = $(STRUCTURES_PATH)index.cpp
+SRC_COLUMN   = $(STRUCTURES_PATH)column.cpp
+SRC_TABLE    = $(STRUCTURES_PATH)table.cpp
+SRC_DATABASE = $(STRUCTURES_PATH)database.cpp
+SRC_RESULT   = $(STRUCTURES_PATH)result.cpp
+SRC_CACHE   = $(STRUCTURES_PATH)cache.cpp
+SRC_FOREIGN_KEY = $(STRUCTURES_PATH)foreign-key.cpp
 
-SOURCE_PROGRAM = $(DB_PATH)program.cpp
-SOURCE_CONFIG  = $(DB_PATH)config.cpp
-SOURCE_PROXY   = $(DB_PATH)proxy.cpp
+SRC_PROGRAM = $(DB_PATH)program.cpp
+SRC_CONFIG  = $(DB_PATH)config.cpp
+SRC_PROXY   = $(DB_PATH)proxy.cpp
 
-SOURCE_NETWORK = $(ALG_PATH)network.cpp
+SRC_NETWORK = $(ALG_PATH)network.cpp
 
-SOURCE_INDEXCON = $(OPERATION_PATH)indexcon.cpp
-SOURCE_INDEXSCAN = $(OPERATION_PATH)indexscan.cpp
-SOURCE_OPERATION = $(OPERATION_PATH)operation.cpp
-SORUCE_SEQSCAN = $(OPERATION_PATH)seqscan.cpp
+SRC_INDEXCON = $(OPERATION_PATH)indexcon.cpp
+SRC_INDEXSCAN = $(OPERATION_PATH)indexscan.cpp
+SRC_OPERATION = $(OPERATION_PATH)operation.cpp
+SRC_SEQSCAN = $(OPERATION_PATH)seqscan.cpp
 
-SOURCE_MAIN = src/main.cpp
+SRC_HASH_JOIN = $(OPERATION_PATH)hash-join.cpp
+SRC_MERGE_JOIN = $(OPERATION_PATH)merge-join.cpp
+SRC_NESTED_JOIN = $(OPERATION_PATH)nested-join.cpp
+
+SRC_FILTER = $(OPERATION_PATH)filter.cpp
+SRC_SORT = $(OPERATION_PATH)sort.cpp
+SRC_GROUP = $(OPERATION_PATH)group.cpp
+SRC_OR_UNION = $(OPERATION_PATH)or-union.cpp
+
+SRC_MAIN = src/main.cpp
 
 CXX = g++
 CXXFLAGS =  -g -std=c++11 -lcpprest
@@ -39,74 +48,106 @@ LEXFLAGS =
 YACC = yacc
 YACCFLAGS = -d
 
-OBJECT_INDEX  = ${SOURCE_INDEX:.cpp=.o}
-OBJECT_COLUMN = ${SOURCE_COLUMN:.cpp=.o}
-OBJECT_TABLE  = ${SOURCE_TABLE:.cpp=.o}
-OBJECT_DATABASE  = ${SOURCE_DATABASE:.cpp=.o}
-OBJECT_PROXY     = ${SOURCE_PROXY:.cpp=.o}
-OBJECT_RESULT = ${SOURCE_RESULT:.cpp=.o}
-OBJECT_CACHE  = ${SOURCE_CACHE:.cpp=.o}
-OBJECT_FOREIGN_KEY = ${SOURCE_FOREIGN_KEY:.cpp=.o}
+OBJ_INDEX  = ${SRC_INDEX:.cpp=.o}
+OBJ_COLUMN = ${SRC_COLUMN:.cpp=.o}
+OBJ_TABLE  = ${SRC_TABLE:.cpp=.o}
+OBJ_DATABASE  = ${SRC_DATABASE:.cpp=.o}
+OBJ_PROXY     = ${SRC_PROXY:.cpp=.o}
+OBJ_RESULT = ${SRC_RESULT:.cpp=.o}
+OBJ_CACHE  = ${SRC_CACHE:.cpp=.o}
+OBJ_FOREIGN_KEY = ${SRC_FOREIGN_KEY:.cpp=.o}
 
-OBJECT_NETWORK = ${SOURCE_NETWORK:.cpp=.o}
+OBJ_NETWORK = ${SRC_NETWORK:.cpp=.o}
 
-OBJECT_INDEXCON = ${SOURCE_INDEXCON:.cpp=.o}
-OBJECT_INDEXSCAN = ${SOURCE_INDEXSCAN:.cpp=.o}
-OBJECT_OPERATION = ${SOURCE_OPERATION:.cpp=.o}
-OBJECT_SEQSCAN = ${SORUCE_SEQSCAN:.cpp=.o}
+OBJ_INDEXCON = ${SRC_INDEXCON:.cpp=.o}
+OBJ_INDEXSCAN = ${SRC_INDEXSCAN:.cpp=.o}
+OBJ_OPERATION = ${SRC_OPERATION:.cpp=.o}
+OBJ_SEQSCAN = ${SRC_SEQSCAN:.cpp=.o}
 
-OBJECT_PROGRAM = ${SOURCE_PROGRAM:.cpp=.o}
-OBJECT_CONFIG = ${SOURCE_CONFIG:.cpp=.o}
+OBJ_HASH_JOIN = ${SRC_HASH_JOIN:.cpp=.o}
+OBJ_MERGE_JOIN = ${SRC_MERGE_JOIN:.cpp=.o}
+OBJ_NESTED_JOIN = ${SRC_NESTED_JOIN:.cpp=.o}
+OBJ_FILTER = ${SRC_FILTER:.cpp=.o}
+OBJ_SORT = ${SRC_SORT:.cpp=.o}
+OBJ_GROUP = ${SRC_GROUP:.cpp=.o}
+OBJ_OR_UNION = ${SRC_OR_UNION:.cpp=.o}
+
+OBJ_PROGRAM = ${SRC_PROGRAM:.cpp=.o}
+OBJ_CONFIG = ${SRC_CONFIG:.cpp=.o}
 MAIN=main
  
 main: lex_yacc_part cache network operations index column table result database foreign-key program proxy  config
-	$(CXX) $(CXXFLAGS)  -o $@  src/main.cpp  $(OBJECT_FOREIGN_KEY) $(OBJECT_CACHE) $(OBJECT_NETWORK) $(OBJECT_SEQSCAN)  $(OBJECT_INDEXCON) $(OBJECT_INDEXSCAN) $(OBJECT_OPERATION) $(OBJECT_PROXY) $(OBJECT_TOKEN) $(OBJECT_CONFIG)  $(OBJECT_PROGRAM) $(OBJECT_RESULT) $(OBJECT_DATABASE) $(OBJECT_TABLE) $(OBJECT_COLUMN) $(OBJECT_INDEX)  $(LEX_YACC_FLAGS)  $(POSTGE_FLAGS)
+	$(CXX) $(CXXFLAGS)  -o $@  src/main.cpp $(OBJ_NESTED_JOIN) $(OBJ_FILTER) $(OBJ_SORT) $(OBJ_GROUP) $(OBJ_OR_UNION) $(OBJ_MERGE_JOIN) $(OBJ_HASH_JOIN) $(OBJ_FOREIGN_KEY) $(OBJ_CACHE) $(OBJ_NETWORK) $(OBJ_SEQSCAN)  $(OBJ_INDEXCON) $(OBJ_INDEXSCAN) $(OBJ_OPERATION) $(OBJ_PROXY) $(OBJ_TOKEN) $(OBJ_CONFIG)  $(OBJ_PROGRAM) $(OBJ_RESULT) $(OBJ_DATABASE) $(OBJ_TABLE) $(OBJ_COLUMN) $(OBJ_INDEX)  $(LEX_YACC_FLAGS)  $(POSTGE_FLAGS)
 
-operations: indexcon indexscan seqscan
-	$(CXX) $(CXXFLAGS) -c $(SOURCE_OPERATION) -o $(OBJECT_OPERATION)
+operations: indexcon indexscan seqscan hash-join merge-join nested-join filter sort group or-union
+	$(CXX) $(CXXFLAGS) -c $(SRC_OPERATION) -o $(OBJ_OPERATION)
 
 cache:
-	$(CXX) $(CXXFLAGS) -c $(SOURCE_CACHE) -o $(OBJECT_CACHE)
+	$(CXX) $(CXXFLAGS) -c $(SRC_CACHE) -o $(OBJ_CACHE)
+
 foreign-key: 
-	$(CXX) $(CXXFLAGS) -c $(SOURCE_FOREIGN_KEY) -o $(OBJECT_FOREIGN_KEY)
+	$(CXX) $(CXXFLAGS) -c $(SRC_FOREIGN_KEY) -o $(OBJ_FOREIGN_KEY)
 
 indexcon:
-	$(CXX) $(CXXFLAGS) -c $(SOURCE_INDEXCON) -o $(OBJECT_INDEXCON)
+	$(CXX) $(CXXFLAGS) -c $(SRC_INDEXCON) -o $(OBJ_INDEXCON)
+
 indexscan:
-	$(CXX) $(CXXFLAGS) -c $(SOURCE_INDEXSCAN) -o $(OBJECT_INDEXSCAN)
-seqscan:
-	$(CXX) $(CXXFLAGS) -c $(SORUCE_SEQSCAN) -o $(OBJECT_SEQSCAN)
+	$(CXX) $(CXXFLAGS) -c $(SRC_INDEXSCAN) -o $(OBJ_INDEXSCAN)
+
+seqscan: $(SRC_SEQSCAN)
+	$(CXX) $(CXXFLAGS) -c $(SRC_SEQSCAN) -o $(OBJ_SEQSCAN)
+
+hash-join: $(SRC_HASH_JOIN)
+	$(CXX) $(CXXFLAGS) -c $(SRC_HASH_JOIN) -o $(OBJ_HASH_JOIN)
+
+merge-join: $(SRC_MERGE_JOIN)
+	$(CXX) $(CXXFLAGS) -c $(SRC_MERGE_JOIN) -o $(OBJ_MERGE_JOIN)
+
+nested-join: $(SRC_NESTED_JOIN) 
+	$(CXX) $(CXXFLAGS) -c $(SRC_NESTED_JOIN) -o $(OBJ_NESTED_JOIN)
+
+filter: $(SRC_FILTER)
+	$(CXX) $(CXXFLAGS) -c $(SRC_FILTER) -o $(OBJ_FILTER)
+
+sort: $(SRC_SORT)
+	$(CXX) $(CXXFLAGS) -c $(SRC_SORT) -o $(OBJ_SORT)
+
+group: $(SRC_GROUP)
+	$(CXX) $(CXXFLAGS) -c $(SRC_GROUP) -o $(OBJ_GROUP)
+
+or-union: $(SRC_OR_UNION)
+	$(CXX) $(CXXFLAGS) -c $(SRC_OR_UNION) -o $(OBJ_OR_UNION)
 
 
 network:
-	$(CXX) $(CXXFLAGS) -c $(SOURCE_NETWORK) -o $(OBJECT_NETWORK)
+	$(CXX) $(CXXFLAGS) -c $(SRC_NETWORK) -o $(OBJ_NETWORK)
 index: 
-	$(CXX) $(CXXFLAGS) -c $(SOURCE_INDEX) -o $(OBJECT_INDEX)
+	$(CXX) $(CXXFLAGS) -c $(SRC_INDEX) -o $(OBJ_INDEX)
 
 column:
-	$(CXX) $(CXXFLAGS) -c $(SOURCE_COLUMN) -o $(OBJECT_COLUMN)
+	$(CXX) $(CXXFLAGS) -c $(SRC_COLUMN) -o $(OBJ_COLUMN)
 
 table:
-	$(CXX) $(CXXFLAGS) -c $(SOURCE_TABLE) -o $(OBJECT_TABLE)
+	$(CXX) $(CXXFLAGS) -c $(SRC_TABLE) -o $(OBJ_TABLE)
 
 database: 
-	$(CXX) $(CXXFLAGS) -c $(SOURCE_DATABASE) -o $(OBJECT_DATABASE)
+	$(CXX) $(CXXFLAGS) -c $(SRC_DATABASE) -o $(OBJ_DATABASE)
 
 result:
-	$(CXX) $(CXXFLAGS) -c $(SOURCE_RESULT) -o $(OBJECT_RESULT)
+	$(CXX) $(CXXFLAGS) -c $(SRC_RESULT) -o $(OBJ_RESULT)
 
 program: 
-	$(CXX) $(CXXFLAGS) -c $(SOURCE_PROGRAM) -o $(OBJECT_PROGRAM)
+	$(CXX) $(CXXFLAGS) -c $(SRC_PROGRAM) -o $(OBJ_PROGRAM)
 
 config: 
-	$(CXX)  $(CXXFLAGS) -c $(SOURCE_CONFIG)  -o $(OBJECT_CONFIG)  $(LEX_YACC_FLAGS)
+	$(CXX)  $(CXXFLAGS) -c $(SRC_CONFIG)  -o $(OBJ_CONFIG)  $(LEX_YACC_FLAGS)
 
 token: 
-	$(CXX)  $(CXXFLAGS) -c $(SOURCE_TOKEN)  -o $(OBJECT_TOKEN)
+	$(CXX)  $(CXXFLAGS) -c $(SRC_TOKEN)  -o $(OBJ_TOKEN)
 
 
 proxy:
-	$(CXX) $(CXXFLAGS) -c $(SOURCE_PROXY) -o $(OBJECT_PROXY)
+	$(CXX) $(CXXFLAGS) -c $(SRC_PROXY) -o $(OBJ_PROXY)
 
 lex_yacc_part:
 	cd data; $(YACC) $(YACCFLAGS) $(YACC_FILE)
@@ -116,18 +157,18 @@ lex_yacc_part:
 
 
 clean:
-	-rm -f $(OBJECT_INDEX)
-	-rm -f $(OBJECT_COLUMN)
-	-rm -f $(OBJECT_TABLE)
-	-rm -f $(OBJECT_DATABASE)
-	-rm -f $(OBJECT_PROGRAM)
+	-rm -f $(OBJ_INDEX)
+	-rm -f $(OBJ_COLUMN)
+	-rm -f $(OBJ_TABLE)
+	-rm -f $(OBJ_DATABASE)
+	-rm -f $(OBJ_PROGRAM)
 	-rm -f data/lex.yy.c
 	-rm -f data/y.tab.*
 	-rm -f src/db/config.o
 	-rm -f $(MAIN)
-	-rm -f $(OBJECT_NETWORK) 
-	-rm -f $(OBJECT_INDEXCON)
-	-rm -f $(OBJECT_INDEXSCAN)
-	-rm -f $(OBJECT_OPERATION)
-	-rm -f $(OBJECT_SEQSCAN)
+	-rm -f $(OBJ_NETWORK) 
+	-rm -f $(OBJ_INDEXCON)
+	-rm -f $(OBJ_INDEXSCAN)
+	-rm -f $(OBJ_OPERATION)
+	-rm -f $(OBJ_SEQSCAN)
 	

@@ -7,6 +7,7 @@
 #include "../src/structures/index.h"
 #include "../src/structures/table.h"
 #include "../src/structures/column.h"
+#include "../src/structures/foreign-key.h"
 extern "C++" {
     #include "../src/structures/result.h"
 }
@@ -43,7 +44,7 @@ extern vector<SearchType>* searchTypes;
     Index* index;
     Table* table;
 
-
+    ForeignKey* foreign_key;
 
     int number;
 
@@ -122,6 +123,8 @@ extern vector<SearchType>* searchTypes;
 %type <select> select_list
 
 %type <number> limit_offset_clause
+
+%type <foreign_key> references_clause
 %%
 
 
@@ -326,7 +329,7 @@ column_definition:
                   NAME data_types data_types single_column_constraint 
                   {
                       $$ = new Column($1, $2);
-                      if($4y == UNIQUE || $4 == PRIMARY) {
+                      if($4 == UNIQUE || $4 == PRIMARY) {
                           
                           $$->setPrimaryOrUnique(true);
                       }
@@ -351,27 +354,18 @@ column_definition:
 
 check_clause: CHECK '(' condition ')'
 
-references_clause_part_a:
-                         ON DELETE
-                        | ON UPDATE
-                        ;
-
-references_clause_part_b:
-                         CASCADE
-                        | SET NULL_STR
-                        | SET DEFAULT
-                        ;
-
-references_clause_part_two:
-                           references_clause_part_two references_clause_part_a references_clause_part_b
-                          | references_clause_part_a references_clause_part_b
-                          ;
 
 references_clause:
-                  REFERENCES NAME references_clause_part_two
-                 | REFERENCES NAME '(' list_names_sep_comma ')' references_clause_part_two
-                 |  REFERENCES NAME 
-                 | REFERENCES NAME '(' list_names_sep_comma ')'
+                 REFERENCES NAME '(' list_names_sep_comma ')' 
+                 {
+                     ForeignKey* key = new ForeignKey();
+                     database->addForeignKey(key);
+                     key->setTable2($2);
+                     for(char* col_name : *$4) {
+                         key->addColumnInTable2(col_name);
+                     }
+                     $$ = key;
+                 }
                  
                  ;
 
@@ -392,7 +386,14 @@ multiple_column_const_b:
                             }
                        }
                        | check_clause { $$ = 0;}
-                       | FOREIGN KEY '(' list_names_sep_comma  ')' references_clause { $$ = 0;}
+                       | FOREIGN KEY '(' list_names_sep_comma  ')' references_clause 
+                       {
+                           ForeignKey* key = $6;
+                           for(char* col_name : *$4) {
+                               key->addColumnInTable1(col_name);
+                           }
+                           $$ = 0;
+                       }
 
 
 multiple_column_constraint:

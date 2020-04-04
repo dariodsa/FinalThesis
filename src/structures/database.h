@@ -25,6 +25,7 @@ using namespace std;
 class Cache;
 class Index;
 class Table;
+class ForeignKey;
 
 struct variable {
 
@@ -165,6 +166,9 @@ class Database {
         signed int getCurrRamLoaded(vector<Table*> full_table
                                   , vector<Index*> indexes
                                   , vector<Table*> retr_data);
+        void addForeignKey(ForeignKey* key);
+
+        bool isForeignKey(Table* table1, Table* table2);
 
     private:
 
@@ -183,6 +187,7 @@ class Database {
         PGconn* C;
 
         std::map<string, Table*>tables;
+        std::vector<ForeignKey*> foreign_keys;
 };
 
 #endif

@@ -6,6 +6,7 @@
 #include "database.h"
 #include "cache.h"
 #include "table.h"
+#include "foreign-key.h"
 
 using namespace web;
 
@@ -44,12 +45,16 @@ Database::Database(web::json::value _json) : Database(
 
     std::ifstream data;
     data.open(program->data_location);
-    
-    auto json = web::json::value::parse(data);
-    
-    for(auto table : json["tables"].as_array()) {
-        Table* t = new Table(table);
-        this->tables[string(t->getTableName())] = t;
+    cout << program->data_location << endl;
+    try { 
+        auto json = web::json::value::parse(data);
+        
+        for(auto table : json["tables"].as_array()) {
+            Table* t = new Table(table);
+            this->tables[string(t->getTableName())] = t;
+        }
+    } catch (const std::exception& e) {
+        std::wcout << e.what() << endl;
     }
 }
 
@@ -120,8 +125,15 @@ void Database::setCacheSize(signed int cache_size) {
     this->cache_size = cache_size;
 }
 
+void Database::addForeignKey(ForeignKey* key) {
+    this->foreign_keys.push_back(key);
+}
+
 Table* Database::getTable(const char* name) {
     string table_name(name);
+    if(this->tables.find(table_name) == this->tables.end()) {
+        throw std::invalid_argument("Table doesn't exsist.\n");
+    }
     return this->tables[table_name];
 }
 

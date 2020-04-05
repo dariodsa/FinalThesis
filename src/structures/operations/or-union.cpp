@@ -1,5 +1,7 @@
 #include "or-union.h"
 
+OrUnion::OrUnion() {}
+
 float OrUnion::getStartCost(Database* database) {
     return 0;
 }

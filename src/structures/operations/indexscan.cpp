@@ -1,9 +1,8 @@
 #include "indexscan.h"
 
-IndexScan::IndexScan(Table *table, Index* index, int len, bool retr_data) : Operation(table) {
+IndexScan::IndexScan(Table *table, Index* index, int len) : Operation(table) {
     this->index = index;
     this->len = len;
-    this->retr_data = retr_data;
 }
 
 float IndexScan::getStartCost(Database* database) {
@@ -11,7 +10,9 @@ float IndexScan::getStartCost(Database* database) {
 }
 
 float IndexScan::getRuntimeCost(Database* database) {
-    return 0;
+    int nt = getNt();
+    float cost = nt * database->CPU_INDEX_TUPLE_COST;
+    return cost;    
 }
 
 float IndexScan::getNt() {

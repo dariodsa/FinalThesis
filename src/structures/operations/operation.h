@@ -13,7 +13,7 @@ class Operation{
             return getStartCost(database) + getRuntimeCost(database);
         }
 
-        virtual void print() = 0;
+        void print();
         virtual float getStartCost(Database* database) = 0;
         virtual float getRuntimeCost(Database* database) = 0;
         virtual float getNt() = 0;

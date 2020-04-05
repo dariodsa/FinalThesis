@@ -1,9 +1,8 @@
 #include "indexcon.h"
 
-IndexCon::IndexCon(Table *table, Index* index, int len, bool retr_data) : Operation(table) {
+IndexCon::IndexCon(Table *table, Index* index, int len) : Operation(table) {
     this->len = len;
     this->index = index;
-    this->retr_data = retr_data;
 }
 
 float IndexCon::getStartCost(Database* database) {
@@ -11,7 +10,7 @@ float IndexCon::getStartCost(Database* database) {
 }
 
 float IndexCon::getRuntimeCost(Database* database) {
-    return 0;
+    return getNt() * database->CPU_INDEX_TUPLE_COST;
 }
 
 float IndexCon::getNt() {

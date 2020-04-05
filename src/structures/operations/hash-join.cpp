@@ -6,3 +6,7 @@ float HashJoin::getStartCost(Database* database) {
 float HashJoin::getRuntimeCost(Database* database) {
     return 0;
 }
+
+float HashJoin::getNt() {
+    return 0;
+}

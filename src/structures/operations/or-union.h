@@ -6,6 +6,7 @@
 
 class OrUnion : public Operation{
     public:
+        OrUnion();
         virtual float getStartCost(Database* database);
         virtual float getRuntimeCost(Database* database);
         virtual float getNt();

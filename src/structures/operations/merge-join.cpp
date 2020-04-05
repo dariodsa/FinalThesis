@@ -7,3 +7,7 @@ float MergeJoin::getStartCost(Database* database) {
 float MergeJoin::getRuntimeCost(Database* database) {
     return 0;
 }
+
+float MergeJoin::getNt() {
+    return 0;
+}

@@ -15,20 +15,8 @@ class SeqScan : public Operation{
             }
         }
 
-        float myCost(Database* database) {
-            int number_of_records = table->getNumOfRows();
-            int relation_size = table->getSize();
-
-            int blocks = relation_size / database->BLOCK_SIZE;
-            
-            float cost = blocks * database->SEQ_PAGE_COST
-                        + number_of_records * database->CPU_TUPLE_COST;
-                        //+ number_of_records * database->CPU_FILTER_COST;
-
-            printf("COST TABLE %f\n", cost);
-            return cost;
-        }
-
+        Table* getTable();
+        
         virtual float getStartCost(Database* database);
         virtual float getRuntimeCost(Database* database);
         virtual float getNt();

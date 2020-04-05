@@ -1,5 +1,9 @@
 #include "filter.h"
 
+Filter::Filter(int numOfOperations) {
+    this->numOfOperations = numOfOperations;
+}
+
 float Filter::getStartCost(Database* database) {
     return 0;
 }

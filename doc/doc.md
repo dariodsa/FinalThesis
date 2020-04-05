@@ -9,3 +9,10 @@ host    all             all             127.0.0.1/32            password
 # IPv6 local connections:
 host    all             all             ::1/128                 password
 ```
+
+## TPC-H
+
+[http://myfpgablog.blogspot.com/2016/08/tpc-h-queries-on-postgresql.html](Link)   
+https://ankane.org/tpc-h
+
+

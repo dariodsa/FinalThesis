@@ -1,4 +1,5 @@
 #include "proxy.h"
+#include "config.h"
 #include <stdio.h>
 #include <unistd.h>
 #include <stdlib.h>
@@ -46,7 +47,7 @@ Proxy::Proxy(int port, Database* d1) {
         char* sql = (char*) malloc(sizeof(char) * (msglen - 3));
         read(conn, sql, msglen - 4);
         sql[msglen-3] = 0;
-        printf("%c %s\n", code, sql);
+        
         processQuery(d1, conn, sql);
     }
 }
@@ -140,6 +141,10 @@ void Proxy::send_row_data(PGresult* res, int s1, int row_count, int col_count) {
 }
 
 void Proxy::processQuery(Database* d1, int s1, char* query) {
+
+    cout << "Query: " << query << "\n";
+    pair<float, float> par = process_query(d1, query);
+    fprintf(stderr, "%f, %f\n", par.first, par.second);
     PGresult* res = d1->executeQuery(query);
     
     int rec_count = PQntuples(res);

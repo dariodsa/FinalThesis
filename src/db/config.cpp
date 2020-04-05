@@ -17,12 +17,12 @@ float timedifference_msec(struct timeval t0, struct timeval t1) {
     return (t1.tv_sec - t0.tv_sec) * 1000.0f + (t1.tv_usec - t0.tv_usec) / 1000.0f;
 }
 
-std::pair<float, float> connect_and_listen(char *ip, int port, std::vector<Database*>* replicas, const char* query) {
+pair<float, float> process_query(Database* replica, const char* query) {
     
     Program* program = Program::getInstance();
 
     //connect and listen to CONNECT postgres queries
-    Database *database = (*replicas)[0];
+    Database *database = replica;
 
     printf("Call parse:\n");
 
@@ -32,7 +32,7 @@ std::pair<float, float> connect_and_listen(char *ip, int port, std::vector<Datab
     /*FILE* p1 = fopen("d1", "w");
     fprintf(p1, "%s\n", database->getJSON().serialize().c_str());*/
 
-    /*FILE *f = fopen("sql/init.sql", "rb");
+    /*FILE *f = fopen("sql/tpch1.sql", "rb");
     fseek(f, 0, SEEK_END);
     long fsize = ftell(f);
     fseek(f, 0, SEEK_SET);
@@ -46,8 +46,8 @@ std::pair<float, float> connect_and_listen(char *ip, int port, std::vector<Datab
 
     Select* result = parse(query, database, &searchTypes);
     cout << query << endl;
-    float cost = result->getFinalCost(database);
-
+    float cost = 0;//result->getFinalCost(database);
+    
     printf("Done parsing.\n");
 
     struct timeval t0;

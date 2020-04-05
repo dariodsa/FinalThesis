@@ -52,18 +52,19 @@ int main(int argc, char* argv[]) {
     //Proxy* p = new Proxy(55432, replicas[0]);
 
     vector<const char*> queries;
-    for(int i=0;i<5000;++i) {
-        queries.push_back("select * from sbtest1 where k = 3 and c is not null;");
-    queries.push_back("SELECT * FROM sbtest1;");
-    queries.push_back("SELECT * from sbtest1 where k = 2;");
-    queries.push_back("SELECT * from sbtest1 where k < 2;");
-    queries.push_back("SELECT * from sbtest1 where k = 2 and id = 2;");
-    queries.push_back("select * from sbtest1 where k = 3 and c is not null;");
+    for(int i=0;i<1;++i) {
+        //queries.push_back("select * from sbtest1 as s1,sbtest2 as s2, sbtest3 as s3 where s1.k = s2.k + s3.k;");
+        queries.push_back("select     l_orderkey,     sum(l_extendedprice * (1 - l_discount)) as revenue,     o_orderdate,     o_shippriority from     customer,     orders,     lineitem where     c_mktsegment = 'mike'     and c_custkey = o_custkey     and l_orderkey = o_orderkey     and o_orderdate < 50     and l_shipdate > 50 group by     l_orderkey,     o_orderdate,     o_shippriority order by     revenue desc,     o_orderdate;");
+        /*queries.push_back("SELECT * FROM sbtest1;");
+        queries.push_back("SELECT * from sbtest1 where k = 2;");
+        queries.push_back("SELECT * from sbtest1 where k < 2;");
+        queries.push_back("SELECT * from sbtest1 where k = 2 and id = 2;");
+        queries.push_back("select * from sbtest1 where k = 3 and c is not null;");*/
     }
 
     for(const char* query : queries) {
-        pair<float, float> res = connect_and_listen(program->getIP(), program->getPort(), &replicas, query);
-        printf("%f,%f\n", res.first, res.second);
+        pair<float, float> res = process_query(replicas[0], query);
+        //printf("%f,%f\n", res.first, res.second);
     }
     return 0;
 }

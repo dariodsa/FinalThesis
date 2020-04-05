@@ -25,7 +25,7 @@ struct Node{
 
         if(full) ratio = 1;
         else {
-            ratio = Program::DEFAULT_TABLE_FETCH_SIZE;
+            ratio = 0.1;
         }
     }
     void setTime(int _time_id) {
@@ -96,7 +96,7 @@ float Cache::getRatio(Index* index) {
 }
 
 void Cache::incrementTable(Node node) {
-    node.ratio += Program::DEFAULT_TABLE_FETCH_SIZE;
+    node.ratio += 0.1;//Program::DEFAULT_TABLE_FETCH_SIZE;
     if(node.ratio >= 1.00) {
         node.ratio = 1.00;
     }
@@ -136,7 +136,7 @@ void Cache::deleteNode(Node node) {
 
 void Cache::reduceRatio(Node node) {
 
-    float fetch_size = Program::DEFAULT_TABLE_FETCH_SIZE;
+    float fetch_size = database->BLOCK_SIZE;
     
     if(node.ratio < 0.001) {
         deleteNode(node);

@@ -168,7 +168,19 @@ class Database {
                                   , vector<Table*> retr_data);
         void addForeignKey(ForeignKey* key);
 
-        bool isForeignKey(Table* table1, Table* table2);
+        bool isForeignKey(const char* table1, std::vector<char*> columns_table1, const char* table2, std::vector<char*> columns_table2);
+
+        float SEQ_PAGE_COST;
+        float RANDOM_PAGE_COST;
+        float CPU_TUPLE_COST;
+        float CPU_INDEX_TUPLE_COST;
+        float CPU_OPERATOR_COST;
+
+        signed int DEFAULT_CACHE_SIZE;
+        signed int AVERAGE_DATA_SIZE;
+        float DEFAULT_TABLE_FETCH_SIZE;
+
+        signed int BLOCK_SIZE = 8192;
 
     private:
 

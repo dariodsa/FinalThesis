@@ -10,11 +10,10 @@
 
 using namespace web;
 
-Database::Database() {}
+Database::Database() {
+}
 
 Database::Database(const char *ipAddress, const char* dbName, int port, const char* username, const char* password) {
-    
-    setCacheSize(Program::DEFAULT_CACHE_SIZE);
     
     if(ipAddress == NULL) {
         throw std::invalid_argument("Ip address is pointing to zero.\n");
@@ -28,6 +27,9 @@ Database::Database(const char *ipAddress, const char* dbName, int port, const ch
     strcpy(this->password, password);
     strcpy(this->username, username);
     strcpy(this->dbName, dbName);
+
+    connect();
+    init_constants();
 
     //setup cache system
     cache = new Cache(this);
@@ -119,6 +121,14 @@ void Database::addTable(Table *t) {
         throw std::invalid_argument("Table is already existing.");
     }
     this->tables[table_name] = t;
+}
+
+bool Database::isForeignKey(char* table1, vector<char*> columns_1,char* table2, vector<char*> columns_2) {
+    ForeignKey *possible_key = new ForeignKey(table1, columns_1, table2, columns_2);
+    for(ForeignKey* key : foreign_keys) {
+        if(key->getHash() == possible_key->getHash() && key->equalTo(possible_key)) return true;
+    }
+    return false;
 }
 
 void Database::setCacheSize(signed int cache_size) {
@@ -219,4 +229,40 @@ float Database::getRatioInCache(const char* table_name) {
 
 float Database::getRatioInCache(Index *index) {
     return cache->getRatio(index);
+}
+
+void Database::init_constants() {
+    
+    //set one worker per query
+    executeQuery("SET max_parallel_workers_per_gather = 0;");
+    //BLOCK SIZE
+    PGresult* result = executeQuery("show block_size;");
+    BLOCK_SIZE = atoi(PQgetvalue(result, 0, 0));
+    //CACHE SIZE
+
+    result = executeQuery("show shared_buffers;");
+    char* cache = PQgetvalue(result, 0, 0);
+    for(int i = 0, len = strlen(cache); i < len - 1; ++i) {
+        if(cache[i] >= '0' && cache[i] <= '9') {
+            CACHE_SIZE = CACHE_SIZE * 10 + (cache[i] - '0');
+        } else if(cache[i] == 'K') CACHE_SIZE *= 1024;
+        else if(cache[i] == 'M') CACHE_SIZE *= 1024 * 1024;
+        else if(cache[i] == 'G') CACHE_SIZE *= 1024 * 1024 * 1024;
+    }
+    
+    //INIT_TABLE
+    
+    //SEQ_PAGE_COST
+
+    //CPU_TUPLE_COST
+
+    //CPU_INDEX_TUPLE_COST
+
+    //CPU_OPERATOR_COST
+    
+    //RANDOM_PAGE_COST
+
+
+    
+    return;
 }

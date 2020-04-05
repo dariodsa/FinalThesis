@@ -84,6 +84,7 @@ struct select_state {
 
 struct expression_info {
     int equal = 0;
+    int oper = 0;
     std::vector<variable>* variables;
     bool locked;
     expression_info() {
@@ -170,11 +171,13 @@ class Database {
 
         bool isForeignKey(char* table1, std::vector<char*> columns_table1,char* table2, std::vector<char*> columns_table2);        
 
-        float SEQ_PAGE_COST;
-        float RANDOM_PAGE_COST;
-        float CPU_TUPLE_COST;
-        float CPU_INDEX_TUPLE_COST;
-        float CPU_OPERATOR_COST;
+        double SEQ_PAGE_COST;
+        double RANDOM_PAGE_COST;
+        double CPU_TUPLE_COST;
+        double CPU_INDEX_TUPLE_COST;
+        double CPU_OPERATOR_COST;
+
+        double FINAL_TUPLE;
 
         int CACHE_SIZE;
         int BLOCK_SIZE;
@@ -182,6 +185,14 @@ class Database {
     private:
 
         void init_constants();        
+
+        void init_seq_page_cost(int blocks);
+        void init_cpu_tuple_cost(int nt);
+        void init_cpu_index_tuple_cost();
+        void init_cpu_operator_cost(int nt);
+        void init_random_page_cost();
+
+        double getTimeForQuery(char *query);
 
         char dbName[MAX_LEN];
         char ipAddress[MAX_LEN];

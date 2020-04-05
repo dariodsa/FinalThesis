@@ -2,6 +2,8 @@
 #include <stdexcept>
 #include <iostream>
 #include <libpq-fe.h>
+#include <sys/time.h>
+#include <chrono>
 
 #include "database.h"
 #include "cache.h"
@@ -98,7 +100,6 @@ PGresult* Database::executeQuery(const char* query) {
 
     Program* program = Program::getInstance();
     PGresult *res;
-    
     try {
         
         res = PQexec(this->C, query);
@@ -252,17 +253,84 @@ void Database::init_constants() {
     
     //INIT_TABLE
     
-    //SEQ_PAGE_COST
-
-    //CPU_TUPLE_COST
-
-    //CPU_INDEX_TUPLE_COST
-
-    //CPU_OPERATOR_COST
+    result = executeQuery("select count(*) from R limit 3;");
+    int rec_count = PQntuples(result);
+    int col_count = PQnfields(result);
     
-    //RANDOM_PAGE_COST
+    int nt = 10000000;
+    int relation_size = 362479616;
+    int blocks = relation_size / BLOCK_SIZE;
 
+    if(rec_count == 0 && col_count == 0) {
+        executeQuery("DROP TABLE R;");
+        executeQuery("CREATE TABLE R ( A integer, B integer);");
+        executeQuery("INSERT INTO R SELECT random() * 100000, random() * 100000 FROM generate_series(1, 1000000);");
+        executeQuery("CREATE INDEX r_i1 ON R (A);");
+    }
 
     
+    init_seq_page_cost(blocks);
+    init_cpu_tuple_cost(nt);
+    
+    double temp = SEQ_PAGE_COST;
+    SEQ_PAGE_COST = ( temp  - nt * CPU_TUPLE_COST - nt * FINAL_TUPLE) / blocks;
+
+    init_cpu_operator_cost(nt);
+    init_cpu_index_tuple_cost();
+    
+    
+    init_random_page_cost();
+
+    printf("%f %f %f %f\n", CPU_TUPLE_COST, CPU_INDEX_TUPLE_COST, CPU_OPERATOR_COST, SEQ_PAGE_COST);
+
+    exit(0);
     return;
+}
+
+void Database::init_seq_page_cost(int blocks) {
+    SEQ_PAGE_COST = getTimeForQuery("SELECT * FROM R;");
+}
+
+void Database::init_cpu_tuple_cost(int nt) {
+    executeQuery("SELECT * FROM R;");
+    double time = getTimeForQuery("SELECT * FROM R;");
+    printf("tuple %lf\n", time);
+    CPU_TUPLE_COST = time / (double) nt;
+    CPU_TUPLE_COST /= 2;
+    FINAL_TUPLE = CPU_TUPLE_COST;
+}
+
+void Database::init_cpu_operator_cost(int nt) {
+    double time = getTimeForQuery("SELECT COUNT(*) FROM R;");
+    printf("operator %lf %lf = %lf*%lf\n", time, CPU_TUPLE_COST * nt, CPU_TUPLE_COST, nt);
+    CPU_OPERATOR_COST = (time - CPU_TUPLE_COST * nt - 1 * FINAL_TUPLE) / (double) nt;
+}
+
+void Database::init_cpu_index_tuple_cost() {
+    PGresult *result = executeQuery("SELECT COUNT(*) FROM R WHERE R.A < 150");
+    int ni = atoi(PQgetvalue(result, 0, 0));
+    int no = ni;
+    int nt = no;
+
+    double time = getTimeForQuery("SELECT * FROM R WHERE R.A < 150");
+    CPU_INDEX_TUPLE_COST = ( time - CPU_TUPLE_COST * nt - CPU_OPERATOR_COST * no - FINAL_TUPLE) / (double)ni;
+}
+
+
+
+void Database::init_random_page_cost() {
+    double time = getTimeForQuery("SELECT * FROM R WHERE R.B < 150;");
+    PGresult *result = executeQuery("SELECT count(*) FROM R WHERE R.B < 150;");
+    int nt = atoi(PQgetvalue(result, 0, 0));
+
+}
+
+double Database::getTimeForQuery(char *query) {
+    auto start = std::chrono::high_resolution_clock::now();
+    executeQuery(query);
+    auto elapsed = std::chrono::high_resolution_clock::now() - start;
+
+    long long microseconds = std::chrono::duration_cast<std::chrono::microseconds>(elapsed).count();
+    
+    return microseconds;
 }

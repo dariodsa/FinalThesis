@@ -19,15 +19,18 @@ class SeqScan : public Operation{
             int number_of_records = table->getNumOfRows();
             int relation_size = table->getSize();
 
-            int blocks = relation_size / Program::BLOCK_SIZE;
+            int blocks = relation_size / database->BLOCK_SIZE;
             
-            float cost = blocks * Program::SEQ_PAGE_COST
-                        + number_of_records * Program::CPU_TUPLE_COST
-                        + number_of_records * Program::CPU_FILTER_COST;
+            float cost = blocks * database->SEQ_PAGE_COST
+                        + number_of_records * database->CPU_TUPLE_COST;
+                        //+ number_of_records * database->CPU_FILTER_COST;
 
             printf("COST TABLE %f\n", cost);
             return cost;
         }
+
+        virtual float getStartCost(Database* database);
+        virtual float getRuntimeCost(Database* database);
 
     private:
         

@@ -6,16 +6,22 @@
 class Operation{
     public:
         Operation(Table* table);
+
         void addChild(Operation* child);
-        float getCost(Database* database);
         
-        virtual void print();
+        float getTotalCost(Database* database) {
+            return getStartCost(database) + getRuntimeCost(database);
+        }
+
+        virtual void print() = 0;
+        virtual float getStartCost(Database* database) = 0;
+        virtual float getRuntimeCost(Database* database) = 0;
 
         std::vector<Operation*> children;
         Table *table;
     private:
         
-        virtual float myCost(Database* database);
+        
 };
 
 #endif

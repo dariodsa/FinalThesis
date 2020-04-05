@@ -6,3 +6,10 @@ IndexCon::IndexCon(Table *table, Index* index, int len, bool retr_data) : Operat
     this->retr_data = retr_data;
 }
 
+float IndexCon::getStartCost(Database* database) {
+    return 0;
+}
+
+float IndexCon::getRuntimeCost(Database* database) {
+    return 0;
+}

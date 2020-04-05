@@ -5,3 +5,11 @@ IndexScan::IndexScan(Table *table, Index* index, int len, bool retr_data) : Oper
     this->len = len;
     this->retr_data = retr_data;
 }
+
+float IndexScan::getStartCost(Database* database) {
+    return 0;
+}
+
+float IndexScan::getRuntimeCost(Database* database) {
+    return 0;
+}

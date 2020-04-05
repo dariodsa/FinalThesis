@@ -23,6 +23,9 @@ class IndexCon : public Operation{
             return cost;
         }
 
+        virtual float getStartCost(Database* database);
+        virtual float getRuntimeCost(Database* database);
+
     private:
         Index* index;
         int len;

@@ -1,10 +1,18 @@
 #include "sort.h"
 
 float Sort::getStartCost(Database* database) {
-    return 0;
+    float nt = getNt();
+    float start_cost = 2.0 * database->CPU_OPERATOR_COST * nt * log(nt);
+    for(Operation* child : children) {
+        start_cost += child->getTotalCost(database);
+    }
+    return start_cost;
 }
 
 float Sort::getRuntimeCost(Database* database) {
-    return 0;
+    return database->CPU_TUPLE_COST * getNt();
 }
 
+float Sort::getNt() {
+    return this->children[0]->getNt();
+}

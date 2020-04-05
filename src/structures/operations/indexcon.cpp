@@ -13,3 +13,11 @@ float IndexCon::getStartCost(Database* database) {
 float IndexCon::getRuntimeCost(Database* database) {
     return 0;
 }
+
+float IndexCon::getNt() {
+    if(index->getUnique()) {
+        return 1;
+    } else {
+        return 3;
+    }
+}

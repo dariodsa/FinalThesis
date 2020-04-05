@@ -10,3 +10,7 @@ float SeqScan::getStartCost(Database* database) {
 float SeqScan::getRuntimeCost(Database* database) {
     return 0;
 }
+
+float SeqScan::getNt() {
+    return this->table->getNumOfRows();
+}

@@ -8,6 +8,7 @@ class HashJoin : private Operation{
     public:
         virtual float getStartCost(Database* database);
         virtual float getRuntimeCost(Database* database);
+        virtual float getNt();
     private:
     
 };

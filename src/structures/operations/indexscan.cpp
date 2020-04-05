@@ -13,3 +13,8 @@ float IndexScan::getStartCost(Database* database) {
 float IndexScan::getRuntimeCost(Database* database) {
     return 0;
 }
+
+float IndexScan::getNt() {
+    int s = table->getNumOfRows() / 10;
+    return s;
+}

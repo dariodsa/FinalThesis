@@ -16,6 +16,7 @@ class Operation{
         virtual void print() = 0;
         virtual float getStartCost(Database* database) = 0;
         virtual float getRuntimeCost(Database* database) = 0;
+        virtual float getNt() = 0;
 
         std::vector<Operation*> children;
         Table *table;

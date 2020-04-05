@@ -7,13 +7,28 @@ using namespace std;
 ForeignKey::ForeignKey() {
 
 }
-void ForeignKey::setTable(const char *table1) {
-    this->table1 = table1;
+
+ForeignKey::ForeignKey(char* table1, vector<char*> columns1, char* table2, vector<char*> columns2) {
+    setTable(table1);
+    setTable2(table2);
+    for(char* col1 : columns1) {
+        this->columns_table1.push_back(col1);
+    }
+
+    for(char* col2 : columns2) {
+        this->columns_table2.push_back(col2);
+    }
+    calculateHash2();
+    calculateHash4();
+}
+
+void ForeignKey::setTable(char *table1) {
+    strcpy(this->table1, table1);
     calculateHash1();
 }
 
-void ForeignKey::setTable2(const char *table2) {
-    this->table2 = table2;
+void ForeignKey::setTable2(char *table2) {
+    strcpy(this->table2, table2);
     calculateHash3();
 }
 

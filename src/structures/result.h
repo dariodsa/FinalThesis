@@ -6,9 +6,9 @@
 #include <set>
 #include <tuple>
 
-#include "database.h"
-#include "index.h"
-#include "operations/operation.h"
+class Database;
+class Index;
+class Operation;
 
 extern char AND_STR[4];
 extern char NOT_STR[4];
@@ -70,6 +70,8 @@ class Select{
         float getCost(Database *database);
         float getLoadingCost(Database* database);
 
+        int sumOperations(node *root);
+
         node* de_morgan(node* root);
         
         resursi getResource();
@@ -77,14 +79,14 @@ class Select{
         resursi resouce;
         Database* database;
 
+        Operation* root;
+
         std::set<Table> tables_set;
         int or_node;
         int table_count;
 
         bool pipeline = true;
         int limit = -1;
-
-        Operation *operation = new Operation(0);
 
         std::vector<Select*> siblings;
         std::vector<Select*> kids;

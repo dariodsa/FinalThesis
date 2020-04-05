@@ -1,15 +1,26 @@
-#include "result.h"
+#include "operations/filter.h"
+#include "operations/group.h"
+#include "operations/hash-join.h"
+#include "operations/indexcon.h"
+#include "operations/indexscan.h"
+#include "operations/merge-join.h"
+#include "operations/nested-join.h"
+#include "operations/operation.h"
+#include "operations/or-union.h"
+#include "operations/seqscan.h"
+#include "operations/sort.h"
+
 #include "../algorithm/network.h"
 
-#include "operations/operation.h"
-#include "operations/indexscan.h"
-#include "operations/indexcon.h"
-#include "operations/seqscan.h"
+#include "database.h"
+#include "index.h"
+#include "result.h"
 
 #include "../db/program.h"
 
 #include <stdio.h>
 #include <queue>
+#include <vector>
 #include <string>
 #include <queue>
 #include <iostream>
@@ -76,17 +87,7 @@ bool Result::hasColumn(char* col_name) {
 
 float Select::getCost(Database* database) {
     float ans = 0;
-    float my_cost = this->operation->getCost(database);
-    
-    ans += my_cost;
-    for(Select* sibling : siblings) {
-        ans += sibling->getCost(database);
-    }
-    for(Select* kid : kids) {
-        ans += my_cost * kid->getCost(database);
-    }
-
-    return ans;
+    return 0;
 }
 
 float Select::getLoadingCost(Database* database) {
@@ -146,17 +147,33 @@ Select::Select(Database* database, node* root, vector<table_name*>* tables, vect
 
     printf("Tc: %d or_node: %d\n", table_count, or_node);
 
-    Operation** first = &operation;
+    
 
     if((this->or_node > 0 && this->table_count > 1) || root == 0) {
         //seq scan na sve
-        Operation *parent = operation;
+        int numOfOperations = sumOperations(root);
+
+        vector<SeqScan*> seqscans;
         for(table_name* t : *tables) {
             Table* table = database->getTable(t->real_name);
-            Operation *_op = new SeqScan(table);
-            parent->addChild(_op);
-            parent = _op;
+            SeqScan *_op = new SeqScan(table);
+            seqscans.push_back(_op);
         }
+        Operation* op =(Operation*) new NestedJoin();
+        op->addChild(seqscans[0]);
+        op->addChild(seqscans[1]);
+
+        for(int i = 2, len = seqscans.size(); i < len; ++i) {
+            Operation *join = new NestedJoin();
+            join->addChild(op);
+            join->addChild(seqscans[i]);
+            op = join;
+        }
+        
+        Filter* filter = new Filter(numOfOperations);
+        filter->addChild(op);
+        this->root = filter;
+
     } else {
         
         vector<vector<expression_info*> > areas = this->getAreas(root);
@@ -165,18 +182,18 @@ Select::Select(Database* database, node* root, vector<table_name*>* tables, vect
         
         if(this->or_node > 0 && this->table_count == 1) {
            //pretraga indeksa po područjima, jedna tablica
-           bool found = false;
-           vector<string> indexed_tables;
+
+            bool found = false;
+            vector<string> indexed_tables;
+            vector<Operation*> operations;
             for(Table _table : tables_set) {
                 for(auto area : areas) {
                     //construct  network
-                    printf("Area num: %d\n", area.size());
+                    
                     Table* table = database->getTable(_table.getTableName());
 
                     Network* network = new Network(database, table, table->getIndex(), area, indexed_tables);
                     if(network->getUsedIndexes().size() == 0) {
-                        operation = new Operation(0);
-                        operation->addChild(new SeqScan(table));
                         break;
                     }
                     for(pair<Index*, pair<int, int> > pair : network->getUsedIndexes()) {
@@ -185,16 +202,16 @@ Select::Select(Database* database, node* root, vector<table_name*>* tables, vect
                         Operation *op;
 
                         if(!isScan) {
-                            op = new IndexCon(table, pair.first, len, network->getRetrData());
+                            operations.push_back(new IndexCon(table, pair.first, len));
                         } else {
-                            op = new IndexScan(table, pair.first, len, network->getRetrData());
+                            operations.push_back(new IndexScan(table, pair.first, len));
                         }
-                        operation->addChild(op);
+                        TODO
+                        //operation->addChild(op);
                     }
 
                     if(network->getUsedIndexes().size() == 0) {
-                        Operation *op = new SeqScan(table);
-                        operation->addChild(op);
+                        operations.clear();
                     }   
                 }
             }
@@ -203,7 +220,7 @@ Select::Select(Database* database, node* root, vector<table_name*>* tables, vect
         } else if(this->or_node == 0) {
             //jedno područje and-a
 
-            Operation *parent = operation;
+            //Operation *parent = operation;
 
             //seq scan nad onima koji se ne spominju
             for(table_name* table_name : *tables) {
@@ -212,8 +229,8 @@ Select::Select(Database* database, node* root, vector<table_name*>* tables, vect
                 auto i1 = tables_set.find(_table);
                 if(i1 == tables_set.end()) {
                     Operation *op = new SeqScan(&_table);
-                    parent->addChild(op);
-                    parent = op;
+                    /*parent->addChild(op);
+                    parent = op;*/
                 }
             }
 
@@ -253,8 +270,8 @@ Select::Select(Database* database, node* root, vector<table_name*>* tables, vect
                 if(seq_scan_tables[it->first] == true) {
                     Table* t = (Table*)&(it->first);
                     Operation *op = new SeqScan(t);
-                    parent->addChild(op);
-                    parent = op;
+                    /*parent->addChild(op);
+                    parent = op;*/
                 }
             }
             printf("Size %d\n", used_indexes.size());
@@ -280,14 +297,14 @@ Select::Select(Database* database, node* root, vector<table_name*>* tables, vect
                 }
 
                 if(p == 0 || p != index->getTable()) {
-                    Operation *table_in = new Operation(0);
-                    parent->addChild(table_in);
+                    /*Operation *table_in = new SeqScan(index->getTable());
+                    parent->addChild(table_in);*/
 
-                    parent = table_in;
-                    parent->addChild(op);
+                    //parent = table_in;
+                    //parent->addChild(op);
                     p = index->getTable();
                 } else {
-                    parent->addChild(op);
+                    //parent->addChild(op);
                 }
             }
             
@@ -295,7 +312,7 @@ Select::Select(Database* database, node* root, vector<table_name*>* tables, vect
     }
 
     printf("===============\n");
-    (*first)->print();
+    //(*first)->print();
     printf("===============\n");
 }
 
@@ -369,6 +386,7 @@ void Select::dfs(node *root) {
 
         vector<variable> variables = *root->e1->variables;
         for(auto v : variables) {
+            printf("Table: %s\n", v.table);
             Table table = *database->getTable(v.table);
             tables_set.insert(table);
         }
@@ -482,4 +500,13 @@ resursi Select::mergeResource(resursi A, resursi B) {
     }
 
     return make_tuple(full_scan_tables, indexes, retr_tables);
+}
+
+
+int Select::sumOperations(node* root) {
+    if(root == 0) return 0;
+    if(root->terminal) {
+        return root->e1->oper;
+    }
+    return root->e1->oper + sumOperations(root->left) + sumOperations(root->right);
 }

@@ -771,55 +771,65 @@ comparison_condition:
 		    | in_condition
 		    {
                 $$ = $1;
+                $$->oper++;
                 $$->equal = 0;
             }
             | column_name IS NULL_STR
             {
                 $$ = new expression_info();
+                $$->oper++;
                 $$->variables->push_back(*$1);
                 $$->equal = 1;
             }
 		    | column_name IS NOT NULL_STR
             {
                 $$ = new expression_info();
+                $$->oper++;
                 $$->variables->push_back(*$1);
                 $$->equal = 2;
             }
 		    | quoted_string NOT LIKE quoted_string
             {
                 $$ = new expression_info();
+                $$->oper++;
             }
 		    | quoted_string LIKE quoted_string 
             {
                 $$ = new expression_info();
+                $$->oper++;
             }
 		    | column_name NOT LIKE quoted_string
             {
                 $$ = new expression_info();
+                $$->oper++;
                 $$->variables->push_back(*$1);
                 $$->equal = 0;
             }
 		    | column_name LIKE quoted_string 
             {
                 $$ = new expression_info();
+                $$->oper++;
                 $$->variables->push_back(*$1);
                 $$->equal = 0;
             }
 		    | quoted_string NOT LIKE column_name
             {
                 $$ = new expression_info();
+                $$->oper++;
                 $$->variables->push_back(*$4);
                 $$->equal = 0;
             }
 		    | quoted_string LIKE column_name
             {
                 $$ = new expression_info();
+                $$->oper++;
                 $$->variables->push_back(*$3);
                 $$->equal = 0;
             }
 		    | column_name NOT LIKE column_name
             {
                 $$ = new expression_info();
+                $$->oper++;
                 $$->variables->push_back(*$1);
                 $$->variables->push_back(*$4);
                 $$->equal = 0;
@@ -827,6 +837,7 @@ comparison_condition:
 		    | column_name LIKE column_name
             {
                 $$ = new expression_info();
+                $$->oper++;
                 $$->variables->push_back(*$1);
                 $$->variables->push_back(*$3);
                 $$->equal = 0;
@@ -845,6 +856,7 @@ expression_part_two:
 	   column_name binary_operator expression
        {
            $3->variables->push_back(*$1);
+           $3->oper++;
            $$ = $3;
        }
 	  | column_name 
@@ -855,16 +867,23 @@ expression_part_two:
 	  | conditional_expression binary_operator expression
       {
         $$ = new expression_info();
+        $$->oper++;
       }
 	  | conditional_expression 
       {
         $$ = new expression_info(); 
       }
-	  | constant binary_operator expression { $$ = $3; }
+	  | constant binary_operator expression 
+      {
+        $$ = $3; 
+        $$->oper++;
+      }
 	  | constant { $$ = new expression_info(); }
 	  | aggregate_expression binary_operator expression
       {
         $$ = $3;
+        $$->oper++;
+        $$->oper += $1->oper;
         for(variable v : *$1->variables) {
             $$->variables->push_back(v);
         }
@@ -873,16 +892,27 @@ expression_part_two:
 	  | function_expression binary_operator expression
       {
         $$ = $3;
+        $$->oper++;
+        $$->oper += $1->oper;
         for(variable v : *$1->variables) {
             $$->variables->push_back(v);
         }
       }
 	  | function_expression {printf("Function\n");}
-	  | NULL_STR binary_operator expression { $$ = $3; }
+	  | NULL_STR binary_operator expression 
+      {
+            $$ = $3;
+            $$->oper++;
+      }
 	  | NULL_STR { $$ = new expression_info(); }
 	  | '(' expression ')' binary_operator expression 
       {
-
+            $$ = $2;
+            $$->oper++;
+            $$->oper += $5->oper;
+            for(variable v : *$5->variables) {
+                $$->variables->push_back(v);
+            } 
       }
 	  | '(' expression ')' { $$ = $2; }
       ;

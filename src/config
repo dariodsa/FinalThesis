@@ -1,7 +1,7 @@
 {
  "replicas": [{
               "ipAddress": "127.0.0.1"
-              , "dbName": "zabbix"
+              , "dbName": "tpch"
               , "port": 5432
               , "username": "postgres"
               , "password":"12345"

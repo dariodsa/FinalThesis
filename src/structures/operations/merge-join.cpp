@@ -8,9 +8,24 @@ MergeJoin::MergeJoin(bool foreign_key) {
     }
 }
 
+void MergeJoin::setSort1(bool sort1) {
+    this->sort1 = sort1;
+}
+
+void MergeJoin::setSort2(bool sort2) {
+    this->sort2 = sort2;
+}
+
 float MergeJoin::getStartCost(Database* database) {
     if(children.size() != 2) return 0;
-    return children[0]->getStartCost(database) + children[1]->getStartCost(database);
+    float cost = children[0]->getStartCost(database) + children[1]->getStartCost(database);
+
+    float N = children[0]->getNt();
+    float M = children[1]->getNt();
+
+    if(this->sort1 == false) cost += N * log2(N);
+    if(this->sort2 == false) cost += M * log2(M);
+    return cost;
 }
 
 float MergeJoin::getRuntimeCost(Database* database) {

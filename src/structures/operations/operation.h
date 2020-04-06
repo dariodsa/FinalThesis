@@ -5,6 +5,7 @@
 
 class Operation{
     public:
+        Operation();
         Operation(Table* table);
 
         void addChild(Operation* child);

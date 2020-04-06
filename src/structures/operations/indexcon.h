@@ -5,7 +5,7 @@
 
 class IndexCon : public Operation{
     public:
-        IndexCon(Table *table, Index* index, int len);
+        IndexCon(Table *table, Index* index, int len, bool retr_data);
 
         void print() {
             printf("IndexCon Table: %s, Index: %s, %d/%d , %d kids\n", table->getTableName(), index->getName(), len, index->getColNumber(), this->children.size());
@@ -22,6 +22,7 @@ class IndexCon : public Operation{
     private:
         Index* index;
         int len;
+        bool retr_data;
         
 };
 

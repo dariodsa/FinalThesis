@@ -1,5 +1,7 @@
 #include "operation.h"
 
+Operation::Operation() {}
+
 Operation::Operation(Table *table) {
     this->table = table;
 }

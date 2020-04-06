@@ -4,7 +4,7 @@
 #ifndef HASH_JOIN_H
 #define HASH_JOIN_H
 
-class HashJoin : private Operation{
+class HashJoin : public Operation{
     public:
         HashJoin(bool foreign_key);
         virtual float getStartCost(Database* database);

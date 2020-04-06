@@ -5,16 +5,22 @@ Filter::Filter(int numOfOperations) {
 }
 
 float Filter::getStartCost(Database* database) {
-    return 0;
+    if(children.size() == 0) return 0;
+    else {
+        return children[0]->getStartCost(database);
+    }
 }
 
 float Filter::getRuntimeCost(Database* database) {
-    return 0;
+    if(children.size() == 0) return 0;
+    int nt = children[0]->getNt();
+    float cost = nt * ( numOfOperations * database->CPU_OPERATOR_COST + database->CPU_TUPLE_COST);
+    return cost;
 }
 
 float Filter::getNt() {
     float nt = children[0]->getNt();
-    if(1 == 1) nt /= 10;
-    else nt /= 5;
+    nt /= 10;
+    
     return nt;
 }

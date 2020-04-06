@@ -21,6 +21,7 @@ SRC_CONFIG  = $(DB_PATH)config.cpp
 SRC_PROXY   = $(DB_PATH)proxy.cpp
 
 SRC_NETWORK = $(ALG_PATH)network.cpp
+SRC_TOPOSORT = $(ALG_PATH)toposort.cpp
 
 SRC_INDEXCON = $(OPERATION_PATH)indexcon.cpp
 SRC_INDEXSCAN = $(OPERATION_PATH)indexscan.cpp
@@ -58,6 +59,8 @@ OBJ_CACHE  = ${SRC_CACHE:.cpp=.o}
 OBJ_FOREIGN_KEY = ${SRC_FOREIGN_KEY:.cpp=.o}
 
 OBJ_NETWORK = ${SRC_NETWORK:.cpp=.o}
+OBJ_TOPOSORT = ${SRC_TOPOSORT:.cpp=.o}
+	
 
 OBJ_INDEXCON = ${SRC_INDEXCON:.cpp=.o}
 OBJ_INDEXSCAN = ${SRC_INDEXSCAN:.cpp=.o}
@@ -76,8 +79,8 @@ OBJ_PROGRAM = ${SRC_PROGRAM:.cpp=.o}
 OBJ_CONFIG = ${SRC_CONFIG:.cpp=.o}
 MAIN=main
  
-main: lex_yacc_part cache network operations index column table result database foreign-key program proxy  config
-	$(CXX) $(CXXFLAGS)  -o $@  src/main.cpp $(OBJ_NESTED_JOIN) $(OBJ_FILTER) $(OBJ_SORT) $(OBJ_GROUP) $(OBJ_OR_UNION) $(OBJ_MERGE_JOIN) $(OBJ_HASH_JOIN) $(OBJ_FOREIGN_KEY) $(OBJ_CACHE) $(OBJ_NETWORK) $(OBJ_SEQSCAN)  $(OBJ_INDEXCON) $(OBJ_INDEXSCAN) $(OBJ_OPERATION) $(OBJ_PROXY) $(OBJ_TOKEN) $(OBJ_CONFIG)  $(OBJ_PROGRAM) $(OBJ_RESULT) $(OBJ_DATABASE) $(OBJ_TABLE) $(OBJ_COLUMN) $(OBJ_INDEX)  $(LEX_YACC_FLAGS)  $(POSTGE_FLAGS)
+main: lex_yacc_part cache network toposort operations index column table result database foreign-key program proxy  config
+	$(CXX) $(CXXFLAGS)  -o $@  src/main.cpp $(OBJ_TOPOSORT) $(OBJ_NESTED_JOIN) $(OBJ_FILTER) $(OBJ_SORT) $(OBJ_GROUP) $(OBJ_OR_UNION) $(OBJ_MERGE_JOIN) $(OBJ_HASH_JOIN) $(OBJ_FOREIGN_KEY) $(OBJ_CACHE) $(OBJ_NETWORK) $(OBJ_SEQSCAN)  $(OBJ_INDEXCON) $(OBJ_INDEXSCAN) $(OBJ_OPERATION) $(OBJ_PROXY) $(OBJ_TOKEN) $(OBJ_CONFIG)  $(OBJ_PROGRAM) $(OBJ_RESULT) $(OBJ_DATABASE) $(OBJ_TABLE) $(OBJ_COLUMN) $(OBJ_INDEX)  $(LEX_YACC_FLAGS)  $(POSTGE_FLAGS)
 
 operations: indexcon indexscan seqscan hash-join merge-join nested-join filter sort group or-union
 	$(CXX) $(CXXFLAGS) -c $(SRC_OPERATION) -o $(OBJ_OPERATION)
@@ -121,6 +124,10 @@ or-union: $(SRC_OR_UNION)
 
 network:
 	$(CXX) $(CXXFLAGS) -c $(SRC_NETWORK) -o $(OBJ_NETWORK)
+
+toposort:
+	$(CXX) $(CXXFLAGS) -c $(SRC_TOPOSORT) -o $(OBJ_TOPOSORT)
+
 index: 
 	$(CXX) $(CXXFLAGS) -c $(SRC_INDEX) -o $(OBJ_INDEX)
 

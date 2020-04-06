@@ -46,7 +46,7 @@ pair<float, float> process_query(Database* replica, const char* query) {
 
     Select* result = parse(query, database, &searchTypes);
     cout << query << endl;
-    float cost = 0;//result->getFinalCost(database);
+    float cost = result->getFinalCost(database);
     
     printf("Done parsing.\n");
 

@@ -1240,8 +1240,11 @@ constant:
            NUMBER 
         | ENUMBER
         | quoted_string
+        | ST
         ;
 aggregate_expression: SINGLE_AGG_FUNCTION expression { $$ = $2; }
+                    | SINGLE_AGG_FUNCTION expression NAME { $$ = $2; }
+
                     ;
 
 list_function_exp: 

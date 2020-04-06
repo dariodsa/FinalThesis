@@ -74,10 +74,12 @@ bit_and |
 bit_or  |
 bool_or |
 bool_and |
+date |
 count |
 every |
 json_agg |
 jsonb_agg |
+interval |
 max |
 min |
 sum |

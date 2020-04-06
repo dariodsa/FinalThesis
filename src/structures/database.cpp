@@ -282,8 +282,6 @@ void Database::init_constants() {
     init_random_page_cost();
 
     printf("%f %f %f %f\n", CPU_TUPLE_COST, CPU_INDEX_TUPLE_COST, CPU_OPERATOR_COST, SEQ_PAGE_COST);
-
-    exit(0);
     return;
 }
 

@@ -178,19 +178,23 @@ Select::Select(Database* database, node* root, vector<table_name*>* tables, vect
         
         vector<vector<expression_info*> > areas = this->getAreas(root);
         
-        printf("Areas num %d %d\n", areas.size(), areas[0].size());
-        
         if(this->or_node > 0 && this->table_count == 1) {
            //pretraga indeksa po područjima, jedna tablica
 
             bool found = false;
             vector<string> indexed_tables;
-            vector<Operation*> operations;
+            vector<pair<Operation*, pair<int, bool> > > operations;
+            int totalNumOfOperations = 0;
             for(Table _table : tables_set) {
                 for(auto area : areas) {
                     //construct  network
                     
                     Table* table = database->getTable(_table.getTableName());
+                    int numOfOp = 0;
+                    for(expression_info* exp : area) {
+                        numOfOp += exp->oper;
+                    }
+                    totalNumOfOperations += numOfOp;
 
                     Network* network = new Network(database, table, table->getIndex(), area, indexed_tables);
                     if(network->getUsedIndexes().size() == 0) {
@@ -199,15 +203,15 @@ Select::Select(Database* database, node* root, vector<table_name*>* tables, vect
                     for(pair<Index*, pair<int, int> > pair : network->getUsedIndexes()) {
                         int isScan = pair.second.first;
                         int len  = pair.second.second;
+                        bool retr_data = network->getRetrData();
                         Operation *op;
 
                         if(!isScan) {
-                            operations.push_back(new IndexCon(table, pair.first, len));
+                            operations.push_back(make_pair(new IndexCon(table, pair.first, len, retr_data), make_pair(numOfOp, retr_data)));
                         } else {
-                            operations.push_back(new IndexScan(table, pair.first, len));
+                            operations.push_back(make_pair(new IndexScan(table, pair.first, len, retr_data), make_pair(numOfOp, retr_data)));
                         }
-                        TODO
-                        //operation->addChild(op);
+                        
                     }
 
                     if(network->getUsedIndexes().size() == 0) {
@@ -215,7 +219,37 @@ Select::Select(Database* database, node* root, vector<table_name*>* tables, vect
                     }   
                 }
             }
+            if(operations.size() == 0) { // nisam našao indekse
+                //seq scan i filter 
+                Table* table = database->getTable(((Table)*tables_set.begin()).getTableName());
+                
+                SeqScan* scan = new SeqScan(table);
+                if(totalNumOfOperations > 0) { //nema potrebe za filterom
+                    Filter* filter = new Filter(totalNumOfOperations);
+                    filter->addChild(scan);
+                    this->root = filter;
+                } else {
+                    this->root = scan;
+                }
+            } else { // radim višestruke indeks scanove sa union operatorom i mogucim filterom
+                Table* table = database->getTable(((Table)*tables_set.begin()).getTableName());
 
+                OrUnion *orUnion = new OrUnion();
+
+                for(auto par : operations) {
+                    auto operation = par.first;
+                    int numOfOp   = par.second.first;
+                    bool retr_data = par.second.second;
+                    if(retr_data) {
+                        Filter* filter = new Filter(numOfOp);
+                        filter->addChild(operation);
+                        orUnion->addChild(filter);
+                    } else {
+                        orUnion->addChild(operation);
+                    }
+                }
+                this->root = orUnion;
+            }
 
         } else if(this->or_node == 0) {
             //jedno područje and-a

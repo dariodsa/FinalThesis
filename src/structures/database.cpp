@@ -3,6 +3,7 @@
 #include <iostream>
 #include <libpq-fe.h>
 #include <sys/time.h>
+#include <string>
 #include <chrono>
 
 #include "database.h"
@@ -31,7 +32,12 @@ Database::Database(const char *ipAddress, const char* dbName, int port, const ch
     strcpy(this->dbName, dbName);
 
     connect();
-    init_constants();
+    //init_constants();
+    CPU_TUPLE_COST = 0.089334;
+    CPU_INDEX_TUPLE_COST = 0.033808;
+    CPU_OPERATOR_COST = 0.03149;
+    SEQ_PAGE_COST = 47.766656;
+    RANDOM_PAGE_COST = 3.8;
 
     //setup cache system
     cache = new Cache(this);
@@ -57,6 +63,12 @@ Database::Database(web::json::value _json) : Database(
             Table* t = new Table(table);
             this->tables[string(t->getTableName())] = t;
         }
+
+        for(auto foreign_key_json : json["foreign_keys"].as_array()) {
+            ForeignKey* key = new ForeignKey(foreign_key_json);
+            foreign_keys.push_back(key);
+        }
+        
     } catch (const std::exception& e) {
         std::wcout << e.what() << endl;
     }
@@ -116,7 +128,8 @@ PGresult* Database::executeQuery(const char* query) {
 
 void Database::addTable(Table *t) {
     string table_name(t->getTableName());
-    
+    transform(table_name.begin(), table_name.end(), table_name.begin(), ::tolower);
+
     if(this->tables.find(table_name) != this->tables.end()) {
         printf("%s\n", t->getTableName());
         throw std::invalid_argument("Table is already existing.");
@@ -140,8 +153,14 @@ void Database::addForeignKey(ForeignKey* key) {
     this->foreign_keys.push_back(key);
 }
 
+std::vector<ForeignKey*> Database::getForeignKeys() {
+    return this->foreign_keys;
+}
+
 Table* Database::getTable(const char* name) {
     string table_name(name);
+    transform(table_name.begin(), table_name.end(), table_name.begin(), ::tolower);
+
     if(this->tables.find(table_name) == this->tables.end()) {
         throw std::invalid_argument("Table doesn't exsist.\n");
     }
@@ -183,6 +202,12 @@ web::json::value Database::getJSON() {
         json["tables"][i] = it->second->getJSON();
     }
 
+    json["foreign_keys"] = json::value::array(foreign_keys.size());
+    i = 0;
+    for(ForeignKey* key : foreign_keys) {
+        json["foreign_keys"][i++] = key->getJSON();
+    }
+    printf("foreign len %d\n", foreign_keys.size());
     return json;
 }
 
@@ -253,27 +278,26 @@ void Database::init_constants() {
     
     //INIT_TABLE
     
-    result = executeQuery("select count(*) from R limit 3;");
-    int rec_count = PQntuples(result);
-    int col_count = PQnfields(result);
     
-    int nt = 10000000;
-    int relation_size = 362479616;
-    int blocks = relation_size / BLOCK_SIZE;
+    int nt = 1500000;
 
-    if(rec_count == 0 && col_count == 0) {
-        executeQuery("DROP TABLE R;");
-        executeQuery("CREATE TABLE R ( A integer, B integer);");
-        executeQuery("INSERT INTO R SELECT random() * 100000, random() * 100000 FROM generate_series(1, 1000000);");
-        executeQuery("CREATE INDEX r_i1 ON R (A);");
-    }
+    int relation_size = 213770240;
+    int blocks = relation_size / BLOCK_SIZE;
 
     
     init_seq_page_cost(blocks);
     init_cpu_tuple_cost(nt);
     
-    double temp = SEQ_PAGE_COST;
-    SEQ_PAGE_COST = ( temp  - nt * CPU_TUPLE_COST - nt * FINAL_TUPLE) / blocks;
+
+    double sum = 0;
+    for(int i = 0; i < REPEAT; ++i) sum += getTimeForQuery("SELECT * FROM orders;");
+    double t1 = sum / REPEAT;
+    
+    t1 -= (nt * CPU_TUPLE_COST);
+    
+    //FINAL_TUPLE = (blocks2 * t1 - blocks * t2) / (nt * blocks2 - nt2 * blocks); 
+    SEQ_PAGE_COST = (t1) / blocks;
+
 
     init_cpu_operator_cost(nt);
     init_cpu_index_tuple_cost();
@@ -281,51 +305,75 @@ void Database::init_constants() {
     
     init_random_page_cost();
 
-    printf("%f %f %f %f\n", CPU_TUPLE_COST, CPU_INDEX_TUPLE_COST, CPU_OPERATOR_COST, SEQ_PAGE_COST);
+    printf("tuple, index, operator seq final\n");
+    printf("%f %f %f %f %f %f\n", CPU_TUPLE_COST, CPU_INDEX_TUPLE_COST, CPU_OPERATOR_COST, SEQ_PAGE_COST, FINAL_TUPLE, RANDOM_PAGE_COST);
     return;
 }
 
 void Database::init_seq_page_cost(int blocks) {
-    SEQ_PAGE_COST = getTimeForQuery("SELECT * FROM R;");
+    
 }
 
 void Database::init_cpu_tuple_cost(int nt) {
-    executeQuery("SELECT * FROM R;");
-    double time = getTimeForQuery("SELECT * FROM R;");
-    printf("tuple %lf\n", time);
-    CPU_TUPLE_COST = time / (double) nt;
-    CPU_TUPLE_COST /= 2;
-    FINAL_TUPLE = CPU_TUPLE_COST;
+
+    executeQuery("SELECT * FROM orders;");
+    double sum = 0;
+    for(int i = 0; i < REPEAT; ++i) sum += getTimeForQuery("SELECT sum(o_shippriority) FROM orders;");
+    double t1 = sum / REPEAT;
+
+    sum = 0;
+    for(int i = 0; i < REPEAT; ++i) sum += getTimeForQuery("SELECT sum(o_shippriority) FROM orders group by o_shippriority;");
+    double t2 = sum / REPEAT;
+
+    double a1 = nt;
+    double b1 = nt;
+    double a2 = nt;
+    double b2 = nt + nt + nt;
+
+    CPU_OPERATOR_COST = (a2*t1 - a1*t2) / (b1*a2 - b2*a1);
+    CPU_TUPLE_COST = (t1 - a2 * CPU_OPERATOR_COST ) / a1;
 }
 
 void Database::init_cpu_operator_cost(int nt) {
-    double time = getTimeForQuery("SELECT COUNT(*) FROM R;");
-    printf("operator %lf %lf = %lf*%lf\n", time, CPU_TUPLE_COST * nt, CPU_TUPLE_COST, nt);
-    CPU_OPERATOR_COST = (time - CPU_TUPLE_COST * nt - 1 * FINAL_TUPLE) / (double) nt;
+
 }
 
 void Database::init_cpu_index_tuple_cost() {
-    PGresult *result = executeQuery("SELECT COUNT(*) FROM R WHERE R.A < 150");
+    
+    executeQuery("set enable_seqscan = OFF;");
+    PGresult *result = executeQuery("SELECT count(*) FROM orders WHERE o_custkey >= 61 and o_custkey < 45695;");
     int ni = atoi(PQgetvalue(result, 0, 0));
-    int no = ni;
-    int nt = no;
+    double no = ni;
+    double nt = no;
+    
+    double sum = 0;
+    for(int i = 0; i < REPEAT; ++i) sum += getTimeForQuery("SELECT sum(o_custkey) FROM orders WHERE o_custkey >= 61 and o_custkey < 45695;");
+    double time = sum / REPEAT;
 
-    double time = getTimeForQuery("SELECT * FROM R WHERE R.A < 150");
-    CPU_INDEX_TUPLE_COST = ( time - CPU_TUPLE_COST * nt - CPU_OPERATOR_COST * no - FINAL_TUPLE) / (double)ni;
+    printf("TIME:%lf\n", time);
+    CPU_INDEX_TUPLE_COST = ( time - CPU_TUPLE_COST * nt - CPU_OPERATOR_COST * no * 3) / ni;
+    executeQuery("set enable_seqscan = ON;");
 }
 
 
 
 void Database::init_random_page_cost() {
-    double time = getTimeForQuery("SELECT * FROM R WHERE R.B < 150;");
-    PGresult *result = executeQuery("SELECT count(*) FROM R WHERE R.B < 150;");
+    executeQuery("set enable_seqscan = OFF;");
+    PGresult *result = executeQuery("SELECT count(*) FROM orders WHERE o_custkey >= 45695 and o_custkey < 105695;");
     int nt = atoi(PQgetvalue(result, 0, 0));
-
+    int size = atoi(PQgetvalue(executeQuery("SELECT sum(pg_column_size(orders)) FROM orders WHERE o_custkey >= 45695 and o_custkey < 105695;"), 0 , 0));
+    double sum = 0;
+    for(int i = 0; i < REPEAT; ++i) sum += getTimeForQuery("SELECT sum(o_totalprice) FROM orders WHERE o_custkey >= 45695 and o_custkey < 105695;");
+    double time = sum / REPEAT;
+    int block = size / BLOCK_SIZE;
+    RANDOM_PAGE_COST = (time - nt * CPU_TUPLE_COST - nt * CPU_INDEX_TUPLE_COST - 3 * nt * CPU_OPERATOR_COST) / block;
+    executeQuery("set enable_seqscan = ON;");
 }
 
 double Database::getTimeForQuery(char *query) {
     auto start = std::chrono::high_resolution_clock::now();
-    executeQuery(query);
+    PGresult* res = executeQuery(query);
+    free(res);
     auto elapsed = std::chrono::high_resolution_clock::now() - start;
 
     long long microseconds = std::chrono::duration_cast<std::chrono::microseconds>(elapsed).count();

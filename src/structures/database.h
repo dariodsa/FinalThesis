@@ -171,6 +171,8 @@ class Database {
 
         bool isForeignKey(char* table1, std::vector<char*> columns_table1,char* table2, std::vector<char*> columns_table2);        
 
+        std::vector<ForeignKey*> getForeignKeys();
+
         double SEQ_PAGE_COST;
         double RANDOM_PAGE_COST;
         double CPU_TUPLE_COST;
@@ -178,6 +180,8 @@ class Database {
         double CPU_OPERATOR_COST;
 
         double FINAL_TUPLE;
+
+        int REPEAT = 5;
 
         int CACHE_SIZE;
         int BLOCK_SIZE;

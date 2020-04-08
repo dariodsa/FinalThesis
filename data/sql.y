@@ -2,6 +2,7 @@
 #include <stdio.h>
 #include <string.h>
 #include <vector>
+#include <typeinfo>
 
 #include "token.cpp"
 #include "../src/structures/index.h"
@@ -82,8 +83,12 @@ extern vector<SearchType>* searchTypes;
 %type <number> single_column_item_b
 
 %type <table> list_of_column_con_def
+
 %type <index> multiple_column_constraint
+%type <foreign_key> multiple_column_constraint_foreign
+
 %type <index> multiple_column_const_b
+%type <foreign_key> multiple_column_const_b_foreign
 
 %type <names> list_names_sep_comma
 
@@ -130,7 +135,7 @@ extern vector<SearchType>* searchTypes;
 
 commands:
          command ';' commands  
-        | command
+        | command ';'
        
       
         ;
@@ -196,8 +201,10 @@ alter_table_statement: ALTER TABLE ONLY NAME ADD multiple_column_constraint
                             yyerror("Ne postoji tablica.");
                             return 1;
                         }
+                        
                         if($6 != NULL) {
-                            table->addIndex($6);
+                            $6->setTable($4);
+                            table->addIndex($6);    
                         }
                     }
                     |  ALTER TABLE NAME ADD multiple_column_constraint
@@ -207,8 +214,22 @@ alter_table_statement: ALTER TABLE ONLY NAME ADD multiple_column_constraint
                             yyerror("Ne postoji tablica.");
                             return 1;
                         }
+                        
                         if($5 != NULL) {
-                            table->addIndex($5);
+                            $5->setTable($3);
+                            table->addIndex($5);    
+                        }
+                     }
+                    |  ALTER TABLE NAME ADD multiple_column_constraint_foreign
+                     {
+                        Table *table = database->getTable($3);
+                        if(table == NULL) {
+                            yyerror("Ne postoji tablica.");
+                            return 1;
+                        }
+                        if($5 != NULL) {
+                            $5->setTable($3);
+                            database->addForeignKey($5);
                         }
                      }
 
@@ -359,10 +380,10 @@ references_clause:
                  REFERENCES NAME '(' list_names_sep_comma ')' 
                  {
                      ForeignKey* key = new ForeignKey();
-                     database->addForeignKey(key);
                      key->setTable2($2);
                      for(char* col_name : *$4) {
                          key->addColumnInTable2(col_name);
+                         printf("%s table, col %s\n", $2, col_name);
                      }
                      $$ = key;
                  }
@@ -386,19 +407,28 @@ multiple_column_const_b:
                             }
                        }
                        | check_clause { $$ = 0;}
-                       | FOREIGN KEY '(' list_names_sep_comma  ')' references_clause 
+                       
+
+multiple_column_const_b_foreign:
+                        FOREIGN KEY '(' list_names_sep_comma  ')' references_clause 
                        {
                            ForeignKey* key = $6;
                            for(char* col_name : *$4) {
                                key->addColumnInTable1(col_name);
                            }
-                           $$ = 0;
+                           $$ = key;
                        }
+
 
 
 multiple_column_constraint:
                            CONSTRAINT NAME multiple_column_const_b { $$ = $3; }
                           | multiple_column_const_b { $$ = $1; }
+                          ;
+
+multiple_column_constraint_foreign:
+                           CONSTRAINT NAME multiple_column_const_b_foreign { $$ = $3; }
+                          | multiple_column_const_b_foreign { $$ = $1; }
                           ;
 
 single_column_item_b:

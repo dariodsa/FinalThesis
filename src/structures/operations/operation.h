@@ -26,4 +26,18 @@ class Operation{
         
 };
 
+class Dummy : public Operation{
+    public:
+    Dummy() : Operation() {}
+    float getNt() {
+        return 0;
+    }
+    float getStartCost(Database* database) {
+        return 0;
+    }
+    float getRuntimeCost(Database* database) {
+        return 0;
+    }
+};
+
 #endif

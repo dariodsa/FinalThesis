@@ -1,4 +1,5 @@
 #include <map>
+#include <string>
 #include <vector>
 #include <utility>
 
@@ -11,14 +12,15 @@ enum Link{
 class TopoSort{
     public:
         TopoSort(Operation* parent);
-        void addNode(Operation* op);
-        void addLink(Operation* from, Operation* to, Link link, bool foreign);
-        Operation* performTopoSort();
+        void addNode(char* table_name);
+        void addLink(char* table_from, char* table_to, Link link, bool foreign);
+        Operation* performTopoSort(std::map<std::string, Operation*> *dictonary);
     private:
-        Operation* parent;
 
-        std::map<Operation*, std::vector<std::pair<Operation*, std::pair<Link, bool>> >* >M;
-        std::map<Operation*, std::vector<std::pair<Operation*, std::pair<Link, bool>> >* >RM;
+        Operation* parent;        
+        
+        std::map<std::string, std::vector<std::pair<std::string, std::pair<Link, bool>> >* >M;
+        std::map<std::string, std::vector<std::pair<std::string, std::pair<Link, bool>> >* >RM;
 
-        std::map<Operation*, bool> visited;
+        std::map<std::string, bool> visited;
 };

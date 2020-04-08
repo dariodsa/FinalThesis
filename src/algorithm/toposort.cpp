@@ -10,25 +10,29 @@ using namespace std;
 TopoSort::TopoSort(Operation* parent) {
     this->parent = parent;
 }
-void TopoSort::addNode(Operation* op) {
-    M[op]  = new vector<pair<Operation*, pair<Link, bool> >>();
-    RM[op] = new vector<pair<Operation*, pair<Link, bool> >>();
+void TopoSort::addNode(char* t1) {
+    string table_name = string(t1);
+    
+    M[table_name]  = new vector<pair<string, pair<Link, bool> >>();
+    RM[table_name] = new vector<pair<string, pair<Link, bool> >>();
 }
-void TopoSort::addLink(Operation* from, Operation* to, Link link, bool foreign) {
-    M[from]->push_back(make_pair(to, make_pair(link, foreign)));
-    RM[to]->push_back(make_pair(from, make_pair(link, foreign)));
+void TopoSort::addLink(char* table_from, char* table_to, Link link, bool foreign) {
+    
+    M[table_from]->push_back(make_pair(table_to, make_pair(link, foreign)));
+    RM[table_to]->push_back(make_pair(table_from, make_pair(link, foreign)));
 }
-Operation* TopoSort::performTopoSort() {
+Operation* TopoSort::performTopoSort(map<string, Operation*> *dictonary) {
+    
     while(true) {
-        vector<Operation*> possible;
+        vector<string> possible;
 
         for(auto it = M.begin(); it != M.end(); ++it) {
-            Operation* node = it->first;
+            string node = it->first;
             if(visited[node] == true) break;
             //nije visited
             bool ok = true;
             for(auto pair : *RM[node]) {
-                Operation* op = pair.first;
+                string op = pair.first;
                 if(visited[op] == false) {
                     ok = false;
                     break;
@@ -39,8 +43,9 @@ Operation* TopoSort::performTopoSort() {
         if(possible.size() == 0) { // RASPAŠOJ
             for(auto node : M) {
                 if(visited[node.first] == false) {
+
                     NestedJoin* join = new NestedJoin();
-                    join->addChild(node.first);
+                    join->addChild((*dictonary)[node.first]);
                     join->addChild(parent);
                     parent = join;
                 }
@@ -48,7 +53,7 @@ Operation* TopoSort::performTopoSort() {
             return parent;
         }
 
-        Operation* selected_node = possible[0];
+        string selected_node = possible[0];
         visited[selected_node] = true;
         Link link = NESTED_LOOP;
         bool foreign = false;
@@ -73,12 +78,12 @@ Operation* TopoSort::performTopoSort() {
 
         if(link == HASH_JOIN) {
             HashJoin* join = new HashJoin(foreign);
-            join->addChild(selected_node);
+            join->addChild((*dictonary)[selected_node]);
             join->addChild(parent);
             parent = join;
         } else if(link == NESTED_LOOP || link == MERGE_JOIN) {
             NestedJoin* join = new NestedJoin(foreign);
-            join->addChild(selected_node);
+            join->addChild((*dictonary)[selected_node]);
             join->addChild(parent);
             parent = join;
         }

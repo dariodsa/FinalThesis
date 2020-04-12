@@ -52,28 +52,33 @@ class Select{
         Select();
         Select(Database* database, node* root, std::vector<table_name*>* tables, std::vector<variable>* variables);
 
-        float getFinalCost(Database *database);
+        double getFinalCost(Database *database);
         
         static bool compare_index_pointer(pair<Index*, pair<int, int> > a, pair<Index*, pair<int, int> > b);
         static resursi mergeResource(resursi A, resursi B);
 
-        void addSort();
-        void addGroup();
+        void addSort(int numOfVariables);
+        void addGroup(int numOfVariables);
+        void addHaving(int num);
         void addLimit(int limit);
 
         void addSibling(Select* sibling);
         void addKid(Select* kid);
 
+        static std::vector<int> numOfFilter(std::vector<Table*> tables, std::vector<expression_info*> area);
+        static void setNewOperation(Operation* old_operation , Operation* new_operation, std::map<std::string, Operation*> *operations);
+        static std::vector<Table*> getTables(Database* database, std::map<std::string, Operation*> tables_operations, Operation* operation);
     private:
         void dfs(node *root);
         vector<vector<expression_info*> > getAreas(node *root);
-        float getCost(Database *database);
-        float getLoadingCost(Database* database);
+        double getCost(Database *database);
+        double getLoadingCost(Database* database);
 
         int sumOperations(node *root);
 
         node* de_morgan(node* root);
-        
+
+
         resursi getResource();
 
         resursi resouce;

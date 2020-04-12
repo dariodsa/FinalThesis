@@ -11,6 +11,7 @@
 #include "operations/sort.h"
 
 #include "../algorithm/network.h"
+#include "../algorithm/toposort.h"
 
 #include "database.h"
 #include "index.h"
@@ -85,16 +86,30 @@ bool Result::hasColumn(char* col_name) {
     return false;
 }
 
-float Select::getCost(Database* database) {
-    float ans = 0;
+double Select::getCost(Database* database) {
+    double cost = this->root->getTotalCost(database);
+    for(Select* sibling : siblings) {
+        cost += sibling->getCost(database);
+    }
+    printf("init cost %lf\n", cost);
+    double nt = this->root->getNt();
+    for(Select* kid : kids) {
+        double select_cost = kid->getCost(database);
+        printf("cost in subquery %lf * %lf\n", select_cost,nt);
+        printf("precost %lf\n", cost);
+        cost += (nt * select_cost);
+        printf("fin cost %lf\n", cost);
+    }
+
+    printf("Res: %lf, NT: %lf\n", cost, nt);
+    return cost;
+}
+
+double Select::getLoadingCost(Database* database) {
     return 0;
 }
 
-float Select::getLoadingCost(Database* database) {
-    return 0;
-}
-
-float Select::getFinalCost(Database* database) {
+double Select::getFinalCost(Database* database) {
     return this->getCost(database) + this->getLoadingCost(database);
 }
 
@@ -119,6 +134,7 @@ Select::Select(Database* database, node* root, vector<table_name*>* tables, vect
     Program* program = Program::getInstance();
     this->database = database;
     //remove not nodes
+    printf("ROOT %d\n", root);
     root = this->de_morgan(root);
     printf("Table num: %d\n", tables->size());
     for(table_name* t : *tables) {
@@ -161,7 +177,8 @@ Select::Select(Database* database, node* root, vector<table_name*>* tables, vect
         }
         Operation* op =(Operation*) new NestedJoin();
         op->addChild(seqscans[0]);
-        op->addChild(seqscans[1]);
+        if(seqscans.size() > 1) op->addChild(seqscans[1]);
+        else op->addChild(new Dummy());
 
         for(int i = 2, len = seqscans.size(); i < len; ++i) {
             Operation *join = new NestedJoin();
@@ -177,8 +194,9 @@ Select::Select(Database* database, node* root, vector<table_name*>* tables, vect
     } else {
         
         vector<vector<expression_info*> > areas = this->getAreas(root);
-        
-        if(this->or_node > 0 && this->table_count == 1) {
+        map<string, Operation*> tables_operations;
+        if(this->or_node >= 0 && this->table_count == 1) {
+            printf("Jedna tablica\n");
            //pretraga indeksa po područjima, jedna tablica
 
             bool found = false;
@@ -195,8 +213,8 @@ Select::Select(Database* database, node* root, vector<table_name*>* tables, vect
                         numOfOp += exp->oper;
                     }
                     totalNumOfOperations += numOfOp;
-
-                    Network* network = new Network(database, table, table->getIndex(), area, indexed_tables);
+                    TopoSort *t = new TopoSort(database, new Dummy());
+                    Network* network = new Network(database, table, table->getIndex(), area, &tables_operations);
                     if(network->getUsedIndexes().size() == 0) {
                         break;
                     }
@@ -254,58 +272,354 @@ Select::Select(Database* database, node* root, vector<table_name*>* tables, vect
         } else if(this->or_node == 0) {
             //jedno područje and-a
 
-            //Operation *parent = operation;
+            vector<expression_info*> area = areas[0];
 
-            //seq scan nad onima koji se ne spominju
+            //seq scan nad onima koji se ne spominju, izgradnja nestedJoin-a nad njima
+            vector<Operation*> seqscans;
             for(table_name* table_name : *tables) {
                 Table _table = *(database->getTable(table_name->real_name));
-                printf("table_name %s %s\n", table_name->name, table_name->real_name);
+                string table_name_str = string(_table.getTableName());
+
+                tables_operations[string(table_name->real_name)] = 0;
+
                 auto i1 = tables_set.find(_table);
-                if(i1 == tables_set.end()) {
-                    Operation *op = new SeqScan(&_table);
-                    /*parent->addChild(op);
-                    parent = op;*/
+                if(i1 == tables_set.end()) { //tablica nije referirana u uvjetima
+                    cout << "SEQ SCAN " << _table.getTableName() << endl;
+                    Operation* scan = new SeqScan(&_table);
+                    vector<Table*> table_list; table_list.push_back(&_table);
+                    vector<int> filter_list = numOfFilter(table_list, area);
+
+                    for(int i = 0, len = filter_list.size(); i < len; ++i) {
+                        Filter* filter = new Filter(filter_list[i]);
+                        filter->addChild(scan);
+                        scan = filter;
+                    }
+                    tables_operations[table_name_str] = scan;
+                    seqscans.push_back(scan);
+                }
+            }
+            Operation *parent = 0;
+            if(seqscans.size() > 0) {
+                parent = seqscans[0];
+                
+                for(int i = 1, len = seqscans.size(); i < len; ++i) {
+                    NestedJoin* join = new NestedJoin();
+                    join->addChild(parent);
+                    join->addChild(seqscans[i]);
+                    setNewOperation(parent, join, &tables_operations);
+                    setNewOperation(seqscans[i], join, &tables_operations);
+                    parent = join;    
+                }
+            } 
+            
+            
+            for(table_name* table_name : *tables) {
+                Table *table = database->getTable(table_name->real_name);
+                string str_table_name = string(table_name->real_name);
+                vector<Operation*> found_indexes;
+                
+                for(Index* index : table->getIndex()) {
+                    bool index_found = true;
+                    int col_id = 0;
+                    for(int col_num = index->getColNumber(); col_id < col_num; ++col_id) {
+                        bool found = false;
+                        for(expression_info* exp : area) {
+                            if(exp->equal != 1) continue;
+                            if(exp->variables->size() != 1) continue;
+
+                            variable variable = (*(exp->variables))[0];
+                            if(strcmp(variable.name, index->getColName(col_id)) == 0) found = true;
+                        }
+                        if(!found  && col_id > 0) {
+                            index_found = true;
+                            break;
+                        } else if(!found && col_id == 0) {
+                            index_found = false;
+                            break;
+                        }
+                    }
+                    if(index_found) {
+                        found_indexes.push_back(new IndexCon(table, index, col_id, true));
+                    }
+                }
+                for(Operation* index_con : found_indexes) {
+                    if(tables_operations[str_table_name] != 0) {
+                        OrUnion* orUnion = new OrUnion();
+                        orUnion->addChild(index_con);
+                        orUnion->addChild(tables_operations[str_table_name]);
+                        tables_operations[str_table_name] = orUnion;
+                    } else {
+                        tables_operations[str_table_name] = index_con;
+                    }
                 }
             }
 
 
-            vector<expression_info*> area = areas[0];
-            map<Table, bool> seq_scan_tables;
+
+
+
+            if(parent == 0) parent = new Dummy(); //set initial parent node
+            
+            set<string> tables_candidates_foreign;
+            for(expression_info* exp : area) {
+                if(exp->variables->size() == 2 && exp->equal == 1) {
+                    string table1 = string((*(exp->variables))[0].table);
+                    string table2 = string((*(exp->variables))[1].table);
+                    if(table1.compare(table2) != 0) { // imamo situaciju a.x = b.y
+                        cout << "Kandidate foreign key " << table1 << "__" << table2 << endl;
+                        tables_candidates_foreign.insert(table1);
+                        tables_candidates_foreign.insert(table2);
+                    }
+                }
+            }
+
+            for(string table1 : tables_candidates_foreign) {
+                for(string table2 : tables_candidates_foreign) {
+                    if(table1.compare(table2) == 0) continue;
+                    vector<char*> col1;
+                    vector<char*> col2;
+
+                    for(expression_info* exp : area) {
+                        if(exp->variables->size() == 2) {
+                            string exp_t1 = string((*(exp->variables))[0].table);
+                            string exp_t2 = string((*(exp->variables))[1].table);
+                            if(table1.compare(exp_t1) == 0 && table2.compare(exp_t2) == 0) {
+                                col1.push_back((*(exp->variables))[0].name);
+                                col2.push_back((*(exp->variables))[1].name);
+                            } else if(table1.compare(exp_t2) == 0 && table2.compare(exp_t1) == 0) {
+                                col1.push_back((*(exp->variables))[1].name);
+                                col2.push_back((*(exp->variables))[0].name);
+                            }
+                        }
+                    }
+                    
+                    if(col1.size() > 0 && 
+                    database->isForeignKey(table1.c_str(), col1, table2.c_str(), col2)) { //našao foreign key
+
+                        if(tables_operations[table2] == 0) { //desna tablica nije u join-u
+                            HashJoin* hashJoin = new HashJoin(true);
+                            
+                            if(tables_operations[table1] == 0) {
+                                Table* table = database->getTable((char*) table1.c_str());
+                                SeqScan* seqScan = new SeqScan(table);
+                                
+                                vector<int> filter_list = numOfFilter(Select::getTables(database, tables_operations, tables_operations[table1]), area);
+                                Operation *node = seqScan;
+                                for(int i = 0, len = filter_list.size(); i < len; ++i) {
+                                    Filter* filter = new Filter(filter_list[i]);
+                                    filter->addChild(node);
+                                    node = filter;
+                                }
+                                tables_operations[table1] = node;
+
+                            } 
+                            if(tables_operations[table2] == 0) {
+                                //init
+                                Table* table = database->getTable((char*) table2.c_str());
+                                
+                                Index* index = table->getIndexByCol(col2);
+                                
+                                IndexScan* indexScan = new IndexScan(table, index, 1, 0);
+                                vector<Table*> table_list; table_list.push_back(table);
+                                vector<int> filter_list = numOfFilter(table_list, area);
+                                Operation *node = indexScan;
+                                for(int i = 0, len = filter_list.size(); i < len; ++i) {
+                                    Filter* filter = new Filter(filter_list[i]);
+                                    filter->addChild(node);
+                                    node = filter;
+                                }
+                                tables_operations[table2] = node;
+
+                            }
+                            hashJoin->addChild(tables_operations[table1]);
+                            hashJoin->addChild(tables_operations[table2]);
+
+                            setNewOperation(tables_operations[table1], hashJoin, &tables_operations);
+                            setNewOperation(tables_operations[table2], hashJoin, &tables_operations);
+                        }
+                    }
+
+
+                }
+            }
+
+
+            for(Table _table : tables_set) {
+                string str_table_name = string(_table.getTableName());
+                if(tables_operations[str_table_name] != 0) continue;
+                cout << "Pokušavam naci index za " << str_table_name << endl;
+                Table* table = database->getTable(_table.getTableName());
+                
+                Network* network = new Network(database, table, table->getIndex(), area, &tables_operations);
+                printf("Index %d SeqScan %d\n", network->getUsedIndexes().size(), network->getSeqScan().size());
+                for(Table t : network->getSeqScan()) {
+                    SeqScan* scan = new SeqScan(&t);
+                    string table_name = string(t.getTableName());
+                    vector<Table*> table_list; table_list.push_back(&t);
+                    
+                    vector<int> filter_list = numOfFilter(table_list, area);
+                    Operation *node = scan;
+                    for(int i = 0, len = filter_list.size(); i < len; ++i) {
+                        Filter* filter = new Filter(filter_list[i]);
+                        filter->addChild(node);
+                        node = filter;
+                    }
+                    tables_operations[table_name] = node;
+                }
+
+                for( auto in : network->getUsedIndexes()) {
+                    Index* index = in.first;
+                    int isScan = in.second.first;
+                    int len = in.second.second;
+
+                    Operation *index_search;
+                    if(isScan) index_search = new IndexScan(table, index, len, network->getRetrData());
+                    else       index_search = new IndexCon(table, index, len, network->getRetrData());
+
+                    if(tables_operations[str_table_name] != 0) {
+                        OrUnion* orUnion = new OrUnion();
+                        orUnion->addChild(tables_operations[str_table_name]);
+                        orUnion->addChild(index_search);
+                        tables_operations[str_table_name] = orUnion;
+                    } else {
+                        tables_operations[str_table_name] = index_search;
+                    }
+
+                }
+            }
+
+            for(table_name* table_name : *tables) {
+                string str_table_name = string(table_name->real_name);
+                if(tables_operations[str_table_name] == 0) {
+                    Table* table = database->getTable((char*) str_table_name.c_str());
+                    SeqScan* seqScan = new SeqScan(table);
+                    
+                    vector<int> filter_list = numOfFilter(Select::getTables(database, tables_operations, tables_operations[str_table_name]), area);
+                    Operation *node = seqScan;
+                    for(int i = 0, len = filter_list.size(); i < len; ++i) {
+                        Filter* filter = new Filter(filter_list[i]);
+                        filter->addChild(node);
+                        node = filter;
+                    }
+                    tables_operations[str_table_name] = node;
+                }
+            }
+
+
+            while(true) { //postavi jedinstveni join nad svima
+                string first_table = string((*tables)[0]->real_name);
+                Operation* pointer = tables_operations[first_table]; 
+                bool done = true;
+                for(table_name* table_name : *tables) {
+                    string str_table_name = string(table_name->real_name);
+                    if(tables_operations[str_table_name] != pointer) {
+                        NestedJoin* join = new NestedJoin();
+                        join->addChild(pointer);
+                        join->addChild(tables_operations[str_table_name]);
+                        
+                        setNewOperation(tables_operations[str_table_name], join, &tables_operations);
+                        setNewOperation(pointer,                           join, &tables_operations);
+                        
+                        vector<Table*> tables_in_join = Select::getTables(database, tables_operations, join);
+
+                        vector<int> filter_list = numOfFilter(tables_in_join, area);
+                        Operation *node = join;
+                        for(int i = 0, len = filter_list.size(); i < len; ++i) {
+                            Filter* filter = new Filter(filter_list[i]);
+                            filter->addChild(node);
+                            node = filter;
+                        }
+                        setNewOperation(tables_operations[str_table_name], node, &tables_operations);
+                        setNewOperation(pointer,                           node, &tables_operations);
+                        
+                    }
+                }
+                if(done) {
+                    string first_table = string((*tables)[0]->real_name);
+                    Operation* res_root = tables_operations[first_table]; 
+                    this->root = res_root;
+                    break;
+                }
+            }
+
+
+
+
+
+            /*map<Table, bool> seq_scan_tables;
             vector<string> indexed_tables;
 
             vector<pair<Index*, pair<int, int> >> used_indexes; 
             
             map<Table, bool> retr_data_tables;
             
-            printf("OrNode %d Table_set %d\n", or_node, tables_set.size());
             for(Table _table : tables_set) {
+                cout << "gledam na tablicu " << _table.getTableName() <<  " " << seq_scan_tables[_table] << endl;
                 if(seq_scan_tables[_table]) continue;
                 //construct  network
                 
                 Table* table = database->getTable(_table.getTableName());
                 
-                Network* network = new Network(database, table, table->getIndex(), area, indexed_tables);
+                Network* network = new Network(database, table, table->getIndex(), area, indexed_tables, toposort);
                 
                 if(network->getRetrData()) retr_data_tables[_table] = true;
-
+                printf("%s %d\n", _table.getTableName(), network->getUsedIndexes().size());
                 if(network->getUsedIndexes().size() > 0) {
                     indexed_tables.push_back(string(table->getTableName()));
-                    for(auto in : network->getUsedIndexes()) {
+                    
+                    string table_name = string(_table.getTableName());
+                    
+                    if(network->getUsedIndexes().size() > 1) {
+                        tables_operations[table_name] = new OrUnion();
+                        for(auto in : network->getUsedIndexes()) {
+                            used_indexes.push_back(in);
+
+                            Index* index = in.first;
+                            int isScan = in.second.first;
+                            int len = in.second.second;
+                            
+                            bool retr_data = retr_data_tables[*table];
+                            if(isScan) {   
+                                tables_operations[table_name]->addChild(new IndexScan(table, index, len, retr_data));
+                            } else {
+                                tables_operations[table_name]->addChild(new IndexCon(table, index, len, retr_data));
+                            }
+                        }
+                    } else {
+                        auto in = network->getUsedIndexes()[0];
                         used_indexes.push_back(in);
+
+                        Index* index = in.first;
+                        int isScan = in.second.first;
+                        int len = in.second.second;
+                        
+                        bool retr_data = retr_data_tables[*table];
+                        if(isScan) {   
+                            tables_operations[table_name] = new IndexScan(table, index, len, retr_data);
+                        } else {
+                            tables_operations[table_name] = new IndexCon(table, index, len, retr_data);
+                        }
+                        printf("%d %d %d\n", len, retr_data, index->getColNumber());
+                        printf("isScan %d index runtime %f\n", isScan, tables_operations[table_name]->getRuntimeCost(database));
                     }
-                }
+                } else seq_scan_tables[_table] = true;
 
                 for(Table _t : network->getSeqScan()) {
                     seq_scan_tables[_t] = true;
                 }
             }
+
             
+            printf("scan %d\n", seq_scan_tables.size());
             for(auto it = seq_scan_tables.begin(); it != seq_scan_tables.end(); ++it) {
+                
                 if(seq_scan_tables[it->first] == true) {
                     Table* t = (Table*)&(it->first);
-                    Operation *op = new SeqScan(t);
-                    /*parent->addChild(op);
-                    parent = op;*/
+                    string table_name = string(t->getTableName());
+                    cout << table_name << endl;
+                    SeqScan* scan = new SeqScan(t);
+                    tables_operations[table_name] = scan;
+                    toposort->addNode(t->getTableName());        
                 }
             }
             printf("Size %d\n", used_indexes.size());
@@ -313,15 +627,14 @@ Select::Select(Database* database, node* root, vector<table_name*>* tables, vect
             char *p = 0;
             
             
-
+            printf("Used indexes %d\n", used_indexes.size());
             for(auto _index : used_indexes) {
                 Index* index = _index.first;
                 int isScan = _index.second.first;
                 int len = _index.second.second;
                 Table* table = database->getTable(index->getTable());
-                
-                printf("Table name: %s, %d\n", index->getTable(), isScan);
-                
+                string str_table_name = string(table->getTableName());
+                cout << "index " << str_table_name << endl;
                 Operation *op;
                 bool retr_data = retr_data_tables[*table];
                 if(isScan) {   
@@ -329,10 +642,16 @@ Select::Select(Database* database, node* root, vector<table_name*>* tables, vect
                 } else {
                     op = new IndexCon(table, index, len, retr_data);
                 }
-
+                
+                if(tables_operations[str_table_name] != 0) {
+                    tables_operations[str_table_name]->addChild(op);
+                } else {
+                    tables_operations[str_table_name] = new OrUnion();
+                    tables_operations[str_table_name]->addChild(op);
+                }
+                toposort->addNode(table->getTableName());
                 if(p == 0 || p != index->getTable()) {
-                    /*Operation *table_in = new SeqScan(index->getTable());
-                    parent->addChild(table_in);*/
+                  
 
                     //parent = table_in;
                     //parent->addChild(op);
@@ -341,12 +660,13 @@ Select::Select(Database* database, node* root, vector<table_name*>* tables, vect
                     //parent->addChild(op);
                 }
             }
-            
+            this->root = toposort->performTopoSort(&tables_operations);*/
         }
     }
 
     printf("===============\n");
-    //(*first)->print();
+    cout << typeid(*root).name() << endl;
+    printf("Cost: %f, NT: %lf\n", this->root->getTotalCost(database), this->root->getNt());
     printf("===============\n");
 }
 
@@ -489,21 +809,35 @@ node* Select::de_morgan(node* root) {
 }
 
 
-void Select::addSort() {
+void Select::addSort(int numOfVariables) {
     this->pipeline = false;
+    Sort* sort = new Sort();
+    sort->addChild(this->root);
+    this->root = sort;
 }
-void Select::addGroup() {
+void Select::addGroup(int numOfVariables) {
     this->pipeline = false;
+    Group* group = new Group(numOfVariables);
+    group->addChild(this->root);
+    this->root = group;
 }
 
 void Select::addLimit(int limit) {
     this->limit = limit;
 }
 
+void Select::addHaving(int num) {
+    Filter* filter = new Filter(num);
+    filter->addChild(this->root);
+    this->root = filter;
+}
+
 void Select::addSibling(Select* sibling) {
     siblings.push_back(sibling);
 }
 void Select::addKid(Select* kid) {
+    if(kid == 0) return;
+    printf("NEW KID\n");
     kids.push_back(kid);
 }
 
@@ -543,4 +877,43 @@ int Select::sumOperations(node* root) {
         return root->e1->oper;
     }
     return root->e1->oper + sumOperations(root->left) + sumOperations(root->right);
+}
+
+vector<Table*> Select::getTables(Database* database, map<string, Operation*> tables_operations, Operation* operation) {
+    set<string>S;
+    
+    for(auto it = tables_operations.begin(); it != tables_operations.end(); ++it) {
+        if(it->second == operation) {
+            S.insert(it->first);
+        } 
+    }
+    vector<Table*> tables;
+    for(string table_name : S) {
+        Table* table = database->getTable(table_name.c_str());
+        tables.push_back(table);
+    }
+    return tables;
+}
+
+std::vector<int> Select::numOfFilter(vector<Table*> tables, std::vector<expression_info*> area) {
+    vector<int> result_arr;
+    
+    vector<string> str_tables;
+    for(Table* table : tables) str_tables.push_back(string(table->getTableName()));
+
+    for(expression_info* exp : area) {
+        if(exp->hasOnlyFromTables(str_tables)) {
+            result_arr.push_back(exp->oper);
+        }
+    }
+    return result_arr;
+}
+
+void Select::setNewOperation(Operation* old_operation , Operation* new_operation, std::map<std::string, Operation*> *operations) {
+    for(auto it = operations->begin(); it != operations->end(); ++it) {
+        if(old_operation == (*operations)[it->first]) {
+            (*operations)[it->first] = new_operation;
+        }
+    }
+    return;
 }

@@ -107,6 +107,20 @@ void Table::addRow() {
     this->numOfRows++;
 }
 
+Index* Table::getIndexByCol(vector<char*> columns) {
+    for(Index *index : indexs) {
+        if(columns.size() == index->getColNumber()) {
+            int it = 0;
+            for(char* col : columns) {
+                if(strcmp(col, index->getColName(it)) != 0) break;
+                ++it;
+            }
+            if(it == index->getColNumber()) return index;
+        }
+    }
+    return NULL;
+}
+
 bool Table::isIndex(vector<char*> column) {
     int _hash = 0;
     for(int i = 0, len = column.size(); i < len; ++i) {

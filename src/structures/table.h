@@ -27,6 +27,8 @@ class Table {
         int getNumOfRows();
 
         bool isIndex(vector<char*> column);
+        Index* getIndexByCol(vector<char*> columns);
+        
         bool isColumn(char* name);
 
         void addIndex(Index *index);

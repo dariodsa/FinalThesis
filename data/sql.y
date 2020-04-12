@@ -28,7 +28,7 @@ extern vector<SearchType>* searchTypes;
 
 
 %token SELECT UNION DISTINCT ALL FROM WHERE LIMIT QUOTED_STRING OFFSET ONLY HAVING BY GROUP ORDER JOIN NATURAL LEFT RIGHT INNER FULL OUTER USING CMP BETWEEN NULL_STR IN EXISTS CASE THEN ELSE VALUES INSERT INTO CREATE TABLE UNIQUE PRIMARY FOREIGN KEY CONSTRAINT INDEX ASC DESC NAME NUMBER ENUMBER AS CROSS DATA_TYPE ALTER ADD END WHEN ANY SOME AGG_FUNCTION CHECK UPDATE DELETE SET DEFAULT ON CASCADE REFERENCES IS LIKE
-%token SINGLE_QUOTED_STRING SINGLE_AGG_FUNCTION
+%token SINGLE_QUOTED_STRING SINGLE_AGG_FUNCTION DISTINCT
 
 %left OR
 %left '+' '-' AND
@@ -60,8 +60,12 @@ extern vector<SearchType>* searchTypes;
     node *node;
     Select* select;
 }
+%type <number> having_clause
 
-
+%type <number> order_list
+%type <number> order_by_clause
+%type <number> columns_sep_comma
+%type <number> group_by_clause
 
 %type <column> column_definition
 
@@ -405,6 +409,7 @@ multiple_column_const_b:
                             for(int i = 0; i < $4->size(); ++i) {
                                 $$->addColumn((*$4)[i]);
                             }
+                            $$->setUnique(true);
                        }
                        | check_clause { $$ = 0;}
                        
@@ -467,11 +472,11 @@ select_list:
            }
            | expression NAME
            {
-               $$ = new Select();
+               $$ = 0;
            }
            | expression AS NAME
            {
-               $$ = new Select();
+               $$ = 0;
            }
            | expression ',' select_list
            {
@@ -479,7 +484,7 @@ select_list:
            }
            | expression 
            {
-               $$ = new Select();
+               $$ = 0;
            } 
            | '(' subquery ')' ',' select_list
            {
@@ -514,14 +519,14 @@ select_list:
            }
            | NAME '.' '*' 
            {
-               $$ = new Select();
+               $$ = 0;
            }
            ;
 
 projection_clause:
                   '*'
                   {
-                      $$ = new Select();
+                      $$ = 0;
                   }
                  | select_types  select_list                  
                  {
@@ -808,14 +813,14 @@ comparison_condition:
             {
                 $$ = new expression_info();
                 $$->oper++;
-                $$->variables->push_back(*$1);
+                if($1 != 0) $$->variables->push_back(*$1);
                 $$->equal = 1;
             }
 		    | column_name IS NOT NULL_STR
             {
                 $$ = new expression_info();
                 $$->oper++;
-                $$->variables->push_back(*$1);
+                if($1 != 0) $$->variables->push_back(*$1);
                 $$->equal = 2;
             }
 		    | quoted_string NOT LIKE quoted_string
@@ -832,44 +837,44 @@ comparison_condition:
             {
                 $$ = new expression_info();
                 $$->oper++;
-                $$->variables->push_back(*$1);
+                if($1 != 0) $$->variables->push_back(*$1);
                 $$->equal = 0;
             }
 		    | column_name LIKE quoted_string 
             {
                 $$ = new expression_info();
                 $$->oper++;
-                $$->variables->push_back(*$1);
+                if($1 != 0) $$->variables->push_back(*$1);
                 $$->equal = 0;
             }
 		    | quoted_string NOT LIKE column_name
             {
                 $$ = new expression_info();
                 $$->oper++;
-                $$->variables->push_back(*$4);
+                if($4 != 0) $$->variables->push_back(*$4);
                 $$->equal = 0;
             }
 		    | quoted_string LIKE column_name
             {
                 $$ = new expression_info();
                 $$->oper++;
-                $$->variables->push_back(*$3);
+                if($3 != 0) $$->variables->push_back(*$3);
                 $$->equal = 0;
             }
 		    | column_name NOT LIKE column_name
             {
                 $$ = new expression_info();
                 $$->oper++;
-                $$->variables->push_back(*$1);
-                $$->variables->push_back(*$4);
+                if($1 != 0) $$->variables->push_back(*$1);
+                if($4 != 0) $$->variables->push_back(*$4);
                 $$->equal = 0;
             }
 		    | column_name LIKE column_name
             {
                 $$ = new expression_info();
                 $$->oper++;
-                $$->variables->push_back(*$1);
-                $$->variables->push_back(*$3);
+                if($1 != 0) $$->variables->push_back(*$1);
+                if($3 != 0) $$->variables->push_back(*$3);
                 $$->equal = 0;
             }
             ;
@@ -885,14 +890,14 @@ expression_part_one:
 expression_part_two: 
 	   column_name binary_operator expression
        {
-           $3->variables->push_back(*$1);
+           if($1 != 0) $3->variables->push_back(*$1);
            $3->oper++;
            $$ = $3;
        }
 	  | column_name 
       {
           $$ = new expression_info();
-          $$->variables->push_back(*$1); 
+          if($1 != 0) $$->variables->push_back(*$1); 
       }
 	  | conditional_expression binary_operator expression
       {
@@ -962,26 +967,37 @@ condition_with_subquery:
                        expression NOT IN '(' subquery ')'
                        {
                            $$ = $1;
+                           $$->equal = 0;
+                           select_stack[depth].push_back($5);
                            //TODO add result of subquery to the some tree structure
+
                        }
                        | expression IN '(' subquery ')'
                        {
                            $$ = $1;
+                           $$->equal = 0;
+                           select_stack[depth].push_back($4);
                            //TODO add result of subquery to the some tree structure
                        }
                        | expression relation_operator '(' subquery ')'
                        {
                            $$ = $1;
+                           $$->equal = 0;
+                           select_stack[depth].push_back($4);
                            //TODO add result of subquery to the some tree structure
                        }
                        | expression relation_operator all_any_some '(' subquery ')'
                        {
                            $$ = $1;
+                           $$->equal = 0;
+                           select_stack[depth].push_back($5);
                            //TODO add result of subquery to the some tree structure
                        }
                        | EXISTS '(' subquery ')'
                        {
                            $$ = new expression_info();
+                           $$->equal = 0;
+                           select_stack[depth].push_back($3);
                            //TODO add result of subquery to the some tree structure
 
                        }
@@ -1022,11 +1038,11 @@ column_name:
                     
                     char* table_name = database->getTableNameByVar($1, tables);
                     if(table_name == NULL) {
-                        yyerror("Ne postoji stupac pod nazivom.");
-                        return 1;
+                        $$ = 0;    
+                    } else {
+                        V->setTable(table_name);
+                        $$ = V;
                     }
-                    V->setTable(table_name);
-                    $$ = V;
                }
              }
            ;
@@ -1035,7 +1051,7 @@ relation_operator: CMP {}
 
 having_clause: HAVING condition
         {
-            
+            $$ = $2->e1->oper;
         }
 
 order_type: 
@@ -1044,17 +1060,17 @@ order_type:
 
 order_item: 
            expression order_type
-          | expression 
-          | NAME order_type
-          | NAME
+          | expression  
+          | NAME order_type 
+          | NAME 
           ;
 order_list: 
-           order_list ',' order_item
-          | order_item
+           order_list ',' order_item {$$ = $1 + 1; }
+          | order_item { $$ = 1; }
           ;
 
 order_by_clause:
-                ORDER BY order_list
+                ORDER BY order_list { $$ = $3; }
                ;
 
 list_names_sep_comma: 
@@ -1097,15 +1113,17 @@ values_clause:
 columns_sep_comma: column_name ',' columns_sep_comma
                 {
                     (*sp)->select_variable->push_back(*$1);
+                    $$ = $3 + 1;
                 }
                 | column_name 
                 {
                     (*sp)->select_variable->push_back(*$1);
+                    $$ = 1;
                 }
 
 group_by_clause: GROUP BY columns_sep_comma 
             {
-
+                $$ = $3;
             }
 
 where_clause: WHERE condition 
@@ -1160,14 +1178,15 @@ select_options:
                 {
                     Select* s = new Select(database, $3, (*sp)->tables, (*sp)->select_variable);
                     s->addKid($1);
-                    s->addGroup();
+                    s->addGroup($4);
+                    s->addHaving($5);
                     $$ = s;
                 }
                 | projection_clause from_clause where_clause group_by_clause
                 {
                     Select* s = new Select(database, $3, (*sp)->tables, (*sp)->select_variable);
                     s->addKid($1);
-                    s->addGroup();
+                    s->addGroup($4);
                     $$ = s;
                 }
                 | projection_clause from_clause group_by_clause
@@ -1175,7 +1194,7 @@ select_options:
                     node* root = 0;
                     Select* s = new Select(database, root, (*sp)->tables, (*sp)->select_variable);
                     s->addKid($1);
-                    s->addGroup();
+                    s->addGroup($3);
                     $$ = s;
                 }
                 | projection_clause from_clause group_by_clause having_clause
@@ -1183,7 +1202,8 @@ select_options:
                     node* root = 0;
                     Select* s = new Select(database, root, (*sp)->tables, (*sp)->select_variable);
                     s->addKid($1);
-                    s->addGroup();
+                    s->addGroup($3);
+                    s->addHaving($4);
                     $$ = s;
                 }
                 | projection_clause from_clause where_clause 
@@ -1210,13 +1230,17 @@ select_statement:  //Select* s = new Select(database, $2, (*sp)->tables, (*sp)->
                  select_word select_options
                  {
                      $$ = $2;
+                     for(Select* select : select_stack[depth]) $$->addKid(select);
+                     select_stack[depth].clear();
                      --depth;
                      pop(sp);
                  }
                 | select_word select_options select_options_more order_by_clause limit_offset_clause
                 {
                     $$ = $2;
-                    $$->addSort();
+                    for(Select* select : select_stack[depth]) $$->addKid(select);
+                    select_stack[depth].clear();
+                    $$->addSort($4);
                     $$->addLimit($5);
                     $$->addSibling($3);
                     --depth;
@@ -1225,14 +1249,18 @@ select_statement:  //Select* s = new Select(database, $2, (*sp)->tables, (*sp)->
                 | select_word select_options select_options_more order_by_clause
                 {
                     $$ = $2;
-                    $$->addSort();
+                    for(Select* select : select_stack[depth]) $$->addKid(select);
+                    select_stack[depth].clear();
+                    $$->addSort($4);
                     $$->addSibling($3);
                     --depth;
                     pop(sp);
                 }
                 | select_word select_options order_by_clause limit_offset_clause
                 {
-                    $2->addSort();
+                    for(Select* select : select_stack[depth]) $2->addKid(select);
+                    select_stack[depth].clear();
+                    $2->addSort($3);
                     $2->addLimit($4);
                     $$ = $2;
                     --depth;
@@ -1240,6 +1268,8 @@ select_statement:  //Select* s = new Select(database, $2, (*sp)->tables, (*sp)->
                 }
                 | select_word select_options limit_offset_clause
                 {
+                    for(Select* select : select_stack[depth]) $2->addKid(select);
+                    select_stack[depth].clear();
                     $2->addLimit($3);
                     $$ = $2;
                     --depth;
@@ -1247,7 +1277,9 @@ select_statement:  //Select* s = new Select(database, $2, (*sp)->tables, (*sp)->
                 }
                 | select_word select_options order_by_clause
                 {
-                    $2->addSort();
+                    for(Select* select : select_stack[depth]) $2->addKid(select);
+                    select_stack[depth].clear();
+                    $2->addSort($3);
                     $$ = $2;
                     --depth;
                     pop(sp);
@@ -1260,11 +1292,13 @@ select_word: SELECT {
     push(sp, s1);
     printf("select new %d\n", *(*sp));
     depth++;
+
 }
 
 binary_operator: '+'
                 | '-'
                 | '*'
+                | '/'
                ;
 constant: 
            NUMBER 
@@ -1278,15 +1312,17 @@ aggregate_expression: SINGLE_AGG_FUNCTION expression { $$ = $2; }
                     ;
 
 list_function_exp: 
-                  column_name ',' list_function_exp
+                 '*' { $$ = new expression_info();}
+
+                |  column_name ',' list_function_exp
                 {
                     $$ = $3;
-                    $$->variables->push_back(*$1);
+                    if($1 != 0) $$->variables->push_back(*$1);
                 }
                 | column_name 
                 {
                     $$ = new expression_info();
-                    $$->variables->push_back(*$1);
+                    if($1 != 0) $$->variables->push_back(*$1);
                 }
                 | function_expression ',' list_function_exp
                 {
@@ -1299,9 +1335,17 @@ list_function_exp:
                 {
                     $$ = $1;
                 }
+                | expression { $$ = $1; }
+                
+                
  
 function_expression: 
-                     NAME '(' list_function_exp ')' 
+                      NAME '(' DISTINCT list_function_exp ')' 
+                     {
+                        $$ = $4;
+                        $$->locked = true;
+                     }
+                     | NAME '(' list_function_exp ')' 
                      {
                         $$ = $3;
                         $$->locked = true;
@@ -1322,6 +1366,10 @@ bool SELECT_LIST = false;
 
 select_state* stack[1000];
 select_state** sp;
+
+vector<Select*> select_stack[1000];
+int stack_pointer = 0;
+
 #define push(sp, n) (*(++(sp)) = (n))
 #define pop(sp) (*--(sp))
 

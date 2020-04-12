@@ -25,6 +25,7 @@ GROUP  { return GROUP; }
 ORDER  { return ORDER; }
 CROSS { return CROSS; }
 
+DISTINCT { return DISTINCT; }
 
 AS { return AS; }
 END { return END;}
@@ -69,20 +70,15 @@ OR { return OR; }
 "<>"    { yylval.text =strdup(yytext); return CMP; }
 
 array_agg |
-avg |
 bit_and |
 bit_or  |
 bool_or |
 bool_and |
 date |
-count |
 every |
 json_agg |
 jsonb_agg |
 interval |
-max |
-min |
-sum |
 xmlagg {return SINGLE_AGG_FUNCTION;}
 
 

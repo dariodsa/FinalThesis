@@ -7,9 +7,9 @@
 class Sort : public Operation{
     public:
         Sort();
-        virtual float getStartCost(Database* database);
-        virtual float getRuntimeCost(Database* database);
-        virtual float getNt();
+        virtual double getStartCost(Database* database);
+        virtual double getRuntimeCost(Database* database);
+        virtual double getNt();
         
     private:
     

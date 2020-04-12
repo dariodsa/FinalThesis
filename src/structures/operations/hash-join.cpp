@@ -1,6 +1,7 @@
 #include "hash-join.h"
 
 HashJoin::HashJoin(bool foreign_key) {
+    printf("HASH JOIN %d\n", foreign_key);
     if(foreign_key) {
         this->nt = 0;
     } else {
@@ -8,14 +9,19 @@ HashJoin::HashJoin(bool foreign_key) {
     }
 }
 
-float HashJoin::getStartCost(Database* database) {
+double HashJoin::getStartCost(Database* database) {
     return children[0]->getTotalCost(database) + children[1]->getStartCost(database);
 }
-float HashJoin::getRuntimeCost(Database* database) {
-    return children[1]->getRuntimeCost(database) + children[1]->getNt() * (database->CPU_TUPLE_COST + database->CPU_OPERATOR_COST);
+double HashJoin::getRuntimeCost(Database* database) {
+    int nt1 = children[0]->getNt();
+    int nt2 = children[1]->getNt();
+    int my_nt = getNt();
+    
+    double cost = children[0]->getRuntimeCost(database) + children[1]->getRuntimeCost(database) + children[1]->getNt() * (database->CPU_TUPLE_COST + database->CPU_OPERATOR_COST);
+    return cost;
 }
 
-float HashJoin::getNt() {
+double HashJoin::getNt() {
     if(children.size() != 2) return 0;
     if(nt == -1) {
         return children[0]->getNt() * children[1]->getNt();

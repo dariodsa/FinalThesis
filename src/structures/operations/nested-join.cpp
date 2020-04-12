@@ -1,6 +1,7 @@
 #include "nested-join.h"
 
 NestedJoin::NestedJoin(bool foreign_key) : Operation() {
+    printf("NESTED JOIN %d\n", foreign_key);
     if(foreign_key) {
         this->nt = 0;
     } else {
@@ -9,21 +10,27 @@ NestedJoin::NestedJoin(bool foreign_key) : Operation() {
 
 }
 
-float NestedJoin::getStartCost(Database* database) {
-    float start_cost = children[0]->getStartCost(database) + children[1]->getStartCost(database);
+double NestedJoin::getStartCost(Database* database) {
+    if(children.size() != 2) return 0;
+    
+    double start_cost = children[0]->getStartCost(database) + children[1]->getStartCost(database);
     return start_cost;
 }
 
-float NestedJoin::getRuntimeCost(Database* database) {
+double NestedJoin::getRuntimeCost(Database* database) {
+    if(children.size() != 2) return 0;
     return database->CPU_TUPLE_COST * children[0]->getNt() * children[1]->getNt() 
     + children[0]->getNt() * children[1]->getRuntimeCost(database);
 }
 
-float NestedJoin::getNt() {
+double NestedJoin::getNt() {
+    double nt1 = children[0]->getNt();
+    double nt2 = children[1]->getNt();
+    printf("NESTED JOIN %d %lf %lf = %lf\n", nt, nt1, nt2, nt1*nt2);
     if(children.size() != 2) return 0;
     if(nt == -1) {
-        return children[0]->getNt() * children[1]->getNt();
+        return nt1 * nt2;
     } else {
-        return children[0]->getNt();
+        return nt1;
     }
 }

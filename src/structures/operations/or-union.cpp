@@ -2,18 +2,30 @@
 
 OrUnion::OrUnion() {}
 
-float OrUnion::getStartCost(Database* database) {
-    return 0;
+double OrUnion::getStartCost(Database* database) {
+    double sum = 0;
+    for(Operation* child : children) {
+        sum += child->getStartCost(database);
+    }
+    return sum;
 }
 
-float OrUnion::getRuntimeCost(Database* database) {
-    return 0;
+double OrUnion::getRuntimeCost(Database* database) {
+    double sum = 0;
+    double nt = getNt();
+    for(Operation* child : children) {
+        sum += child->getRuntimeCost(database);
+    }
+    sum += nt * (database->CPU_TUPLE_COST + database->CPU_OPERATOR_COST * 2);
+    return sum;
 }
 
-float OrUnion::getNt() {
-    float nt = 0;
+double OrUnion::getNt() {
+    if(children.size() == 0) return 0;
+    double nt = 0;
+    int numOfChildren = children.size();
     for(Operation* child : children) {
         nt += child->getNt();
     }
-    return nt * 0.92;
+    return nt * ( 1.0 - (numOfChildren - 1) * 0.06);
 }

@@ -6,8 +6,11 @@ Operation::Operation(Table *table) {
     this->table = table;
 }
 
-void Operation::addChild(Operation* chlid) {
-    this->children.push_back(chlid);
+void Operation::addChild(Operation* child) {
+    if(child == 0) {
+        child->getNt();
+    }
+    this->children.push_back(child);    
 }
 
 void Operation::print() {

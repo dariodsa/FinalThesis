@@ -11,13 +11,16 @@ class Operation{
         void addChild(Operation* child);
         
         float getTotalCost(Database* database) {
-            return getStartCost(database) + getRuntimeCost(database);
+            float startCost = getStartCost(database);
+            float runTimeCost = getRuntimeCost(database);
+            printf("Start %f Runtime %f\n", startCost, runTimeCost);
+            return startCost + runTimeCost;
         }
 
         void print();
-        virtual float getStartCost(Database* database) = 0;
-        virtual float getRuntimeCost(Database* database) = 0;
-        virtual float getNt() = 0;
+        virtual double getStartCost(Database* database) = 0;
+        virtual double getRuntimeCost(Database* database) = 0;
+        virtual double getNt() = 0;
 
         std::vector<Operation*> children;
         Table *table;
@@ -29,13 +32,13 @@ class Operation{
 class Dummy : public Operation{
     public:
     Dummy() : Operation() {}
-    float getNt() {
+    double getNt() {
+        return 1;
+    }
+    double getStartCost(Database* database) {
         return 0;
     }
-    float getStartCost(Database* database) {
-        return 0;
-    }
-    float getRuntimeCost(Database* database) {
+    double getRuntimeCost(Database* database) {
         return 0;
     }
 };

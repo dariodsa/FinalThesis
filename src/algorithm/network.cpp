@@ -3,43 +3,69 @@
 #include "../structures/table.h"
 #include "../structures/index.h"
 #include "../structures/database.h"
+
+#include "../structures/result.h"
+
+#include "../structures/operations/filter.h"
+#include "../structures/operations/group.h"
+#include "../structures/operations/hash-join.h"
+#include "../structures/operations/indexcon.h"
+#include "../structures/operations/indexscan.h"
+#include "../structures/operations/merge-join.h"
+#include "../structures/operations/nested-join.h"
+#include "../structures/operations/operation.h"
+#include "../structures/operations/or-union.h"
+#include "../structures/operations/seqscan.h"
+#include "../structures/operations/sort.h"
+
 using namespace std;
 
-Network::Network(Database* database, Table* table, std::vector<Index*> indexes, vector<expression_info*> expression_infos, vector<string> indexed_tables) {
-    for(expression_info *exp : expression_infos) {
+Network::Network(Database* database, Table* table, std::vector<Index*> indexes, vector<expression_info*> area, std::map<std::string, Operation*>* tables_operations) {
+    
+    for(expression_info *exp : area) {
         int cnt = 0;
         for(variable var : *exp->variables) {
             if(strcmp(var.table, table->getTableName()) == 0) ++cnt;
         }
         if(cnt > 1) {
-            this->seq_scan.insert(*table);
+            //SEQ SCAN na toj tablici
+            Operation* scan = new SeqScan(table);
+            vector<Table*> table_list; table_list.push_back(table);
+
+            vector<int> filter_list = Select::numOfFilter(table_list, area);
+
+            for(int i = 0, len = filter_list.size(); i < len; ++i) {
+                Filter* filter = new Filter(filter_list[i]);
+                filter->addChild(scan);
+                scan = filter;
+            }
             return;
         }
     }
 
     this->indexes = indexes;
-    this->indexed_tables = indexed_tables;
+    
     this->database = database;
     this->table = table;
 
 
     vector<Index*> unique_indexes;
     vector<Index*> other_indexes;
+
     for(Index* index : indexes) {
         if(index->getUnique()) unique_indexes.push_back(index);
         else other_indexes.push_back(index);
     }
     bool done = false;
-    
+    printf("unique %d rest %d\n", unique_indexes.size(), other_indexes.size());
     for(Index* index : unique_indexes) {
-        done = useIndex(index, expression_infos);
+        done = useIndex(index, area, tables_operations);
         if(done) break;
     }
 
     if(!done)
     for(Index* index : other_indexes) {
-        done = useIndex(index, expression_infos);
-        if(done) break;
+        useIndex(index, area, tables_operations);
     }
 
     vector<string> t;
@@ -54,17 +80,26 @@ Network::Network(Database* database, Table* table, std::vector<Index*> indexes, 
     }
 }
 
-bool Network::useIndex(Index* index, vector<expression_info*> expression_infos) {
+bool Network::useIndex(Index* index, vector<expression_info*> expression_infos, map<string, Operation*> *tables_operations) {
     
     int cnt = 0;
     int isScan = 0;
-
+    
     for(int col_id = 0, len = index->getColNumber(); col_id < len; ++col_id ) {
         bool found = false;
         
         for(expression_info* exp_info : expression_infos) {
             
-            if(exp_info->hasFromTables(indexed_tables)) continue;
+            bool not_selected_tables = true;
+            for(variable var : *(exp_info->variables)) {
+                string t1 = string(var.table);
+                
+                if((*tables_operations)[t1] != 0) {
+                    not_selected_tables = false;
+                    break;
+                }
+            }
+            if(!not_selected_tables) continue;
             
             if(exp_info->hasVariable(table->getTableName(), index->getColName(col_id))) {
             

@@ -10,6 +10,9 @@
 class Index;
 class Table;
 class Database;
+class TopoSort;
+class Operation;
+
 
 struct variable;
 struct expression_info;
@@ -19,7 +22,7 @@ struct table_name;
 
 class Network {
     public:
-        Network(Database* database, Table* table, std::vector<Index*> indexes, std::vector<expression_info*> expression_infos, std::vector<std::string> indexed_tables);
+        Network(Database* database, Table* table, std::vector<Index*> indexes, std::vector<expression_info*> expression_infos, std::map<std::string, Operation*>* tables_operations);
 
         std::set<Table> getSeqScan();
         std::vector<std::pair<Index*, std::pair<int, int> > > getUsedIndexes();
@@ -29,17 +32,17 @@ class Network {
         std::set<Table> seq_scan;
 
         std::vector<Index*> indexes;
-        std::vector<std::string> indexed_tables;
+        
         std::vector<expression_info*> expression_infos;
 
         std::map<expression_info*, bool> used_expression;
 
         Table* table;
         Database* database;
-
+        
         bool retr_data;
 
-        bool useIndex(Index* index, std::vector<expression_info*> expression_infos);
+        bool useIndex(Index* index, std::vector<expression_info*> expression_infos, std::map<std::string, Operation*> *tables_operations);
 
 };
 

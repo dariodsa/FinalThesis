@@ -137,10 +137,14 @@ void Database::addTable(Table *t) {
     this->tables[table_name] = t;
 }
 
-bool Database::isForeignKey(char* table1, vector<char*> columns_1,char* table2, vector<char*> columns_2) {
-    ForeignKey *possible_key = new ForeignKey(table1, columns_1, table2, columns_2);
-    for(ForeignKey* key : foreign_keys) {
-        if(key->getHash() == possible_key->getHash() && key->equalTo(possible_key)) return true;
+bool Database::isForeignKey(const char* table1, vector<char*> columns_1, const char* table2, vector<char*> columns_2) {
+    printf("isFKey %d %d %s %s\n", columns_1.size(), columns_2.size(), table1, table2);
+
+    for(int i = 0, len = foreign_keys.size(); i < len; ++i) {
+        ForeignKey* key = foreign_keys[i];
+        if(strcmp(key->getTable1(), table1) == 0 
+        && strcmp(key->getTable2(), table2) == 0
+        && key->contains(columns_1, columns_2)) return true;
     }
     return false;
 }

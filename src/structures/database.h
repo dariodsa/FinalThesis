@@ -169,7 +169,7 @@ class Database {
                                   , vector<Table*> retr_data);
         void addForeignKey(ForeignKey* key);
 
-        bool isForeignKey(char* table1, std::vector<char*> columns_table1,char* table2, std::vector<char*> columns_table2);        
+        bool isForeignKey(const char* table1, std::vector<char*> columns_table1, const char* table2, std::vector<char*> columns_table2);        
 
         std::vector<ForeignKey*> getForeignKeys();
 

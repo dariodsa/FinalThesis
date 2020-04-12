@@ -24,27 +24,20 @@ class ForeignKey{
 
     char* getTable1();
     char* getTable2();
-    std::vector<char*> getColumns1();
-    std::vector<char*> getColumns2();
+
     bool isIndex() { return false; }
 
-    int getHash();
-    bool equalTo(ForeignKey* key);
+    bool contains(std::vector<char*> col1, std::vector<char*> col2);
 
     web::json::value getJSON();
 
     private:
 
-    void calculateHash1();
-    void calculateHash2();
-    void calculateHash3();
-    void calculateHash4();
-
     char table1[MAX_LEN];
     char table2[MAX_LEN];
-    std::vector<char*> columns_table1;
-    std::vector<char*> columns_table2;
-
+    std::vector<std::string>columns_table1;
+    std::vector<std::string>columns_table2;
+    
     int hash;
 
     int h1, h2, h3, h4;

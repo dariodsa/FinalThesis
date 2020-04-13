@@ -1,6 +1,8 @@
 #include "filter.h"
 
-Filter::Filter(int numOfOperations) {
+Filter::Filter(bool isEqual, int numOfOperations) {
+    printf("FILTER %d %d\n", isEqual, numOfOperations);
+    this->isEqual = isEqual;
     this->numOfOperations = numOfOperations;
 }
 
@@ -20,7 +22,8 @@ double Filter::getRuntimeCost(Database* database) {
 
 double Filter::getNt() {
     double nt = children[0]->getNt();
-    nt /= 6;
+    if(isEqual) nt *= 0.01;
+    else nt *= 0.25;
     
     return nt;
 }

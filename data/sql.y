@@ -1019,6 +1019,7 @@ column_name:
                 } else {
                     vector<table_name*>* tables = (*sp)->tables;
                     for(table_name* t1 : *tables) {
+                        printf("%s <==> %s %s <==> %s\n", $1, t1->name, $1, t1->real_name);
                         if(strcmp($1, t1->name) == 0 || strcmp($1, t1->real_name) == 0) {
                             V->setTable(t1->real_name);
                         }
@@ -1038,7 +1039,8 @@ column_name:
                     
                     char* table_name = database->getTableNameByVar($1, tables);
                     if(table_name == NULL) {
-                        $$ = 0;    
+                        $$ = 0;
+                        corr_stack[depth] = true;    
                     } else {
                         V->setTable(table_name);
                         $$ = V;
@@ -1160,7 +1162,13 @@ from_clauses_list:
                 }
                  ;
 
-from_clause: FROM from_clauses_list 
+from_word: FROM {printf("FROM WORD\n");}
+
+from_clause:
+             from_word '(' select_statement ')' {
+                select_stack[depth].push_back($3);
+            }
+            | from_word from_clauses_list 
             {
                 //tables.push(vector<table_name>());
                 for(int i = 0; i < $2->size(); ++i) {
@@ -1172,12 +1180,17 @@ from_clause: FROM from_clauses_list
                    printf("Variable: %s %s\n", v.name, v.table);
                 }
             }
+            
 
 select_options: 
                 projection_clause from_clause where_clause group_by_clause having_clause
                 {
                     Select* s = new Select(database, $3, (*sp)->tables, (*sp)->select_variable);
-                    s->addKid($1);
+                    if($1 != 0 && $1->getCorrelated()) {
+                        s->addKid($1);
+                    } else {
+                        s->addSibling($1);
+                    }
                     s->addGroup($4);
                     s->addHaving($5);
                     $$ = s;
@@ -1230,57 +1243,87 @@ select_statement:  //Select* s = new Select(database, $2, (*sp)->tables, (*sp)->
                  select_word select_options
                  {
                      $$ = $2;
-                     for(Select* select : select_stack[depth]) $$->addKid(select);
+                     for(Select* select : select_stack[depth]) {
+                        if(select != 0 && select->getCorrelated()) {
+                            $$->addKid(select);
+                        } else $$->addSibling(select);
+                    }
                      select_stack[depth].clear();
+                     if(corr_stack[depth])$$->setCorrelated();
                      --depth;
                      pop(sp);
                  }
                 | select_word select_options select_options_more order_by_clause limit_offset_clause
                 {
                     $$ = $2;
-                    for(Select* select : select_stack[depth]) $$->addKid(select);
+                    for(Select* select : select_stack[depth]) {
+                        if(select != 0 && select->getCorrelated()) {
+                            $$->addKid(select);
+                        } else $$->addSibling(select);
+                    }
                     select_stack[depth].clear();
                     $$->addSort($4);
                     $$->addLimit($5);
                     $$->addSibling($3);
+                    if(corr_stack[depth])$$->setCorrelated();
                     --depth;
                     pop(sp);
                 }
                 | select_word select_options select_options_more order_by_clause
                 {
                     $$ = $2;
-                    for(Select* select : select_stack[depth]) $$->addKid(select);
+                    for(Select* select : select_stack[depth]) {
+                        if(select != 0 && select->getCorrelated()) {
+                            $$->addKid(select);
+                        } else $$->addSibling(select);
+                    }
                     select_stack[depth].clear();
                     $$->addSort($4);
                     $$->addSibling($3);
+                    if(corr_stack[depth])$$->setCorrelated();
                     --depth;
                     pop(sp);
                 }
                 | select_word select_options order_by_clause limit_offset_clause
                 {
-                    for(Select* select : select_stack[depth]) $2->addKid(select);
+                    for(Select* select : select_stack[depth]) {
+                        if(select != 0 && select->getCorrelated()) {
+                            $2->addKid(select);
+                        } else $2->addSibling(select);
+                    }
                     select_stack[depth].clear();
                     $2->addSort($3);
                     $2->addLimit($4);
                     $$ = $2;
+                    if(corr_stack[depth])$$->setCorrelated();
                     --depth;
                     pop(sp);
                 }
                 | select_word select_options limit_offset_clause
                 {
-                    for(Select* select : select_stack[depth]) $2->addKid(select);
+                    for(Select* select : select_stack[depth]) {
+                        if(select != 0 && select->getCorrelated()) {
+                            $2->addKid(select);
+                        } else $2->addSibling(select);
+                    }
                     select_stack[depth].clear();
                     $2->addLimit($3);
                     $$ = $2;
+                    if(corr_stack[depth])$$->setCorrelated();
                     --depth;
                     pop(sp);
                 }
                 | select_word select_options order_by_clause
                 {
-                    for(Select* select : select_stack[depth]) $2->addKid(select);
+                    for(Select* select : select_stack[depth]) {
+                        if(select != 0 && select->getCorrelated()) {
+                            $2->addKid(select);
+                        } else $2->addSibling(select);
+                    }
                     select_stack[depth].clear();
                     $2->addSort($3);
                     $$ = $2;
+                    if(corr_stack[depth])$$->setCorrelated();
                     --depth;
                     pop(sp);
                 }
@@ -1292,6 +1335,7 @@ select_word: SELECT {
     push(sp, s1);
     printf("select new %d\n", *(*sp));
     depth++;
+    corr_stack[depth] = false;
 
 }
 
@@ -1340,7 +1384,8 @@ list_function_exp:
                 
  
 function_expression: 
-                      NAME '(' DISTINCT list_function_exp ')' 
+                    NAME '(' NAME FROM NAME ')' {}
+                    |  NAME '(' DISTINCT list_function_exp ')' 
                      {
                         $$ = $4;
                         $$->locked = true;
@@ -1368,6 +1413,9 @@ select_state* stack[1000];
 select_state** sp;
 
 vector<Select*> select_stack[1000];
+
+bool corr_stack[1000];
+
 int stack_pointer = 0;
 
 #define push(sp, n) (*(++(sp)) = (n))
@@ -1390,8 +1438,8 @@ Select* parse(const char* query, Database* _database, vector<SearchType>* _searc
 
     int res = yyparse();
     yy_delete_buffer(buffer);
-    
-    return select_result;
+    if(res == 0)  return select_result;
+    return 0;
 }
 
 void yyerror(const char *s) {

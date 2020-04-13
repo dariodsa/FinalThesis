@@ -89,11 +89,12 @@ bool Result::hasColumn(char* col_name) {
 double Select::getCost(Database* database) {
     double cost = this->root->getTotalCost(database);
     for(Select* sibling : siblings) {
-        cost += sibling->getCost(database);
+        if(sibling != 0 ) cost += sibling->getCost(database);
     }
     printf("init cost %lf\n", cost);
     double nt = this->root->getNt();
     for(Select* kid : kids) {
+        if(kid == 0) continue;
         double select_cost = kid->getCost(database);
         printf("cost in subquery %lf * %lf\n", select_cost,nt);
         printf("precost %lf\n", cost);
@@ -137,9 +138,7 @@ Select::Select(Database* database, node* root, vector<table_name*>* tables, vect
     printf("ROOT %d\n", root);
     root = this->de_morgan(root);
     printf("Table num: %d\n", tables->size());
-    for(table_name* t : *tables) {
-        printf("Table: %s %s\n", t->name, t->real_name);
-    }
+    
     //asign tables to the variables
     for(int i = 0, size = variables->size(); i < size; ++i) {
 
@@ -177,19 +176,35 @@ Select::Select(Database* database, node* root, vector<table_name*>* tables, vect
         }
         Operation* op =(Operation*) new NestedJoin();
         op->addChild(seqscans[0]);
-        if(seqscans.size() > 1) op->addChild(seqscans[1]);
-        else op->addChild(new Dummy());
+        op->addChild(new Dummy());
 
-        for(int i = 2, len = seqscans.size(); i < len; ++i) {
+        vector<Table*> tables_in_join;
+        tables_in_join.push_back(seqscans[0]->getTable());
+        
+        vector<expression_info*> area;
+
+        auto list = getAreas(root);
+        for(auto sublist : list) {
+            area.insert(area.end(), sublist.begin(), sublist.end());
+        }
+
+        for(int i = 1, len = seqscans.size(); i < len; ++i) {
             Operation *join = new NestedJoin();
             join->addChild(op);
             join->addChild(seqscans[i]);
-            op = join;
+
+            vector<pair<bool, int> > filter_list = numOfFilter(tables_in_join, area);
+            Operation *node = join;
+            for(int i = 0, len = filter_list.size(); i < len; ++i) {
+                Filter* filter = new Filter(filter_list[i].first, filter_list[i].second);
+                filter->addChild(node);
+                node = filter;
+            }
+
+            op = node;
         }
-        
-        Filter* filter = new Filter(numOfOperations);
-        filter->addChild(op);
-        this->root = filter;
+
+        this->root = op;
 
     } else {
         
@@ -243,7 +258,7 @@ Select::Select(Database* database, node* root, vector<table_name*>* tables, vect
                 
                 SeqScan* scan = new SeqScan(table);
                 if(totalNumOfOperations > 0) { //nema potrebe za filterom
-                    Filter* filter = new Filter(totalNumOfOperations);
+                    Filter* filter = new Filter(true, totalNumOfOperations);
                     filter->addChild(scan);
                     this->root = filter;
                 } else {
@@ -259,7 +274,7 @@ Select::Select(Database* database, node* root, vector<table_name*>* tables, vect
                     int numOfOp   = par.second.first;
                     bool retr_data = par.second.second;
                     if(retr_data) {
-                        Filter* filter = new Filter(numOfOp);
+                        Filter* filter = new Filter(true, numOfOp);
                         filter->addChild(operation);
                         orUnion->addChild(filter);
                     } else {
@@ -287,10 +302,10 @@ Select::Select(Database* database, node* root, vector<table_name*>* tables, vect
                     cout << "SEQ SCAN " << _table.getTableName() << endl;
                     Operation* scan = new SeqScan(&_table);
                     vector<Table*> table_list; table_list.push_back(&_table);
-                    vector<int> filter_list = numOfFilter(table_list, area);
+                    vector<pair< bool, int>> filter_list = numOfFilter(table_list, area);
 
                     for(int i = 0, len = filter_list.size(); i < len; ++i) {
-                        Filter* filter = new Filter(filter_list[i]);
+                        Filter* filter = new Filter(filter_list[i].first, filter_list[i].second);
                         filter->addChild(scan);
                         scan = filter;
                     }
@@ -403,10 +418,10 @@ Select::Select(Database* database, node* root, vector<table_name*>* tables, vect
                                 Table* table = database->getTable((char*) table1.c_str());
                                 SeqScan* seqScan = new SeqScan(table);
                                 
-                                vector<int> filter_list = numOfFilter(Select::getTables(database, tables_operations, tables_operations[table1]), area);
+                                vector<pair<bool, int>> filter_list = numOfFilter(Select::getTables(database, tables_operations, tables_operations[table1]), area);
                                 Operation *node = seqScan;
                                 for(int i = 0, len = filter_list.size(); i < len; ++i) {
-                                    Filter* filter = new Filter(filter_list[i]);
+                                    Filter* filter = new Filter(filter_list[i].first, filter_list[i].second);
                                     filter->addChild(node);
                                     node = filter;
                                 }
@@ -421,10 +436,10 @@ Select::Select(Database* database, node* root, vector<table_name*>* tables, vect
                                 
                                 IndexScan* indexScan = new IndexScan(table, index, 1, 0);
                                 vector<Table*> table_list; table_list.push_back(table);
-                                vector<int> filter_list = numOfFilter(table_list, area);
+                                vector<pair<bool, int> > filter_list = numOfFilter(table_list, area);
                                 Operation *node = indexScan;
                                 for(int i = 0, len = filter_list.size(); i < len; ++i) {
-                                    Filter* filter = new Filter(filter_list[i]);
+                                    Filter* filter = new Filter(filter_list[i].first, filter_list[i].second);
                                     filter->addChild(node);
                                     node = filter;
                                 }
@@ -457,10 +472,10 @@ Select::Select(Database* database, node* root, vector<table_name*>* tables, vect
                     string table_name = string(t.getTableName());
                     vector<Table*> table_list; table_list.push_back(&t);
                     
-                    vector<int> filter_list = numOfFilter(table_list, area);
+                    vector<pair<bool ,int> > filter_list = numOfFilter(table_list, area);
                     Operation *node = scan;
                     for(int i = 0, len = filter_list.size(); i < len; ++i) {
-                        Filter* filter = new Filter(filter_list[i]);
+                        Filter* filter = new Filter(filter_list[i].first, filter_list[i].second);
                         filter->addChild(node);
                         node = filter;
                     }
@@ -494,10 +509,10 @@ Select::Select(Database* database, node* root, vector<table_name*>* tables, vect
                     Table* table = database->getTable((char*) str_table_name.c_str());
                     SeqScan* seqScan = new SeqScan(table);
                     
-                    vector<int> filter_list = numOfFilter(Select::getTables(database, tables_operations, tables_operations[str_table_name]), area);
+                    vector<pair<bool, int> > filter_list = numOfFilter(Select::getTables(database, tables_operations, tables_operations[str_table_name]), area);
                     Operation *node = seqScan;
                     for(int i = 0, len = filter_list.size(); i < len; ++i) {
-                        Filter* filter = new Filter(filter_list[i]);
+                        Filter* filter = new Filter(filter_list[i].first, filter_list[i].second);
                         filter->addChild(node);
                         node = filter;
                     }
@@ -522,10 +537,10 @@ Select::Select(Database* database, node* root, vector<table_name*>* tables, vect
                         
                         vector<Table*> tables_in_join = Select::getTables(database, tables_operations, join);
 
-                        vector<int> filter_list = numOfFilter(tables_in_join, area);
+                        vector<pair<bool, int> > filter_list = numOfFilter(tables_in_join, area);
                         Operation *node = join;
                         for(int i = 0, len = filter_list.size(); i < len; ++i) {
-                            Filter* filter = new Filter(filter_list[i]);
+                            Filter* filter = new Filter(filter_list[i].first, filter_list[i].second);
                             filter->addChild(node);
                             node = filter;
                         }
@@ -672,6 +687,7 @@ Select::Select(Database* database, node* root, vector<table_name*>* tables, vect
 
 vector<vector<expression_info*> > Select::getAreas(node *root) {
     vector<vector<expression_info*>> res;
+    if(root == 0) return res;
     if(root->terminal) {
         vector<expression_info*> v1;
         v1.push_back(root->e1);
@@ -827,12 +843,13 @@ void Select::addLimit(int limit) {
 }
 
 void Select::addHaving(int num) {
-    Filter* filter = new Filter(num);
+    Filter* filter = new Filter(true, num);
     filter->addChild(this->root);
     this->root = filter;
 }
 
 void Select::addSibling(Select* sibling) {
+    printf("          NEW SIBLING\n");
     siblings.push_back(sibling);
 }
 void Select::addKid(Select* kid) {
@@ -876,6 +893,7 @@ int Select::sumOperations(node* root) {
     if(root->terminal) {
         return root->e1->oper;
     }
+    if(root->e1 == 0) return 0;
     return root->e1->oper + sumOperations(root->left) + sumOperations(root->right);
 }
 
@@ -895,15 +913,15 @@ vector<Table*> Select::getTables(Database* database, map<string, Operation*> tab
     return tables;
 }
 
-std::vector<int> Select::numOfFilter(vector<Table*> tables, std::vector<expression_info*> area) {
-    vector<int> result_arr;
+std::vector<pair<bool, int> > Select::numOfFilter(vector<Table*> tables, std::vector<expression_info*> area) {
+    vector<pair<bool, int>> result_arr;
     
     vector<string> str_tables;
     for(Table* table : tables) str_tables.push_back(string(table->getTableName()));
 
     for(expression_info* exp : area) {
         if(exp->hasOnlyFromTables(str_tables)) {
-            result_arr.push_back(exp->oper);
+            result_arr.push_back(make_pair(exp->equal == 1, exp->oper));
         }
     }
     return result_arr;
@@ -916,4 +934,12 @@ void Select::setNewOperation(Operation* old_operation , Operation* new_operation
         }
     }
     return;
+}
+
+void Select::setCorrelated() {
+    this->correlated = true;
+}
+
+bool Select::getCorrelated() {
+    return this->correlated;
 }

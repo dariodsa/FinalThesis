@@ -32,10 +32,10 @@ Network::Network(Database* database, Table* table, std::vector<Index*> indexes, 
             Operation* scan = new SeqScan(table);
             vector<Table*> table_list; table_list.push_back(table);
 
-            vector<int> filter_list = Select::numOfFilter(table_list, area);
+            vector<pair<bool, int> > filter_list = Select::numOfFilter(table_list, area);
 
             for(int i = 0, len = filter_list.size(); i < len; ++i) {
-                Filter* filter = new Filter(filter_list[i]);
+                Filter* filter = new Filter(filter_list[i].first, filter_list[i].second);
                 filter->addChild(scan);
                 scan = filter;
             }

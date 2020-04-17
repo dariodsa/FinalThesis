@@ -1,7 +1,6 @@
 #include "filter.h"
 
 Filter::Filter(bool isEqual, int numOfOperations) {
-    printf("FILTER %d %d\n", isEqual, numOfOperations);
     this->isEqual = isEqual;
     this->numOfOperations = numOfOperations;
 }

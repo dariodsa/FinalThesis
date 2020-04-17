@@ -1,7 +1,7 @@
 #include "seqscan.h"
 
 SeqScan::SeqScan(Table *table) : Operation(table) {
-    printf("SEQ SCAN %s\n", table->getTableName());
+    //printf("SEQ SCAN %s\n", table->getTableName());
 }
 
 Table* SeqScan::getTable() {

@@ -52,7 +52,7 @@ class Index {
         TYPE_COL getColType(int index);
         float getCost(Database* database, int len, bool isScan);
         web::json::value getJSON();
-
+    
     private:
        vector<char*>col_names;
        vector<TYPE_COL>types;

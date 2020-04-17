@@ -1,7 +1,7 @@
 #include "hash-join.h"
 
 HashJoin::HashJoin(bool foreign_key) {
-    printf("HASH JOIN %d\n", foreign_key);
+    
     if(foreign_key) {
         this->nt = 0;
     } else {

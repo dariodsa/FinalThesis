@@ -5,16 +5,18 @@
 #include <vector>
 #include <set>
 #include <tuple>
+#include "index.h"
 
 class Database;
-class Index;
+
 class Operation;
+class Column;
 
 extern char AND_STR[4];
 extern char NOT_STR[4];
 extern char OR_STR[4];
 
-struct index_pointer_cmp{
+struct index_pointer_cmp {
     bool operator()(const Index* A, const Index* B) const {
         return A->getHash() < B->getHash();
     }
@@ -54,6 +56,14 @@ class Select{
 
         double getFinalCost(Database *database);
         
+        void setQuery(char* query);
+        void setType(int type);
+        int getType();
+        void startProcess();
+        long long getTimeStartProcess();
+        std::pair<long, long> getProcessResult();
+        char *getQuery();
+
         static bool compare_index_pointer(pair<Index*, pair<int, int> > a, pair<Index*, pair<int, int> > b);
         static resursi mergeResource(resursi A, resursi B);
 
@@ -81,6 +91,11 @@ class Select{
 
         node* de_morgan(node* root);
 
+        char query[2000];
+        long long timeToWait;
+        long long timeToProcess;
+        int type;
+        long long startProcessing;
 
         resursi getResource();
 

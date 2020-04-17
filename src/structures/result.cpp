@@ -15,6 +15,7 @@
 
 #include "database.h"
 #include "index.h"
+#include "column.h"
 #include "result.h"
 
 #include "../db/program.h"
@@ -135,9 +136,9 @@ Select::Select(Database* database, node* root, vector<table_name*>* tables, vect
     Program* program = Program::getInstance();
     this->database = database;
     //remove not nodes
-    printf("ROOT %d\n", root);
+    
     root = this->de_morgan(root);
-    printf("Table num: %d\n", tables->size());
+    
     
     //asign tables to the variables
     for(int i = 0, size = variables->size(); i < size; ++i) {
@@ -160,7 +161,6 @@ Select::Select(Database* database, node* root, vector<table_name*>* tables, vect
     dfs(root);
     table_count = tables_set.size();
 
-    printf("Tc: %d or_node: %d\n", table_count, or_node);
 
     
 
@@ -299,7 +299,7 @@ Select::Select(Database* database, node* root, vector<table_name*>* tables, vect
 
                 auto i1 = tables_set.find(_table);
                 if(i1 == tables_set.end()) { //tablica nije referirana u uvjetima
-                    cout << "SEQ SCAN " << _table.getTableName() << endl;
+                    
                     Operation* scan = new SeqScan(&_table);
                     vector<Table*> table_list; table_list.push_back(&_table);
                     vector<pair< bool, int>> filter_list = numOfFilter(table_list, area);
@@ -381,7 +381,7 @@ Select::Select(Database* database, node* root, vector<table_name*>* tables, vect
                     string table1 = string((*(exp->variables))[0].table);
                     string table2 = string((*(exp->variables))[1].table);
                     if(table1.compare(table2) != 0) { // imamo situaciju a.x = b.y
-                        cout << "Kandidate foreign key " << table1 << "__" << table2 << endl;
+                        
                         tables_candidates_foreign.insert(table1);
                         tables_candidates_foreign.insert(table2);
                     }
@@ -462,11 +462,11 @@ Select::Select(Database* database, node* root, vector<table_name*>* tables, vect
             for(Table _table : tables_set) {
                 string str_table_name = string(_table.getTableName());
                 if(tables_operations[str_table_name] != 0) continue;
-                cout << "Pokušavam naci index za " << str_table_name << endl;
+                
                 Table* table = database->getTable(_table.getTableName());
                 
                 Network* network = new Network(database, table, table->getIndex(), area, &tables_operations);
-                printf("Index %d SeqScan %d\n", network->getUsedIndexes().size(), network->getSeqScan().size());
+                
                 for(Table t : network->getSeqScan()) {
                     SeqScan* scan = new SeqScan(&t);
                     string table_name = string(t.getTableName());
@@ -756,7 +756,7 @@ void Select::dfs(node *root) {
 
         vector<variable> variables = *root->e1->variables;
         for(auto v : variables) {
-            printf("Table: %s\n", v.table);
+            //printf("Table: %s\n", v.table);
             Table table = *database->getTable(v.table);
             tables_set.insert(table);
         }
@@ -942,4 +942,30 @@ void Select::setCorrelated() {
 
 bool Select::getCorrelated() {
     return this->correlated;
+}
+
+void Select::setQuery(char* query) {
+    strcpy(this->query, query);
+}
+pair<long, long> Select::getProcessResult() {
+    return make_pair(this->timeToWait, this->timeToProcess);
+}
+
+void Select::setType(int type) {
+    this->type = type;
+}
+
+int Select::getType() {
+    return this->type;
+}
+
+void Select::startProcess() {
+    this->startProcessing = std::chrono::system_clock::now().time_since_epoch() / std::chrono::milliseconds(1);
+}
+long long Select::getTimeStartProcess() {
+    return this->startProcessing;
+}
+
+char* Select::getQuery() {
+    return this->query;
 }

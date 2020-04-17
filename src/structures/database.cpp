@@ -3,15 +3,21 @@
 #include <iostream>
 #include <libpq-fe.h>
 #include <sys/time.h>
+#include <tuple>
 #include <string>
+#include <unistd.h>
 #include <chrono>
+#include <pthread.h>
 
+#include "result.h"
 #include "database.h"
 #include "cache.h"
 #include "table.h"
 #include "foreign-key.h"
 
 using namespace web;
+
+pthread_t Database::threads[100];
 
 Database::Database() {
 }
@@ -44,7 +50,7 @@ Database::Database(const char *ipAddress, const char* dbName, int port, const ch
 
 }
 
-Database::Database(web::json::value _json) : Database(
+Database::Database(web::json::value _json, int id) : Database(
                                             _json["ipAddress"].as_string().c_str()
                                           , _json["dbName"].as_string().c_str()
                                           , _json["port"].as_integer()
@@ -71,6 +77,31 @@ Database::Database(web::json::value _json) : Database(
         
     } catch (const std::exception& e) {
         std::wcout << e.what() << endl;
+    }
+
+    this->id = id;
+    if (pthread_mutex_init(&(this->mutex), NULL) != 0) { 
+        printf("\n mutex init has failed\n"); 
+        return;
+    } 
+    printf("Mutex_init::%d\n", &mutex);
+    pthread_create(&Database::threads[id], NULL, &(Database::threadFun), (void*)this);
+}
+
+void *Database::threadFun(void *arg) {
+    Database* database = (Database*)arg;
+    while(true) {
+        usleep(10);
+        pthread_mutex_lock(&(database->mutex));
+        if(database->Q.size() == 0) {
+            pthread_mutex_unlock(&(database->mutex));
+            continue;
+        }
+        auto top = (database->Q).front();
+        pthread_mutex_unlock(&(database->mutex));
+        get<0>(top)->startProcess();
+        PGresult *res = database->executeQuery(get<0>(top)->getQuery());
+        database->removeQueryFromQueue();
     }
 }
 
@@ -166,6 +197,7 @@ Table* Database::getTable(const char* name) {
     transform(table_name.begin(), table_name.end(), table_name.begin(), ::tolower);
 
     if(this->tables.find(table_name) == this->tables.end()) {
+        cout << "Table: " << table_name << endl;
         throw std::invalid_argument("Table doesn't exsist.\n");
     }
     return this->tables[table_name];
@@ -174,7 +206,6 @@ Table* Database::getTable(const char* name) {
 char * Database::getTableNameByVar(char* variable, vector<table_name*>* tables) {
     for(table_name* _table : *tables) {
         Table* table = this->getTable(_table->real_name);
-        printf("%s in %s\n", variable, _table->real_name);
         if(table->isColumn(variable)) {
             return _table->real_name;
         }
@@ -383,4 +414,65 @@ double Database::getTimeForQuery(char *query) {
     long long microseconds = std::chrono::duration_cast<std::chrono::microseconds>(elapsed).count();
     
     return microseconds;
+}
+
+void Database::removeQueryFromQueue() {
+
+    Program* program = Program::getInstance();
+    pthread_mutex_lock(&mutex);
+    auto top = Q.front();
+    Q.pop();
+    pthread_mutex_unlock(&mutex);
+    char buff[200];
+    unsigned long long current_time = std::chrono::system_clock::now().time_since_epoch() / std::chrono::milliseconds(1);
+    
+    long long time_wait = get<0>(top)->getTimeStartProcess() - get<1>(top);
+    
+    long long time_process = current_time - get<0>(top)->getTimeStartProcess();
+    sprintf(buff, "Query %d is done from replica %d - (%llu,%llu,%lld)", get<0>(top)->getType(), this->id, time_wait, time_process, get<3>(top));
+    program->log(LOG_EMERG, buff);
+    
+}
+
+void Database::addRequest(Select* select) {
+    Program* program = Program::getInstance();
+    pthread_mutex_lock(&(this->mutex));
+    unsigned long long start = std::chrono::system_clock::now().time_since_epoch() / std::chrono::milliseconds(1);
+    long long cost = select->getFinalCost(this);
+	//select startInLine startToProcess cost
+    Q.push(make_tuple(select, start, 0, cost));   
+
+    char buff[200];
+    sprintf(buff, "Added query %d in list of replica %d", select->getType(), this->id);
+    program->log(LOG_EMERG, buff);
+    pthread_mutex_unlock(&mutex);
+}
+
+long long Database::getTimeToProcess(Select *select) {
+    pthread_mutex_lock(&mutex);
+    
+    double answer = 0;
+    if(Q.size() > 0) {
+        unsigned long long startedToProcess = get<2>(Q.front());
+        long long cost = get<3>(Q.front());
+        unsigned long long currentTime = std::chrono::system_clock::now().time_since_epoch() / std::chrono::milliseconds(1);
+
+        if(startedToProcess + cost > currentTime) {
+            answer += (startedToProcess + cost) - currentTime;
+        }
+        for(long long cost : D) {
+            answer += cost;
+        }
+    }
+    answer += select->getFinalCost(this);
+
+    return answer;
+}
+
+int Database::getNumOfActiveRequests() {
+
+    pthread_mutex_lock(&mutex);
+    int size = Q.size();
+    pthread_mutex_unlock(&mutex);
+    return size;
 }

@@ -15,7 +15,11 @@
 #include <map>
 #include <string>
 #include <vector>
+#include <queue>
+#include <deque>
 #include <cpprest/json.h>
+#include <pthread.h>
+
 #include "libpq-fe.h"
 
 
@@ -26,6 +30,7 @@ class Cache;
 class Index;
 class Table;
 class ForeignKey;
+class Select;
 
 struct variable {
 
@@ -137,7 +142,7 @@ class Database {
     public:
         Database();
         Database(const char *ipAddress, const char* dbName, int port, const char* username, const char* password);
-        Database(web::json::value json);
+        Database(web::json::value json, int id);
 
         bool connect();
         bool disconnect();
@@ -173,6 +178,10 @@ class Database {
 
         std::vector<ForeignKey*> getForeignKeys();
 
+        void addRequest(Select* select);
+        long long getTimeToProcess(Select* select);
+        int getNumOfActiveRequests();
+
         double SEQ_PAGE_COST;
         double RANDOM_PAGE_COST;
         double CPU_TUPLE_COST;
@@ -186,6 +195,12 @@ class Database {
         int CACHE_SIZE;
         int BLOCK_SIZE;
 
+        int id;
+
+        std::queue<std::tuple<Select*, unsigned long long, unsigned long long, long long> >Q;
+        pthread_mutex_t mutex;
+        void removeQueryFromQueue();
+
     private:
 
         void init_constants();        
@@ -197,6 +212,14 @@ class Database {
         void init_random_page_cost();
 
         double getTimeForQuery(char *query);
+
+        
+
+        
+        static pthread_t threads[100];
+        static void *threadFun(void *arg);
+
+        std::deque<long long>D;
 
         char dbName[MAX_LEN];
         char ipAddress[MAX_LEN];

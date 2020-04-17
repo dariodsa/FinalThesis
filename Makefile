@@ -2,6 +2,7 @@ STRUCTURES_PATH = src/structures/
 DB_PATH = src/db/
 ALG_PATH = src/algorithm/
 OPERATION_PATH = src/structures/operations/
+STRATEGIES_PATH = src/structures/strategies/
 
 DATA_PATH = data/
 
@@ -32,6 +33,11 @@ SRC_HASH_JOIN = $(OPERATION_PATH)hash-join.cpp
 SRC_MERGE_JOIN = $(OPERATION_PATH)merge-join.cpp
 SRC_NESTED_JOIN = $(OPERATION_PATH)nested-join.cpp
 
+SRC_LB = $(STRATEGIES_PATH)load-balance.cpp
+SRC_RR = $(STRATEGIES_PATH)round-robin.cpp
+SRC_LW = $(STRATEGIES_PATH)least-work.cpp
+SRC_SMART = $(STRATEGIES_PATH)smart.cpp
+
 SRC_FILTER = $(OPERATION_PATH)filter.cpp
 SRC_SORT = $(OPERATION_PATH)sort.cpp
 SRC_GROUP = $(OPERATION_PATH)group.cpp
@@ -40,7 +46,7 @@ SRC_OR_UNION = $(OPERATION_PATH)or-union.cpp
 SRC_MAIN = src/main.cpp
 
 CXX = g++
-CXXFLAGS =  -g -std=c++11 -lcpprest
+CXXFLAGS =  -g -std=c++11 -lcpprest -lpthread
 LEX_YACC_FLAGS = -ll -lfl -ly
 POSTGE_FLAGS = -lpqxx -lpq
 
@@ -67,6 +73,11 @@ OBJ_INDEXSCAN = ${SRC_INDEXSCAN:.cpp=.o}
 OBJ_OPERATION = ${SRC_OPERATION:.cpp=.o}
 OBJ_SEQSCAN = ${SRC_SEQSCAN:.cpp=.o}
 
+OBJ_LB = ${SRC_LB:.cpp=.o}
+OBJ_RR = ${SRC_RR:.cpp=.o}
+OBJ_LW = ${SRC_LW:.cpp=.o}
+OBJ_SMART = ${SRC_SMART:.cpp=.o}
+
 OBJ_HASH_JOIN = ${SRC_HASH_JOIN:.cpp=.o}
 OBJ_MERGE_JOIN = ${SRC_MERGE_JOIN:.cpp=.o}
 OBJ_NESTED_JOIN = ${SRC_NESTED_JOIN:.cpp=.o}
@@ -79,11 +90,23 @@ OBJ_PROGRAM = ${SRC_PROGRAM:.cpp=.o}
 OBJ_CONFIG = ${SRC_CONFIG:.cpp=.o}
 MAIN=main
  
-main: lex_yacc_part cache network toposort operations index column table result database foreign-key program proxy  config
-	$(CXX) $(CXXFLAGS)  -o $@  src/main.cpp $(OBJ_TOPOSORT) $(OBJ_NESTED_JOIN) $(OBJ_FILTER) $(OBJ_SORT) $(OBJ_GROUP) $(OBJ_OR_UNION) $(OBJ_MERGE_JOIN) $(OBJ_HASH_JOIN) $(OBJ_FOREIGN_KEY) $(OBJ_CACHE) $(OBJ_NETWORK) $(OBJ_SEQSCAN)  $(OBJ_INDEXCON) $(OBJ_INDEXSCAN) $(OBJ_OPERATION) $(OBJ_PROXY) $(OBJ_TOKEN) $(OBJ_CONFIG)  $(OBJ_PROGRAM) $(OBJ_RESULT) $(OBJ_DATABASE) $(OBJ_TABLE) $(OBJ_COLUMN) $(OBJ_INDEX)  $(LEX_YACC_FLAGS)  $(POSTGE_FLAGS)
+main: lex_yacc_part cache balance network toposort operations index column table result database foreign-key program  config
+	$(CXX) $(CXXFLAGS)  -o $@  src/main.cpp $(OBJ_LB) $(OBJ_RR)  $(OBJ_LW) $(OBJ_SMART) $(OBJ_TOPOSORT) $(OBJ_NESTED_JOIN) $(OBJ_FILTER) $(OBJ_SORT) $(OBJ_GROUP) $(OBJ_OR_UNION) $(OBJ_MERGE_JOIN) $(OBJ_HASH_JOIN) $(OBJ_FOREIGN_KEY) $(OBJ_CACHE) $(OBJ_NETWORK) $(OBJ_SEQSCAN)  $(OBJ_INDEXCON) $(OBJ_INDEXSCAN) $(OBJ_OPERATION) $(OBJ_PROXY) $(OBJ_TOKEN) $(OBJ_CONFIG)  $(OBJ_PROGRAM) $(OBJ_RESULT) $(OBJ_DATABASE) $(OBJ_TABLE) $(OBJ_COLUMN) $(OBJ_INDEX)  $(LEX_YACC_FLAGS)  $(POSTGE_FLAGS)
 
 operations: indexcon indexscan seqscan hash-join merge-join nested-join filter sort group or-union
 	$(CXX) $(CXXFLAGS) -c $(SRC_OPERATION) -o $(OBJ_OPERATION)
+
+balance: rr lw smart
+	$(CXX) $(CXXFLAGS) -c $(SRC_LB) -o $(OBJ_LB)
+
+rr:
+	$(CXX) $(CXXFLAGS) -c $(SRC_RR) -o $(OBJ_RR)
+
+lw:
+	$(CXX) $(CXXFLAGS) -c $(SRC_LW) -o $(OBJ_LW)
+
+smart:
+	$(CXX) $(CXXFLAGS) -c $(SRC_SMART) -o $(OBJ_SMART)
 
 cache:
 	$(CXX) $(CXXFLAGS) -c $(SRC_CACHE) -o $(OBJ_CACHE)
@@ -152,9 +175,6 @@ config:
 token: 
 	$(CXX)  $(CXXFLAGS) -c $(SRC_TOKEN)  -o $(OBJ_TOKEN)
 
-
-proxy:
-	$(CXX) $(CXXFLAGS) -c $(SRC_PROXY) -o $(OBJ_PROXY)
 
 lex_yacc_part:
 	cd data; $(YACC) $(YACCFLAGS) $(YACC_FILE)

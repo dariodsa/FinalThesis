@@ -7,6 +7,6 @@
 
 #include "program.h"
 
-std::pair<float, float> process_query(Database* replica, const char* query);
+Select* process_query(Database* replica, const char* query);
 bool connect_to_replicas(std::vector<Database*> replicas);
 std::vector<Database*> setup_db_replicas_pool(web::json::value json);

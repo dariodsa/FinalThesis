@@ -10,8 +10,9 @@
 
 class Program {
     public:
-        Program();
+        Program(const char* name);
         static Program* getInstance();
+        static void setName(char* name);
         void log(int priority, const char *format, ...);
         void setUp(int argc, char* argv[]);
         char* getConfigFilePath();
@@ -28,6 +29,8 @@ class Program {
         char IP[MAX_LEN];
         char config_file_path[MAX_LEN] = "config";
         bool terminal_output = true;
+
+        static char name[5*MAX_LEN];
 
         void usage();
 };

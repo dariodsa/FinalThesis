@@ -7,9 +7,10 @@
 #include <stdarg.h>
 
 Program* Program::singleton = NULL;
+char Program::name[5*MAX_LEN];
 
-Program::Program(){
-    openlog("semantic-db", LOG_CONS | LOG_PID | LOG_NDELAY | LOG_NOWAIT, LOG_LOCAL1);
+Program::Program(const char* name){
+    
 }
 
 void Program::setUp(int argc, char* argv[]) {
@@ -40,21 +41,23 @@ char* Program::getConfigFilePath() {
 
 void Program::log(int priority, const char *format, ...) {
     
+    openlog(Program::name, LOG_CONS | LOG_PID | LOG_NDELAY | LOG_NOWAIT, LOG_LOCAL1);
     if( log_level >= priority ) {
         va_list list;
         va_start(list, format);
         vsyslog(priority, format, list);
-        if(terminal_output) {
+        if(!terminal_output) {
             vfprintf(stderr, format, list);
         }
         va_end(list);
     }
+    closelog();
     return;
 }
 
 Program* Program::getInstance() {
     if(singleton == NULL) {
-        singleton = new Program();
+        singleton = new Program(name);
     }
     return singleton;
 }
@@ -69,4 +72,8 @@ char* Program::getIP() {
 
 void Program::usage() {
 
+}
+
+void Program::setName(char *name) {
+    strcpy(Program::name, name);
 }

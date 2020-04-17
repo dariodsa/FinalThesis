@@ -3,7 +3,7 @@
 #define CONFIG_CPP
 
 #include "config.h"
-#include <sys/time.h>
+#include <chrono>
 
 extern "C"{
 #include "../../data/y.tab.c"
@@ -17,124 +17,20 @@ float timedifference_msec(struct timeval t0, struct timeval t1) {
     return (t1.tv_sec - t0.tv_sec) * 1000.0f + (t1.tv_usec - t0.tv_usec) / 1000.0f;
 }
 
-pair<float, float> process_query(Database* replica, const char* query) {
+Select* process_query(Database* replica, const char* query) {
     
     Program* program = Program::getInstance();
 
     //connect and listen to CONNECT postgres queries
     Database *database = replica;
 
-    printf("Call parse:\n");
-
     vector<SearchType> searchTypes;
 
-
-    /*FILE* p1 = fopen("d1", "w");
-    fprintf(p1, "%s\n", database->getJSON().serialize().c_str());*/
-
-    /*FILE *f = fopen("sql/tpch1.sql", "rb");
-    fseek(f, 0, SEEK_END);
-    long fsize = ftell(f);
-    fseek(f, 0, SEEK_SET);
-
-    char *string = (char *)malloc(fsize + 1);
-    fread(string, fsize, 1, f);
-    fclose(f);
-
-    string[fsize] = 0;*/
-
-
     Select* result = parse(query, database, &searchTypes);
-    cout << query << endl;
-    float cost = result->getFinalCost(database);
     
-    printf("Done parsing.\n");
+    result->setQuery((char*)query);
 
-    struct timeval t0;
-    struct timeval t1;
-    float elapsed;
-
-    gettimeofday(&t0, 0);
-
-
-    //PGresult *res = database->executeQuery(query);
-    
-    gettimeofday(&t1, 0);
-
-    elapsed = timedifference_msec(t0, t1);
-
-    printf("Code executed in %f milliseconds.\n", elapsed);
-    
-
-    //int rec_count = PQntuples(res);
-    //int col_count = PQnfields(res);
-    //printf("We have %d rows.\n", rec_count);
-    /*for(int row = 0; row < rec_count; ++row) {
-        for(int col = 0; col < col_count; ++col) {
-            printf("%s ", PQgetvalue(res, row, col));
-        }
-        printf("\n");
-    }*/
-
-    return make_pair(cost, elapsed);
-    /*fseek(yyin, 0, SEEK_END);
-    long size = ftell(yyin);
-    rewind(yyin);
-    char *query = (char*)malloc(sizeof(char) * (size + 1));
-    printf("Size: %d\n", size);
-    for(int i = 0; i < size; ++i) {
-        fread(&query[i], 1, 1, yyin);
-    }
-    query[size] = 0;
-    //printf("%s\n", query);struct timeval t1;
-    float elapsed;
-
-    gettimeofday(&t0, 0);
-
-
-    PGresult *res = database->executeQuery(p);
-    int rec_count = PQntuples(res);
-    int col_count = PQnfields(res);
-    printf("We have %d rows.\n", rec_count);
-    for(int row = 0; row < rec_count; ++row) {
-        for(
-    //database->executeQuerystruct timeval t1;
-    float elapsed;
-
-    gettimeofday(&t0, 0);
-
-
-    PGresult *res = database->executeQuery(p);
-    int rec_count = PQntuples(res);
-    int col_count = PQnfields(res);
-    printf("We have %d rows.\n", rec_count);
-    for(int row = 0; row < rec_count; ++row) {
-        for(query);
-    FILE* p1 = fopen("d1", "struct timeval t1;
-    float elapsed;
-
-    gettimeofday(&t0, 0);
-
-
-    PGresult *res = database->executeQuery(p);
-    int rec_count = PQntuples(res);
-    int col_count = PQnfields(res);
-    printf("We have %d rows.\n", rec_count);
-    for(int row = 0; row < rec_count; ++row) {
-        for(");
-    fprintf(p1, "%s\n", datastruct timeval t1;
-    float elapsed;
-
-    gettimeofday(&t0, 0);
-
-
-    PGresult *res = database->executeQuery(p);
-    int rec_count = PQntuples(res);
-    int col_count = PQnfields(res);
-    printf("We have %d rows.\n", rec_count);
-    for(int row = 0; row < rec_count; ++row) {
-        for(ase->getJSON().serialize().c_str());
-    */
+    return result;
 }
 
 bool connect_to_replicas(std::vector<Database*> replicas) {
@@ -157,6 +53,7 @@ std::vector<Database*> setup_db_replicas_pool(web::json::value json) {
     auto replicas_array = json["replicas"].as_array();
     program->data_location = json["data"].as_string().c_str();
 
+    int id = 0;
     for(auto replica : replicas_array) {
         
         const char* ipAddress = replica["ipAddress"].as_string().c_str();
@@ -167,7 +64,8 @@ std::vector<Database*> setup_db_replicas_pool(web::json::value json) {
                                     , port
                                     
         );
-        replicas.push_back(new Database(replica));
+        replicas.push_back(new Database(replica, id));
+        id++;
         
     }
 

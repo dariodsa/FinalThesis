@@ -387,7 +387,7 @@ references_clause:
                      key->setTable2($2);
                      for(char* col_name : *$4) {
                          key->addColumnInTable2(col_name);
-                         printf("%s table, col %s\n", $2, col_name);
+                         //printf("%s table, col %s\n", $2, col_name);
                      }
                      $$ = key;
                  }
@@ -778,7 +778,7 @@ comparison_condition:
                 for(variable v : *$3->variables) {
                     $$->variables->push_back(v);
                 }
-                printf("%s %d\n", $2, $$->equal);
+                //printf("%s %d\n", $2, $$->equal);
              }
 		    | expression NOT BETWEEN expression AND expression 
             {
@@ -933,7 +933,7 @@ expression_part_two:
             $$->variables->push_back(v);
         }
       }
-	  | function_expression {printf("Function\n");}
+	  | function_expression {}
 	  | NULL_STR binary_operator expression 
       {
             $$ = $3;
@@ -1019,7 +1019,7 @@ column_name:
                 } else {
                     vector<table_name*>* tables = (*sp)->tables;
                     for(table_name* t1 : *tables) {
-                        printf("%s <==> %s %s <==> %s\n", $1, t1->name, $1, t1->real_name);
+                        //printf("%s <==> %s %s <==> %s\n", $1, t1->name, $1, t1->real_name);
                         if(strcmp($1, t1->name) == 0 || strcmp($1, t1->real_name) == 0) {
                             V->setTable(t1->real_name);
                         }
@@ -1162,7 +1162,7 @@ from_clauses_list:
                 }
                  ;
 
-from_word: FROM {printf("FROM WORD\n");}
+from_word: FROM {}
 
 from_clause:
              from_word '(' select_statement ')' {
@@ -1172,13 +1172,13 @@ from_clause:
             {
                 //tables.push(vector<table_name>());
                 for(int i = 0; i < $2->size(); ++i) {
-                    printf("Table: %s %s\n", (*$2)[i]->name, (*$2)[i]->real_name);
+                    //printf("Table: %s %s\n", (*$2)[i]->name, (*$2)[i]->real_name);
                 }
                 (*sp)->tables = $2;
                 (*sp)->SELECT_LIST = false;
-                for(variable v : *((*sp)->select_variable)) {
+                /*for(variable v : *((*sp)->select_variable)) {
                    printf("Variable: %s %s\n", v.name, v.table);
-                }
+                }*/
             }
             
 

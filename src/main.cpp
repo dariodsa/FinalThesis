@@ -5,6 +5,7 @@
 #include "structures/strategies/least-work.h"
 #include "structures/strategies/round-robin.h"
 #include "structures/strategies/smart.h"
+#include "structures/result.h"
 
 #include <libpq-fe.h>
 #include <vector>
@@ -76,8 +77,21 @@ int main(int argc, char* argv[]) {
     if(name[0] == 'R') balancer = new RoundRobin(replicas);
     else if(name[0] == 'L') balancer = new LeastWork(replicas);
     else if(name[0] == 'S') balancer = new Smart(replicas);
-    
+    else {
+        printf("Unknown strategy.\n");
+        return 0;
+    }
 
+    /*Select* sa = process_query(replicas[0], "select * from nation; ");
+    sa->getFinalCost(replicas[0]);
+    
+    printf("\n\n\n\n\n\n");
+    replicas[0]->addRequest(sa);
+
+    Select* sa2 = process_query(replicas[0], "select * from lineitem; ");
+    sa2->getFinalCost(replicas[0]);
+    replicas[0]->addRequest(sa2);
+    return 0;*/
     //Proxy* p = new Proxy(55432, replicas[0]);
 
     vector<pair<const char*, int>> queries;    
@@ -158,7 +172,7 @@ int main(int argc, char* argv[]) {
     
     random_shuffle ( queries.begin(), queries.end(), myrandom);
     
-    while(it < 40) {
+    while(it < 20) {
         usleep(speed * 1000);
         int R = rand() % 100;
         if(R > ratio) {

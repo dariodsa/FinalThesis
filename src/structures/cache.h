@@ -16,7 +16,7 @@ class Cache{
         Cache(Database* database);
         void addNode(Table* table, bool full);
         void addNode(Index* index);
-        float getRatio(Table* table);
+        long long getSize(Table* table);
         float getRatio(Index* index);
     private:
         void incrementTable(Node node);
@@ -24,12 +24,12 @@ class Cache{
 
         void insertNode(Node node);
         void deleteNode(Node node);
-        void reduceRatio(Node node);
+        void reduceRatio(Node* node);
 
         Database* database;
         std::set<Node>nodes;
 
-        signed int total_size;
+        long long total_size = 0;
         int time_idx;
 };
 #endif

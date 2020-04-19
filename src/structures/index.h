@@ -42,7 +42,7 @@ class Index {
         
         int getColNumber();
         int getHash() const;
-        signed int getSize();
+        long long getSize();
 
         char* getColName(int index);
         char* getTable();

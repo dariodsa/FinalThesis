@@ -153,23 +153,23 @@ class Database {
         char * getTableNameByVar(char* variable, vector<table_name*>* tables);
 
         signed int getNumOfTables();
-        signed int getCacheSize();
+        long long getCacheSize();
         void setCacheSize(signed int cache_size);
 
         web::json::value getJSON();
 
-        signed int statusLoaded(const char* table_name);
-        signed int statusLoaded(Index* index);
+        long long statusLoaded(const char* table_name);
+        long long statusLoaded(Index* index);
 
-        float getRatioInCache(const char* table_name);
-        float getRatioInCache(Index* index);
+        /*float getRatioInCache(const char* table_name);
+        float getRatioInCache(Index* index);*/
 
         
 
         void loadInCache(const char* table_name, bool full);
         void loadInCache(Index* index);
 
-        signed int getCurrRamLoaded(vector<Table*> full_table
+        long long getCurrRamLoaded(vector<Table*> full_table
                                   , vector<Index*> indexes
                                   , vector<Table*> retr_data);
         void addForeignKey(ForeignKey* key);

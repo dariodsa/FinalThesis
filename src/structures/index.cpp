@@ -114,8 +114,8 @@ TYPE_COL Index::getColType(int index) {
     return this->types[index];
 }
 
-signed int Index::getSize() {
-    return this->getColNumber() * Program::AVERAGE_DATA_SIZE;
+long long Index::getSize() {
+    return (long long) this->getColNumber() * (long long) Program::AVERAGE_DATA_SIZE;
 }
 
 float Index::getCost(Database* database, int len, bool isScan) {

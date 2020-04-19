@@ -5,8 +5,8 @@
 
 struct Node{
     int time_idx;
-    float ratio;
-    signed int size;
+    double ratio;
+    long long size;
     
     bool isIndex;
     Index* index;
@@ -25,14 +25,17 @@ struct Node{
 
         if(full) ratio = 1;
         else {
-            ratio = 0.1;
+            size = size / 100000;
         }
     }
     void setTime(int _time_id) {
         time_idx = _time_id;
     }
-    signed int getSize() const {
-        return (signed int) ((float)size * ratio);
+    long long getSize() {
+        return size;
+    }
+    void reduce(long long diff) {
+        size = size - diff;
     }
     
     bool operator <(const Node& A) const {
@@ -57,13 +60,16 @@ Cache::Cache(Database* database) {
 
 void Cache::addNode(Index* index) {
     Node node = Node(index);
+    node.isIndex = true;
     node.setTime(++time_idx);
+    total_size += node.size;
     nodes.insert(node);
+    removeOld();
 }
 
 void Cache::addNode(Table* table, bool full) {
     Node node = Node(table, full);
-    if(getRatio(table) != 0) {
+    if(getSize(table) != 0) {
         incrementTable(node);
     } else {
         //add node in nodes
@@ -73,12 +79,12 @@ void Cache::addNode(Table* table, bool full) {
     removeOld();
 }   
 
-float Cache::getRatio(Table* table) {
+long long Cache::getSize(Table* table) {
     Node node = Node(table);
     auto iterator = nodes.find(node);
     if(iterator != nodes.end()) {
         //found
-        return iterator->ratio;
+        return iterator->size;
     } 
     return 0;
 }
@@ -96,54 +102,75 @@ float Cache::getRatio(Index* index) {
 }
 
 void Cache::incrementTable(Node node) {
-    node.ratio += 0.1;//Program::DEFAULT_TABLE_FETCH_SIZE;
-    if(node.ratio >= 1.00) {
-        node.ratio = 1.00;
-    }
+    
+    long long fetch_size = 10 * database->BLOCK_SIZE;
+    
+    long long t = node.size;
+
+    node.size += fetch_size;
+    node.size = max(node.size, node.table->getSize());
+    
+    
+    total_size += node.size - t;
+
     node.setTime(++time_idx);
+    removeOld();
 }
 
 void Cache::removeOld() {
-    int max_size = database->getCacheSize();
+    long long max_size = database->getCacheSize();
+    
+    int it = 0;
     
     while(total_size >= max_size) {
+        ++it;
         int s = MAX_INTEGER;
-        Node max_node;
+        Node* max_node;
+        
         for(Node node : nodes) {
             if(s > node.time_idx) {
                 s = node.time_idx;
-                max_node = node;
+                max_node = &node;
             }
         }
-        if(max_node.isIndex) {
-            deleteNode(max_node);
+        if(max_node->isIndex) {
+            deleteNode(*max_node);
         } else {
             reduceRatio(max_node);
         }
+
+        //if(it > 100) break;
     }
+    printf("TOTAL SIZE %lld MAX_SITE %lld\n", total_size, max_size);
 }
 
 void Cache::insertNode(Node node) {
+    
     total_size += node.getSize();
     nodes.insert(node);
+    printf("DODAJEM %s %lld %lld\n", node.table, total_size, database->getCacheSize());
+    removeOld();
     return;
 }
 void Cache::deleteNode(Node node) {
     total_size -= node.getSize();
     nodes.erase(node);
+    printf("BRIŠEM %s %lld %lld\n", node.table, total_size, database->getCacheSize());
     return;
 }
 
-void Cache::reduceRatio(Node node) {
-
-    float fetch_size = database->BLOCK_SIZE;
+void Cache::reduceRatio(Node* _node) {
     
-    if(node.ratio < 0.001) {
-        deleteNode(node);
+    auto node =(Node*) (nodes.find(*_node));
+    
+    float fetch_size = 400 * database->BLOCK_SIZE;
+    
+    if(node->size <= fetch_size) {
+        deleteNode(*node);
         return;
     }
-
-    total_size -= node.getSize();
-    node.ratio -= fetch_size;
-    total_size += node.getSize();
+    
+    total_size -= fetch_size;
+    node->reduce(fetch_size);
+    printf("REDUCE RATION %lld %lld %s\n", total_size, node->size, node->table->getTableName());
 }

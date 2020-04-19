@@ -123,17 +123,26 @@ double Select::getLoadingCost(Database* database) {
         size += _t->getSize() / 10;
         retr_t1.push_back(_t);
     }
-    copy((get<1>(resouce)).begin(), (get<1>(resouce).end()), i1.begin());
-    for(Index* i : i1) size += i->getSize();
 
-    signed int delta = size - database->getCurrRamLoaded(t1, i1, retr_t1);
-    printf("          DELTA:%d\n", delta);
+    printf("GET RESOURCE %d %d %d\n", get<0>(resouce).size(), get<1>(resouce).size(), get<2>(resouce).size());
+    set<Index*, index_pointer_cmp> s1 = std::get<1>(resouce);
+
+    for(Index* _i : s1) {
+        i1.push_back(_i);
+    }
+    
+    for(Index* i : i1) size += i->getSize();
+    printf("==============  %lld %lld\n", size, database->getCurrRamLoaded(t1, i1, retr_t1));
+    long long delta = database->getCurrRamLoaded(t1, i1, retr_t1);
+    
+    printf("          DELTA:%lld %lf\n", delta, (double) delta /(double) size);
     return (double)delta / (double) database->BLOCK_SIZE * (double) database->RANDOM_PAGE_COST;
 }
 
 double Select::getFinalCost(Database* database) {
     double final_cost = this->getCost(database) + this->getLoadingCost(database);
     if(final_cost < 0) final_cost = 2e4;
+    //printf("Final cost %f\n", final_cost);
     return final_cost;
 }
 
@@ -704,24 +713,23 @@ Select::Select(Database* database, node* root, vector<table_name*>* tables, vect
     std::set<Index*, index_pointer_cmp> s2;
     std::set<std::string> s3;
 
-    if(root != 0) {
+    if(this->root != 0) {
 
         queue<Operation*>Q;
         Q.push(this->root);
         while(!Q.empty()) {
             Operation* pos = Q.front();
             Q.pop();
-
+            
             if(pos->children.size() == 0) {
-                if(pos->isSeqScan()) {
-                    SeqScan* s = (SeqScan*)pos;
-                    s1.insert(string(s->getTable()->getTableName()));
-                } else if(pos->isIndexCon()) {
-                    IndexCon* s = (IndexCon*)pos;
+                if(SeqScan* s = dynamic_cast<SeqScan*>(pos)) {
+                    printf("TTTTAAAABBBLLLLEEE:        ========%d  _%s_ %lld\n",s->getTable(), s->table_name, s->getTable()->getSize());
+                    
+                    s1.insert(string(s->table_name));
+                } else if(IndexCon* s = dynamic_cast<IndexCon*>(pos)) {
                     s2.insert(s->getIndex());
                     if(s->getRetrData()) s3.insert(string(s->getIndex()->getTable()));
-                } else if(pos->isIndexScan()) {
-                    IndexScan* s = (IndexScan*)pos;
+                } else if(IndexScan* s = dynamic_cast<IndexScan*>(pos)) {
                     s2.insert(s->getIndex());
                     if(s->getRetrData()) s3.insert(string(s->getIndex()->getTable()));
                 }
@@ -731,10 +739,12 @@ Select::Select(Database* database, node* root, vector<table_name*>* tables, vect
         }
         
     }
-    
+    printf("%d, %d, %d\n", s1.size(), s2.size(), s3.size());
     std::get<0>(this->resouce) = s1;
     std::get<1>(this->resouce) = s2;
     std::get<2>(this->resouce) = s3;
+
+    printf("SET RESOURCE %d %d %d\n", get<0>(resouce).size(), get<1>(resouce).size(), get<2>(resouce).size());
 
     printf("===============\n");
     cout << typeid(*root).name() << endl;

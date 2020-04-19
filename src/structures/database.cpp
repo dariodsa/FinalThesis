@@ -48,6 +48,25 @@ Database::Database(const char *ipAddress, const char* dbName, int port, const ch
     SEQ_PAGE_COST = 1581.766656;
     RANDOM_PAGE_COST = 10.8;
 
+    
+    //set one worker per query
+    executeQuery("SET max_parallel_workers_per_gather = 0;");
+    //BLOCK SIZE
+    PGresult* result = executeQuery("show block_size;");
+    BLOCK_SIZE = atoi(PQgetvalue(result, 0, 0));
+    CACHE_SIZE = 0;
+
+    result = executeQuery("show shared_buffers;");
+    char* _cache = PQgetvalue(result, 0, 0);
+    for(int i = 0, len = strlen(_cache); i < len - 1; ++i) {
+        if(_cache[i] >= '0' && _cache[i] <= '9') {
+            CACHE_SIZE = CACHE_SIZE * 10 + (_cache[i] - '0');
+        } else if(_cache[i] == 'K') CACHE_SIZE *= 1024;
+        else if(_cache[i] == 'M') CACHE_SIZE *= 1024 * 1024;
+        else if(_cache[i] == 'G') CACHE_SIZE *= 1024 * 1024 * 1024;
+    }
+    
+    setCacheSize(CACHE_SIZE);
     //setup cache system
     cache = new Cache(this);
 
@@ -221,7 +240,7 @@ signed int Database::getNumOfTables() {
     return this->tables.size();
 }
 
-signed int Database::getCacheSize() {
+long long Database::getCacheSize() {
     return this->cache_size;
 }
 
@@ -250,15 +269,14 @@ web::json::value Database::getJSON() {
     return json;
 }
 
-signed int Database::statusLoaded(const char* table_name) {
+long long Database::statusLoaded(const char* table_name) {
     Table* table = getTable(table_name);
-    float ratio = cache->getRatio(table);
-    return table->getSize() * ratio;
+    long long size = cache->getSize(table);
+    return size;
 }
 
-signed int Database::statusLoaded(Index* index) {
-    float ratio = cache->getRatio(index);
-    return index->getSize() * ratio;
+long long Database::statusLoaded(Index* index) {
+    return index->getSize();
 }
 
 void Database::loadInCache(Index *index) {
@@ -270,30 +288,25 @@ void Database::loadInCache(const char* table_name, bool full) {
     cache->addNode(table, full);
 }
 
-signed int Database::getCurrRamLoaded(vector<Table*> full_table
+long long Database::getCurrRamLoaded(vector<Table*> full_table
                                     , vector<Index*> indexes
                                     , vector<Table*> retr_data) {
-    signed int ans = 0;
+    long long ans = 0;
+    printf("            RAM STATUS\n");
     for(Table* table : full_table) {
+        printf("full %s %lld, %lld\n", table->getTableName(), statusLoaded(table->getTableName()), cache_size);
         ans += statusLoaded(table->getTableName());
     }
     for(Index* index : indexes) {
+        printf("index %s %lld, %lld\n", index->getTable(), statusLoaded(index), cache_size);
         ans += statusLoaded(index);
     }
     for(Table* table : retr_data) {
+        printf("retr %s %lld, %lld\n", table->getTableName(), statusLoaded(table->getTableName()), cache_size);
         ans += statusLoaded(table->getTableName());
     }
 
     return ans;
-}
-
-float Database::getRatioInCache(const char* table_name) {
-    Table* table = getTable(table_name);
-    return cache->getRatio(table);
-}
-
-float Database::getRatioInCache(Index *index) {
-    return cache->getRatio(index);
 }
 
 void Database::init_constants() {
@@ -453,6 +466,7 @@ void Database::addRequest(Select* select) {
     sprintf(buff, "Added query %d in list of replica %d", select->getType(), this->id);
     printf("%d => %d\n", id, Q.size());
     program->log(LOG_EMERG, buff);
+    
     resursi reources = select->getResource();
     for(Index* in : get<1>(reources)) this->loadInCache(in);
     
@@ -463,7 +477,7 @@ void Database::addRequest(Select* select) {
     for(std::string table : get<2>(reources)) {
         this->loadInCache(table.c_str(), false);
     }
-
+    
     pthread_mutex_unlock(&(this->mutex));
 
 }

@@ -73,7 +73,7 @@ Column* Table::getColumn(const char *name) {
 
 float Table::getCost(Database* database, bool full_table) {
     float cost = 0;
-    float ratio = database->getRatioInCache(name);
+    
     
     //database->addTable(this);
     
@@ -81,8 +81,8 @@ float Table::getCost(Database* database, bool full_table) {
 }
 
 
-signed int Table::getSize() {
-    return this->numOfRows * this->columns.size() * Program::AVERAGE_DATA_SIZE;
+long long Table::getSize() {
+    return (long long) this->numOfRows * (long long)  this->columns.size() * (long long) Program::AVERAGE_DATA_SIZE;
 }
 
 void Table::addIndex(Index *index) {

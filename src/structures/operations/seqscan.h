@@ -21,7 +21,7 @@ class SeqScan : public Operation{
         virtual double getRuntimeCost(Database* database);
         virtual double getNt();
         bool isSeqScan() { return true; }
-        
+        char table_name[100];
 
     private:
         

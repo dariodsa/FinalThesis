@@ -9,7 +9,7 @@ class Operation{
         Operation(Table* table);
 
         void addChild(Operation* child);
-        
+
         float getTotalCost(Database* database) {
             float startCost = getStartCost(database);
             float runTimeCost = getRuntimeCost(database);

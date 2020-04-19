@@ -4,7 +4,7 @@ IndexScan::IndexScan(Table *table, Index* index, int len, bool retr_data) : Oper
     this->index = index;
     this->len = len;
     this->retr_data = retr_data;
-    printf("INDEX SCAN %s %s\n", index, table->getTableName());
+    printf("INDEX SCAN %d %s\n", index, table->getTableName());
     index->getColNumber();
 }
 

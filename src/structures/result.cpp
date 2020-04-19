@@ -108,20 +108,42 @@ double Select::getCost(Database* database) {
 }
 
 double Select::getLoadingCost(Database* database) {
-    return 0;
+    vector<Table*> t1;
+    vector<Table*> retr_t1;
+    vector<Index*> i1;
+    
+    long long size = 0;
+    for(std::string table : get<0>(resouce)) {
+        Table* _t = database->getTable(table.c_str());
+        size += _t->getSize();
+        t1.push_back(_t);
+    }
+    for(std::string table : get<2>(resouce)) {
+        Table* _t = database->getTable(table.c_str());
+        size += _t->getSize() / 10;
+        retr_t1.push_back(_t);
+    }
+    copy((get<1>(resouce)).begin(), (get<1>(resouce).end()), i1.begin());
+    for(Index* i : i1) size += i->getSize();
+
+    signed int delta = size - database->getCurrRamLoaded(t1, i1, retr_t1);
+    printf("          DELTA:%d\n", delta);
+    return (double)delta / (double) database->BLOCK_SIZE * (double) database->RANDOM_PAGE_COST;
 }
 
 double Select::getFinalCost(Database* database) {
-    return this->getCost(database) + this->getLoadingCost(database);
+    double final_cost = this->getCost(database) + this->getLoadingCost(database);
+    if(final_cost < 0) final_cost = 2e4;
+    return final_cost;
 }
 
 resursi Select::getResource() {
-    for(Select* sibling : siblings) {
+   /* for(Select* sibling : siblings) {
         this->resouce = Select::mergeResource(sibling->getResource(), resouce);
     }
     for(Select* kid : kids) {
         this->resouce = Select::mergeResource(kid->getResource(), resouce);
-    }
+    }*/
     return resouce;
 }
 
@@ -192,7 +214,7 @@ Select::Select(Database* database, node* root, vector<table_name*>* tables, vect
             Operation *join = new NestedJoin();
             join->addChild(op);
             join->addChild(seqscans[i]);
-
+            tables_in_join.push_back(seqscans[i]->getTable());
             vector<pair<bool, int> > filter_list = numOfFilter(tables_in_join, area);
             Operation *node = join;
             for(int i = 0, len = filter_list.size(); i < len; ++i) {
@@ -678,6 +700,41 @@ Select::Select(Database* database, node* root, vector<table_name*>* tables, vect
             this->root = toposort->performTopoSort(&tables_operations);*/
         }
     }
+    std::set<std::string> s1;
+    std::set<Index*, index_pointer_cmp> s2;
+    std::set<std::string> s3;
+
+    if(root != 0) {
+
+        queue<Operation*>Q;
+        Q.push(this->root);
+        while(!Q.empty()) {
+            Operation* pos = Q.front();
+            Q.pop();
+
+            if(pos->children.size() == 0) {
+                if(pos->isSeqScan()) {
+                    SeqScan* s = (SeqScan*)pos;
+                    s1.insert(string(s->getTable()->getTableName()));
+                } else if(pos->isIndexCon()) {
+                    IndexCon* s = (IndexCon*)pos;
+                    s2.insert(s->getIndex());
+                    if(s->getRetrData()) s3.insert(string(s->getIndex()->getTable()));
+                } else if(pos->isIndexScan()) {
+                    IndexScan* s = (IndexScan*)pos;
+                    s2.insert(s->getIndex());
+                    if(s->getRetrData()) s3.insert(string(s->getIndex()->getTable()));
+                }
+            } else {
+                for(int i = 0; i < pos->children.size(); ++i) Q.push(pos->children[i]);
+            }
+        }
+        
+    }
+    
+    std::get<0>(this->resouce) = s1;
+    std::get<1>(this->resouce) = s2;
+    std::get<2>(this->resouce) = s3;
 
     printf("===============\n");
     cout << typeid(*root).name() << endl;

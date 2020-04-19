@@ -78,6 +78,8 @@ class Select{
         void addSibling(Select* sibling);
         void addKid(Select* kid);
 
+        resursi getResource();
+
         static std::vector<pair<bool, int> > numOfFilter(std::vector<Table*> tables, std::vector<expression_info*> area);
         static void setNewOperation(Operation* old_operation , Operation* new_operation, std::map<std::string, Operation*> *operations);
         static std::vector<Table*> getTables(Database* database, std::map<std::string, Operation*> tables_operations, Operation* operation);
@@ -96,8 +98,6 @@ class Select{
         long long timeToProcess;
         int type;
         long long startProcessing;
-
-        resursi getResource();
 
         resursi resouce;
         Database* database;

@@ -20,6 +20,8 @@ class SeqScan : public Operation{
         virtual double getStartCost(Database* database);
         virtual double getRuntimeCost(Database* database);
         virtual double getNt();
+        bool isSeqScan() { return true; }
+        
 
     private:
         

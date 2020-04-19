@@ -30,3 +30,11 @@ double IndexCon::getNt() {
         return 3 + 6 * (1 - ratio);
     }
 }
+
+Index* IndexCon::getIndex() {
+    return this->index;
+}
+
+bool IndexCon::getRetrData() {
+    return this->retr_data;
+}

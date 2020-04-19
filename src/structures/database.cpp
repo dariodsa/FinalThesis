@@ -39,11 +39,14 @@ Database::Database(const char *ipAddress, const char* dbName, int port, const ch
 
     connect();
     //init_constants();
-    CPU_TUPLE_COST = 0.089334;
-    CPU_INDEX_TUPLE_COST = 0.033808;
-    CPU_OPERATOR_COST = 0.03149;
-    SEQ_PAGE_COST = 47.766656;
-    RANDOM_PAGE_COST = 3.8;
+    //printf("%lf %lf %lf %lf %lf\n", CPU_TUPLE_COST, CPU_INDEX_TUPLE_COST, CPU_OPERATOR_COST, SEQ_PAGE_COST, RANDOM_PAGE_COST);
+    //0.232150 0.749760 0.151315 1581.436827 15.676298
+    
+    CPU_TUPLE_COST = 0.219334;
+    CPU_INDEX_TUPLE_COST = 0.653808;
+    CPU_OPERATOR_COST = 0.09249;
+    SEQ_PAGE_COST = 1581.766656;
+    RANDOM_PAGE_COST = 10.8;
 
     //setup cache system
     cache = new Cache(this);
@@ -93,6 +96,7 @@ void *Database::threadFun(void *arg) {
     while(true) {
         usleep(10);
         pthread_mutex_lock(&(database->mutex));
+        //printf("Database %d: %d\n", database->id, database->Q.size());
         if(database->Q.size() == 0) {
             pthread_mutex_unlock(&(database->mutex));
             continue;
@@ -421,6 +425,7 @@ void Database::removeQueryFromQueue() {
     Program* program = Program::getInstance();
     pthread_mutex_lock(&mutex);
     auto top = Q.front();
+    totalCost -= (get<3>(top) / 1000) ;
     Q.pop();
     pthread_mutex_unlock(&mutex);
     char buff[200];
@@ -429,7 +434,7 @@ void Database::removeQueryFromQueue() {
     long long time_wait = get<0>(top)->getTimeStartProcess() - get<1>(top);
     
     long long time_process = current_time - get<0>(top)->getTimeStartProcess();
-    sprintf(buff, "Query %d is done from replica %d - (%llu,%llu,%lld)", get<0>(top)->getType(), this->id, time_wait, time_process, get<3>(top));
+    sprintf(buff, "Query %d is done from replica %d - (%llu,%llu,%lld)", get<0>(top)->getType(), this->id, time_wait, time_process, get<3>(top) / 1000);
     program->log(LOG_EMERG, buff);
     
 }
@@ -441,11 +446,26 @@ void Database::addRequest(Select* select) {
     long long cost = select->getFinalCost(this);
 	//select startInLine startToProcess cost
     Q.push(make_tuple(select, start, 0, cost));   
+    
+    totalCost += cost / 1000;
 
     char buff[200];
     sprintf(buff, "Added query %d in list of replica %d", select->getType(), this->id);
+    printf("%d => %d\n", id, Q.size());
     program->log(LOG_EMERG, buff);
-    pthread_mutex_unlock(&mutex);
+    resursi reources = select->getResource();
+    for(Index* in : get<1>(reources)) this->loadInCache(in);
+    
+    for(std::string table : get<0>(reources)) {
+        this->loadInCache(table.c_str(), true);
+    }
+
+    for(std::string table : get<2>(reources)) {
+        this->loadInCache(table.c_str(), false);
+    }
+
+    pthread_mutex_unlock(&(this->mutex));
+
 }
 
 long long Database::getTimeToProcess(Select *select) {

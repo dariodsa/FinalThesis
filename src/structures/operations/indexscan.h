@@ -17,6 +17,11 @@ class IndexScan : public Operation{
         virtual double getStartCost(Database* database);
         virtual double getRuntimeCost(Database* database);
         virtual double getNt();
+        Index *getIndex();
+        bool getRetrData();
+
+        bool isIndexScan() { return true; }
+        
 
     private:
         Index* index;

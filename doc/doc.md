@@ -16,3 +16,9 @@ host    all             all             ::1/128                 password
 https://ankane.org/tpc-h
 
 
+
+docker pull postgres
+
+docker network create --gateway 192.50.0.1 --subnet 192.50.0.0/24 thesis
+
+docker run -e POSTGRES_PASSWORD=12345 -e POSTGRES_USER=postgres -e POSTGRES_DB=tpch --net thesis -d postgres

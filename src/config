@@ -1,10 +1,21 @@
 {
- "replicas": [{
-              "ipAddress": "127.0.0.1"
+ "replicas": [
+
+{
+              "ipAddress": "161.35.25.228"
               , "dbName": "tpch"
               , "port": 5432
               , "username": "postgres"
               , "password":"12345"
-  }]
+  },
+{ 
+    "ipAddress": "134.209.232.19"
+   , "dbName": "tpch"
+   , "port": 5432
+   , "username": "postgres"
+   , "password": "12345"
+  }
+
+  ]
  , "data" : "d1"
 }

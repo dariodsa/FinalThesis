@@ -21,6 +21,9 @@ class Operation{
         virtual double getStartCost(Database* database) = 0;
         virtual double getRuntimeCost(Database* database) = 0;
         virtual double getNt() = 0;
+        bool isSeqScan() { return false; }
+        bool isIndexScan() { return false; }
+        bool isIndexCon() { return false; }
 
         std::vector<Operation*> children;
         Table *table;

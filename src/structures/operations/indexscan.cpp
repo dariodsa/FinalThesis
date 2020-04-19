@@ -4,7 +4,7 @@ IndexScan::IndexScan(Table *table, Index* index, int len, bool retr_data) : Oper
     this->index = index;
     this->len = len;
     this->retr_data = retr_data;
-    printf("INDEX SCAN %lld %s\n", index, table->getTableName());
+    printf("INDEX SCAN %s %s\n", index, table->getTableName());
     index->getColNumber();
 }
 
@@ -21,8 +21,16 @@ double IndexScan::getRuntimeCost(Database* database) {
     return cost;    
 }
 
+bool IndexScan::getRetrData() {
+    return this->retr_data;
+}
+
 double IndexScan::getNt() {
     double rate = 1.0 / (float) (index->getColNumber() - len + 1);
     int s = ( table->getNumOfRows() * 0.1 * (1.0 + rate));
     return s;
+}
+
+Index* IndexScan::getIndex() {
+    return this->index;
 }

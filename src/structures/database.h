@@ -197,6 +197,8 @@ class Database {
 
         int id;
 
+        double totalCost = 0;
+
         std::queue<std::tuple<Select*, unsigned long long, unsigned long long, long long> >Q;
         pthread_mutex_t mutex;
         void removeQueryFromQueue();

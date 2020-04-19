@@ -12,6 +12,8 @@
 
 #include "db/proxy.h"
 
+int myrandom (int i) { return std::rand()%i;}
+
 using namespace std;
 // list of replicas involved
 vector<Database*> replicas;
@@ -75,7 +77,7 @@ int main(int argc, char* argv[]) {
     else if(name[0] == 'L') balancer = new LeastWork(replicas);
     else if(name[0] == 'S') balancer = new Smart(replicas);
     
-    
+
     //Proxy* p = new Proxy(55432, replicas[0]);
 
     vector<pair<const char*, int>> queries;    
@@ -153,8 +155,11 @@ int main(int argc, char* argv[]) {
     int in_query = 0;
     int it = 0;
     printf("%c %d %d\n", name[0], speed, ratio);
-    while(it < 150) {
-        usleep(speed);
+    
+    random_shuffle ( queries.begin(), queries.end(), myrandom);
+    
+    while(it < 40) {
+        usleep(speed * 1000);
         int R = rand() % 100;
         if(R > ratio) {
             balancer->addInsertQuery(insert_queries[in_query]);
@@ -167,7 +172,7 @@ int main(int argc, char* argv[]) {
         }
         ++it;
     }
-    
+    printf("IT: %d\n", it);
     while(true) {
         sleep(1);
         bool ok = true;

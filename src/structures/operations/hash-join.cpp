@@ -17,14 +17,16 @@ double HashJoin::getRuntimeCost(Database* database) {
     int nt2 = children[1]->getNt();
     int my_nt = getNt();
     
-    double cost = children[0]->getRuntimeCost(database) + children[1]->getRuntimeCost(database) + children[1]->getNt() * (database->CPU_TUPLE_COST + database->CPU_OPERATOR_COST);
+    double cost = children[0]->getRuntimeCost(database) + children[1]->getRuntimeCost(database) 
+    + children[1]->getNt() * (database->CPU_TUPLE_COST + 2*database->CPU_OPERATOR_COST)
+    + children[0]->getNt() * (database->CPU_TUPLE_COST + 2*database->CPU_OPERATOR_COST);
     return cost;
 }
 
 double HashJoin::getNt() {
     if(children.size() != 2) return 0;
     if(nt == -1) {
-        return children[0]->getNt() * children[1]->getNt();
+        return min(children[0]->getNt(), children[1]->getNt()) * 3;
     } else {
         return children[0]->getNt();
     }

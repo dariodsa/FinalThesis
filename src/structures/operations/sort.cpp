@@ -1,6 +1,8 @@
 #include "sort.h"
 
-Sort::Sort() {}
+Sort::Sort() {
+    printf("SORT\n");
+}
 
 double Sort::getStartCost(Database* database) {
     double nt = getNt();
@@ -12,7 +14,10 @@ double Sort::getStartCost(Database* database) {
 }
 
 double Sort::getRuntimeCost(Database* database) {
-    return database->CPU_TUPLE_COST * getNt();
+    double nt = getNt();
+    double child_cost = children[0]->getTotalCost(database);
+    printf("sort child cost %lf\n", child_cost);
+    return child_cost + (database->CPU_OPERATOR_COST) * nt * log2(nt);
 }
 
 double Sort::getNt() {

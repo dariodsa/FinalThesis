@@ -15,8 +15,6 @@ class SeqScan : public Operation{
             }
         }
 
-        Table* getTable();
-        
         virtual double getStartCost(Database* database);
         virtual double getRuntimeCost(Database* database);
         virtual double getNt();

@@ -12,6 +12,7 @@ class Table;
 class Database;
 class TopoSort;
 class Operation;
+class Select;
 
 
 struct variable;
@@ -22,7 +23,7 @@ struct table_name;
 
 class Network {
     public:
-        Network(Database* database, Table* table, std::vector<Index*> indexes, std::vector<expression_info*> expression_infos, std::map<std::string, Operation*>* tables_operations);
+        Network(Select* s, Database* database, Table* table, std::vector<Index*> indexes, std::vector<expression_info*> expression_infos, std::map<std::string, Operation*>* tables_operations);
 
         std::set<Table> getSeqScan();
         std::vector<std::pair<Index*, std::pair<int, int> > > getUsedIndexes();

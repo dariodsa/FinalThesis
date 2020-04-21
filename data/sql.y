@@ -59,7 +59,12 @@ extern vector<SearchType>* searchTypes;
 
     node *node;
     Select* select;
+
+    Operation *operation;
 }
+
+%type <operation> from_clause
+
 %type <number> having_clause
 
 %type <number> order_list
@@ -138,8 +143,7 @@ extern vector<SearchType>* searchTypes;
 
 
 commands:
-         command ';' commands  
-        | command ';'
+         command ';' 
        
       
         ;
@@ -778,7 +782,7 @@ comparison_condition:
                 for(variable v : *$3->variables) {
                     $$->variables->push_back(v);
                 }
-                //printf("%s %d\n", $2, $$->equal);
+                printf("%s %d\n", $2, $$->equal);
              }
 		    | expression NOT BETWEEN expression AND expression 
             {
@@ -1136,7 +1140,7 @@ where_clause: WHERE condition
 table_reference: 
                 NAME { $$ = new table_name($1, $1, depth); }
                | NAME NAME { $$ = new table_name($2, $1, depth); }
-               | NAME AS NAME { $$ = new table_name($3, $1, depth); }
+               | NAME AS NAME { $$ = new table_name($3, $1, depth); printf("%s as %s\n", $$->name, $$->real_name);}
                ;
 
 from_clauses_item:
@@ -1165,8 +1169,8 @@ from_clauses_list:
 from_word: FROM {}
 
 from_clause:
-             from_word '(' select_statement ')' {
-                select_stack[depth].push_back($3);
+             from_word '(' select_statement ')' AS NAME {
+                $$ = $3->root;
             }
             | from_word from_clauses_list 
             {
@@ -1176,16 +1180,14 @@ from_clause:
                 }
                 (*sp)->tables = $2;
                 (*sp)->SELECT_LIST = false;
-                /*for(variable v : *((*sp)->select_variable)) {
-                   printf("Variable: %s %s\n", v.name, v.table);
-                }*/
+                $$ = 0;
             }
             
 
 select_options: 
                 projection_clause from_clause where_clause group_by_clause having_clause
                 {
-                    Select* s = new Select(database, $3, (*sp)->tables, (*sp)->select_variable);
+                    Select* s = new Select(database, $3, (*sp)->tables, (*sp)->select_variable, $2);
                     if($1 != 0 && $1->getCorrelated()) {
                         s->addKid($1);
                     } else {
@@ -1197,7 +1199,7 @@ select_options:
                 }
                 | projection_clause from_clause where_clause group_by_clause
                 {
-                    Select* s = new Select(database, $3, (*sp)->tables, (*sp)->select_variable);
+                    Select* s = new Select(database, $3, (*sp)->tables, (*sp)->select_variable, $2);
                     s->addKid($1);
                     s->addGroup($4);
                     $$ = s;
@@ -1205,7 +1207,7 @@ select_options:
                 | projection_clause from_clause group_by_clause
                 {
                     node* root = 0;
-                    Select* s = new Select(database, root, (*sp)->tables, (*sp)->select_variable);
+                    Select* s = new Select(database, root, (*sp)->tables, (*sp)->select_variable, $2);
                     s->addKid($1);
                     s->addGroup($3);
                     $$ = s;
@@ -1213,7 +1215,7 @@ select_options:
                 | projection_clause from_clause group_by_clause having_clause
                 {
                     node* root = 0;
-                    Select* s = new Select(database, root, (*sp)->tables, (*sp)->select_variable);
+                    Select* s = new Select(database, root, (*sp)->tables, (*sp)->select_variable, $2);
                     s->addKid($1);
                     s->addGroup($3);
                     s->addHaving($4);
@@ -1221,22 +1223,22 @@ select_options:
                 }
                 | projection_clause from_clause where_clause 
                 {
-                    Select* s = new Select(database, $3, (*sp)->tables, (*sp)->select_variable);
+                    Select* s = new Select(database, $3, (*sp)->tables, (*sp)->select_variable, $2);
                     s->addKid($1);
                     $$ = s;
                 }
                 | projection_clause from_clause
                 {
                     node* root = 0;
-                    Select* s = new Select(database, root, (*sp)->tables, (*sp)->select_variable);
+                    Select* s = new Select(database, root, (*sp)->tables, (*sp)->select_variable, $2);
                     s->addKid($1);
                     $$ = s;
                 }
               ;
 
 select_options_more:
-                    UNION ALL SELECT select_options { $$ = $4; }
-                   | UNION SELECT select_options { $$ = $3; }
+                    UNION ALL select_statement { $$ = $3; $$->setCorrelated();}
+                   | UNION select_statement { $$ = $2;}
                    ;
 
 select_statement:  //Select* s = new Select(database, $2, (*sp)->tables, (*sp)->select_variable);
@@ -1269,6 +1271,23 @@ select_statement:  //Select* s = new Select(database, $2, (*sp)->tables, (*sp)->
                     --depth;
                     pop(sp);
                 }
+                | select_word select_options select_options_more
+                {
+                    $$ = $2;
+                    for(Select* select : select_stack[depth]) {
+                        if(select != 0 && select->getCorrelated()) {
+                            $$->addKid(select);
+                        } else $$->addSibling(select);
+                    }
+                    select_stack[depth].clear();
+                    
+                    $$->addSibling($3);
+                    if(corr_stack[depth])$$->setCorrelated();
+                    --depth;
+                    pop(sp);
+                }
+
+
                 | select_word select_options select_options_more order_by_clause
                 {
                     $$ = $2;

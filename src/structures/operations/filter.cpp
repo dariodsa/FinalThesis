@@ -1,7 +1,7 @@
 #include "filter.h"
 
 Filter::Filter(bool isEqual, int numOfOperations) {
-    printf("FILTER\n");
+    printf("FILTER %d %d\n", isEqual, numOfOperations);
     this->isEqual = isEqual;
     this->numOfOperations = numOfOperations;
 }
@@ -18,13 +18,13 @@ double Filter::getRuntimeCost(Database* database) {
     double nt = children[0]->getNt();
     
     double cost = nt * ( numOfOperations * database->CPU_OPERATOR_COST + database->CPU_TUPLE_COST);
-    return cost;
+    return cost + children[0]->getTotalCost(database);
 }
 
 double Filter::getNt() {
     double nt = children[0]->getNt();
-    if(isEqual) nt *= 0.01;
-    else nt *= 0.12;
-    
+    if(isEqual) nt *= 0.004;
+    else nt *= 0.1;
+    if(nt < 1) nt = 1;
     return nt;
 }

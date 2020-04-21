@@ -1,2 +1,835 @@
-{"dbName":"tpch","foreign_keys":[{"col_tables1":["s_nationkey"],"col_tables2":["n_nationkey"],"table1":"supplier","table2":"nation"},{"col_tables1":["ps_partkey"],"col_tables2":["p_partkey"],"table1":"partsupp","table2":"part"},{"col_tables1":["ps_suppkey"],"col_tables2":["s_suppkey"],"table1":"partsupp","table2":"supplier"},{"col_tables1":["c_nationkey"],"col_tables2":["n_nationkey"],"table1":"customer","table2":"nation"},{"col_tables1":["o_custkey"],"col_tables2":["c_custkey"],"table1":"orders","table2":"customer"},{"col_tables1":["l_orderkey"],"col_tables2":["o_orderkey"],"table1":"lineitem","table2":"orders"},{"col_tables1":["l_partkey","l_suppkey"],"col_tables2":["ps_partkey","ps_suppkey"],"table1":"lineitem","table2":"partsupp"},{"col_tables1":["n_regionkey"],"col_tables2":["r_regionkey"],"table1":"nation","table2":"region"}],"ipAddress":"127.0.0.1","password":"12345","port":5432,"tables":[{"columns":[{"name":"c_custkey","primary_key_or_unique":false,"type":"integer"},{"name":"c_name","primary_key_or_unique":true,"type":"character"},{"name":"c_address","primary_key_or_unique":false,"type":"character"},{"name":"c_nationkey","primary_key_or_unique":true,"type":"integer"},{"name":"c_phone","primary_key_or_unique":false,"type":"character"},{"name":"c_acctbal","primary_key_or_unique":false,"type":"numeric"},{"name":"c_mktsegment","primary_key_or_unique":false,"type":"character"},{"name":"c_comment","primary_key_or_unique":false,"type":"character"}],"database":"","indexs":[{"col_names":["c_name"],"col_types":[1],"hash":-750552763,"name":"c_name","table":"customer","unique":false},{"col_names":["c_nationkey"],"col_types":[1],"hash":351387788,"name":"c_nationkey","table":"customer","unique":false},{"col_names":["c_custkey"],"col_types":[1],"hash":322380744,"name":"","table":"customer","unique":false}],"numOfRows":150000,"table_name":"customer"},{"columns":[{"name":"l_orderkey","primary_key_or_unique":false,"type":"integer"},{"name":"l_partkey","primary_key_or_unique":false,"type":"integer"},{"name":"l_suppkey","primary_key_or_unique":false,"type":"integer"},{"name":"l_linenumber","primary_key_or_unique":false,"type":"integer"},{"name":"l_quantity","primary_key_or_unique":false,"type":"numeric"},{"name":"l_extendedprice","primary_key_or_unique":false,"type":"numeric"},{"name":"l_discount","primary_key_or_unique":false,"type":"numeric"},{"name":"l_tax","primary_key_or_unique":false,"type":"numeric"},{"name":"l_returnflag","primary_key_or_unique":false,"type":"character"},{"name":"l_linestatus","primary_key_or_unique":false,"type":"character"},{"name":"l_shipdate","primary_key_or_unique":false,"type":"date"},{"name":"l_commitdate","primary_key_or_unique":false,"type":"date"},{"name":"l_receiptdate","primary_key_or_unique":false,"type":"date"},{"name":"l_shipinstruct","primary_key_or_unique":false,"type":"character"},{"name":"l_shipmode","primary_key_or_unique":false,"type":"character"},{"name":"l_comment","primary_key_or_unique":false,"type":"character"}],"database":"","indexs":[{"col_names":["l_orderkey","l_linenumber"],"col_types":[1,1],"hash":712539052,"name":"","table":"lineitem","unique":false}],"numOfRows":6001215,"table_name":"lineitem"},{"columns":[{"name":"n_nationkey","primary_key_or_unique":false,"type":"integer"},{"name":"n_name","primary_key_or_unique":false,"type":"character"},{"name":"n_regionkey","primary_key_or_unique":false,"type":"integer"},{"name":"n_comment","primary_key_or_unique":false,"type":"character"}],"database":"","indexs":[{"col_names":["n_nationkey"],"col_types":[1],"hash":1109092095,"name":"","table":"nation","unique":false}],"numOfRows":25,"table_name":"nation"},{"columns":[{"name":"o_orderkey","primary_key_or_unique":false,"type":"integer"},{"name":"o_custkey","primary_key_or_unique":false,"type":"integer"},{"name":"o_orderstatus","primary_key_or_unique":false,"type":"character"},{"name":"o_totalprice","primary_key_or_unique":false,"type":"numeric"},{"name":"o_orderdate","primary_key_or_unique":false,"type":"date"},{"name":"o_orderpriority","primary_key_or_unique":false,"type":"character"},{"name":"o_clerk","primary_key_or_unique":false,"type":"character"},{"name":"o_shippriority","primary_key_or_unique":false,"type":"integer"},{"name":"o_comment","primary_key_or_unique":false,"type":"character"}],"database":"","indexs":[{"col_names":["o_orderkey"],"col_types":[1],"hash":392426059,"name":"","table":"orders","unique":false}],"numOfRows":1500000,"table_name":"orders"},{"columns":[{"name":"p_partkey","primary_key_or_unique":false,"type":"integer"},{"name":"p_name","primary_key_or_unique":false,"type":"character"},{"name":"p_mfgr","primary_key_or_unique":false,"type":"character"},{"name":"p_brand","primary_key_or_unique":false,"type":"character"},{"name":"p_type","primary_key_or_unique":false,"type":"character"},{"name":"p_size","primary_key_or_unique":false,"type":"integer"},{"name":"p_container","primary_key_or_unique":false,"type":"character"},{"name":"p_retailprice","primary_key_or_unique":false,"type":"numeric"},{"name":"p_comment","primary_key_or_unique":false,"type":"character"}],"database":"","indexs":[{"col_names":["p_partkey"],"col_types":[1],"hash":-1789951363,"name":"","table":"part","unique":false}],"numOfRows":200000,"table_name":"part"},{"columns":[{"name":"ps_partkey","primary_key_or_unique":false,"type":"integer"},{"name":"ps_suppkey","primary_key_or_unique":false,"type":"integer"},{"name":"ps_availqty","primary_key_or_unique":false,"type":"integer"},{"name":"ps_supplycost","primary_key_or_unique":false,"type":"numeric"},{"name":"ps_comment","primary_key_or_unique":false,"type":"character"}],"database":"","indexs":[{"col_names":["ps_partkey","ps_suppkey"],"col_types":[1,1],"hash":-606056621,"name":"","table":"partsupp","unique":false}],"numOfRows":800000,"table_name":"partsupp"},{"columns":[{"name":"r_regionkey","primary_key_or_unique":false,"type":"integer"},{"name":"r_name","primary_key_or_unique":false,"type":"character"},{"name":"r_comment","primary_key_or_unique":false,"type":"character"}],"database":"","indexs":[{"col_names":["r_regionkey"],"col_types":[1],"hash":1751149758,"name":"","table":"region","unique":false}],"numOfRows":5,"table_name":"region"},{"columns":[{"name":"s_suppkey","primary_key_or_unique":false,"type":"integer"},{"name":"s_name","primary_key_or_unique":false,"type":"character"},{"name":"s_address","primary_key_or_unique":false,"type":"character"},{"name":"s_nationkey","primary_key_or_unique":false,"type":"integer"},{"name":"s_phone","primary_key_or_unique":false,"type":"character"},{"name":"s_acctbal","primary_key_or_unique":false,"type":"numeric"},{"name":"s_comment","primary_key_or_unique":false,"type":"character"}],"database":"","indexs":[{"col_names":["s_suppkey"],"col_types":[1],"hash":1597051393,"name":"","table":"supplier","unique":false}],"numOfRows":10000,"table_name":"supplier"}],"username":"postgres"}
+{
+  "dbName": "tpch",
+  "foreign_keys": [
+    {
+      "col_tables1": [
+        "s_nationkey"
+      ],
+      "col_tables2": [
+        "n_nationkey"
+      ],
+      "table1": "supplier",
+      "table2": "nation"
+    },
+    {
+      "col_tables1": [
+        "ps_partkey"
+      ],
+      "col_tables2": [
+        "p_partkey"
+      ],
+      "table1": "partsupp",
+      "table2": "part"
+    },
+    {
+      "col_tables1": [
+        "ps_suppkey"
+      ],
+      "col_tables2": [
+        "s_suppkey"
+      ],
+      "table1": "partsupp",
+      "table2": "supplier"
+    },
+    {
+      "col_tables1": [
+        "c_nationkey"
+      ],
+      "col_tables2": [
+        "n_nationkey"
+      ],
+      "table1": "customer",
+      "table2": "nation"
+    },
+    {
+      "col_tables1": [
+        "o_custkey"
+      ],
+      "col_tables2": [
+        "c_custkey"
+      ],
+      "table1": "orders",
+      "table2": "customer"
+    },
+    {
+      "col_tables1": [
+        "l_orderkey"
+      ],
+      "col_tables2": [
+        "o_orderkey"
+      ],
+      "table1": "lineitem",
+      "table2": "orders"
+    },
+    {
+      "col_tables1": [
+        "l_partkey",
+        "l_suppkey"
+      ],
+      "col_tables2": [
+        "ps_partkey",
+        "ps_suppkey"
+      ],
+      "table1": "lineitem",
+      "table2": "partsupp"
+    },
+    {
+      "col_tables1": [
+        "n_regionkey"
+      ],
+      "col_tables2": [
+        "r_regionkey"
+      ],
+      "table1": "nation",
+      "table2": "region"
+    }
+  ],
+  "ipAddress": "127.0.0.1",
+  "password": "12345",
+  "port": 5432,
+  "tables": [
+    {
+      "columns": [
+        {
+          "name": "c_custkey",
+          "primary_key_or_unique": false,
+          "type": "integer"
+        },
+        {
+          "name": "c_name",
+          "primary_key_or_unique": true,
+          "type": "character"
+        },
+        {
+          "name": "c_address",
+          "primary_key_or_unique": false,
+          "type": "character"
+        },
+        {
+          "name": "c_nationkey",
+          "primary_key_or_unique": true,
+          "type": "integer"
+        },
+        {
+          "name": "c_phone",
+          "primary_key_or_unique": false,
+          "type": "character"
+        },
+        {
+          "name": "c_acctbal",
+          "primary_key_or_unique": false,
+          "type": "numeric"
+        },
+        {
+          "name": "c_mktsegment",
+          "primary_key_or_unique": false,
+          "type": "character"
+        },
+        {
+          "name": "c_comment",
+          "primary_key_or_unique": false,
+          "type": "character"
+        }
+      ],
+      "database": "",
+      "indexs": [
+        {
+          "col_names": [
+            "c_name"
+          ],
+          "col_types": [
+            1
+          ],
+          "hash": -750552763,
+          "name": "c_name",
+          "table": "customer",
+          "unique": false
+        },
+        {
+          "col_names": [
+            "c_nationkey"
+          ],
+          "col_types": [
+            1
+          ],
+          "hash": 351387788,
+          "name": "c_nationkey",
+          "table": "customer",
+          "unique": false
+        },
+        {
+          "col_names": [
+            "c_custkey"
+          ],
+          "col_types": [
+            1
+          ],
+          "hash": 322380744,
+          "name": "",
+          "table": "customer",
+          "unique": true
+        },
+        {
+          "col_names": [
+            "c_acctbal"
+          ],
+          "col_types": [
+            1
+          ],
+          "hash": 2,
+          "name": "",
+          "table": "customer",
+          "unique": false
+        }
+      ],
+      "numOfRows": 150000,
+      "table_name": "customer"
+    },
+    {
+      "columns": [
+        {
+          "name": "l_orderkey",
+          "primary_key_or_unique": false,
+          "type": "integer"
+        },
+        {
+          "name": "l_partkey",
+          "primary_key_or_unique": false,
+          "type": "integer"
+        },
+        {
+          "name": "l_suppkey",
+          "primary_key_or_unique": false,
+          "type": "integer"
+        },
+        {
+          "name": "l_linenumber",
+          "primary_key_or_unique": false,
+          "type": "integer"
+        },
+        {
+          "name": "l_quantity",
+          "primary_key_or_unique": false,
+          "type": "numeric"
+        },
+        {
+          "name": "l_extendedprice",
+          "primary_key_or_unique": false,
+          "type": "numeric"
+        },
+        {
+          "name": "l_discount",
+          "primary_key_or_unique": false,
+          "type": "numeric"
+        },
+        {
+          "name": "l_tax",
+          "primary_key_or_unique": false,
+          "type": "numeric"
+        },
+        {
+          "name": "l_returnflag",
+          "primary_key_or_unique": false,
+          "type": "character"
+        },
+        {
+          "name": "l_linestatus",
+          "primary_key_or_unique": false,
+          "type": "character"
+        },
+        {
+          "name": "l_shipdate",
+          "primary_key_or_unique": false,
+          "type": "date"
+        },
+        {
+          "name": "l_commitdate",
+          "primary_key_or_unique": false,
+          "type": "date"
+        },
+        {
+          "name": "l_receiptdate",
+          "primary_key_or_unique": false,
+          "type": "date"
+        },
+        {
+          "name": "l_shipinstruct",
+          "primary_key_or_unique": false,
+          "type": "character"
+        },
+        {
+          "name": "l_shipmode",
+          "primary_key_or_unique": false,
+          "type": "character"
+        },
+        {
+          "name": "l_comment",
+          "primary_key_or_unique": false,
+          "type": "character"
+        }
+      ],
+      "database": "",
+      "indexs": [
+        {
+          "col_names": [
+            "l_orderkey",
+            "l_linenumber"
+          ],
+          "col_types": [
+            1,
+            1
+          ],
+          "hash": 712539052,
+          "name": "",
+          "table": "lineitem",
+          "unique": true
+        }, 
+	{
+          "col_names": [
+            "l_orderkey"
+          ],
+          "col_types": [
+            1
+          ],
+          "hash": 712539052,
+          "name": "",
+          "table": "lineitem",
+          "unique": false
+        },
+	{
+          "col_names": [
+            "l_partkey"
+          ],
+          "col_types": [
+            1
+          ],
+          "hash": 712539052,
+          "name": "",
+          "table": "lineitem",
+          "unique": false
+        },
+	{
+          "col_names": [
+            "l_suppkey"
+          ],
+          "col_types": [
+            1
+          ],
+          "hash": 712539052,
+          "name": "",
+          "table": "lineitem",
+          "unique": false
+        },
+        {
+          "col_names": [
+            "l_extendedprice"
+          ],
+          "col_types": [
+            1
+          ],
+          "hash": 712539052,
+          "name": "",
+          "table": "lineitem",
+          "unique": false
+        },
+        {
+          "col_names": [
+            "l_quantity"
+          ],
+          "col_types": [
+            1
+          ],
+          "hash": 712539052,
+          "name": "",
+          "table": "lineitem",
+          "unique": false
+        },
+	{
+          "col_names": [
+            "l_discount"
+          ],
+          "col_types": [
+            1
+          ],
+          "hash": 712539052,
+          "name": "",
+          "table": "lineitem",
+          "unique": false
+        },
+	{
+          "col_names": [
+            "l_tax"
+          ],
+          "col_types": [
+            1
+          ],
+          "hash": 712539052,
+          "name": "",
+          "table": "lineitem",
+          "unique": false
+        }
 
+
+
+
+      ],
+      "numOfRows": 6001215,
+      "table_name": "lineitem"
+    },
+    {
+      "columns": [
+        {
+          "name": "n_nationkey",
+          "primary_key_or_unique": false,
+          "type": "integer"
+        },
+        {
+          "name": "n_name",
+          "primary_key_or_unique": false,
+          "type": "character"
+        },
+        {
+          "name": "n_regionkey",
+          "primary_key_or_unique": false,
+          "type": "integer"
+        },
+        {
+          "name": "n_comment",
+          "primary_key_or_unique": false,
+          "type": "character"
+        }
+      ],
+      "database": "",
+      "indexs": [
+        {
+          "col_names": [
+            "n_nationkey"
+          ],
+          "col_types": [
+            1
+          ],
+          "hash": 1109092095,
+          "name": "",
+          "table": "nation",
+          "unique": true
+        }
+      ],
+      "numOfRows": 25,
+      "table_name": "nation"
+    },
+    {
+      "columns": [
+        {
+          "name": "o_orderkey",
+          "primary_key_or_unique": false,
+          "type": "integer"
+        },
+        {
+          "name": "o_custkey",
+          "primary_key_or_unique": false,
+          "type": "integer"
+        },
+        {
+          "name": "o_orderstatus",
+          "primary_key_or_unique": false,
+          "type": "character"
+        },
+        {
+          "name": "o_totalprice",
+          "primary_key_or_unique": false,
+          "type": "numeric"
+        },
+        {
+          "name": "o_orderdate",
+          "primary_key_or_unique": false,
+          "type": "date"
+        },
+        {
+          "name": "o_orderpriority",
+          "primary_key_or_unique": false,
+          "type": "character"
+        },
+        {
+          "name": "o_clerk",
+          "primary_key_or_unique": false,
+          "type": "character"
+        },
+        {
+          "name": "o_shippriority",
+          "primary_key_or_unique": false,
+          "type": "integer"
+        },
+        {
+          "name": "o_comment",
+          "primary_key_or_unique": false,
+          "type": "character"
+        }
+      ],
+      "database": "",
+      "indexs": [
+        {
+          "col_names": [
+            "o_orderkey"
+          ],
+          "col_types": [
+            1
+          ],
+          "hash": 392426059,
+          "name": "",
+          "table": "orders",
+          "unique": true
+        }, 
+	{
+          "col_names": [
+            "o_custkey"
+          ],
+          "col_types": [
+            1
+          ],
+          "hash": 392426059,
+          "name": "",
+          "table": "orders",
+          "unique": false
+        },
+	{
+          "col_names": [
+            "o_totalprice"
+          ],
+          "col_types": [
+            1
+          ],
+          "hash": 392426059,
+          "name": "",
+          "table": "orders",
+          "unique": false
+        }, 
+	{
+          "col_names": [
+            "o_orderpriority"
+          ],
+          "col_types": [
+            1
+          ],
+          "hash": 392426059,
+          "name": "",
+          "table": "orders",
+          "unique": false
+        }, 
+        {
+          "col_names": [
+            "o_shippriority"
+          ],
+          "col_types": [
+            1
+          ],
+          "hash": 392426059,
+          "name": "",
+          "table": "orders",
+          "unique": false
+        }
+
+
+
+      ],
+      "numOfRows": 1500000,
+      "table_name": "orders"
+    },
+    {
+      "columns": [
+        {
+          "name": "p_partkey",
+          "primary_key_or_unique": false,
+          "type": "integer"
+        },
+        {
+          "name": "p_name",
+          "primary_key_or_unique": false,
+          "type": "character"
+        },
+        {
+          "name": "p_mfgr",
+          "primary_key_or_unique": false,
+          "type": "character"
+        },
+        {
+          "name": "p_brand",
+          "primary_key_or_unique": false,
+          "type": "character"
+        },
+        {
+          "name": "p_type",
+          "primary_key_or_unique": false,
+          "type": "character"
+        },
+        {
+          "name": "p_size",
+          "primary_key_or_unique": false,
+          "type": "integer"
+        },
+        {
+          "name": "p_container",
+          "primary_key_or_unique": false,
+          "type": "character"
+        },
+        {
+          "name": "p_retailprice",
+          "primary_key_or_unique": false,
+          "type": "numeric"
+        },
+        {
+          "name": "p_comment",
+          "primary_key_or_unique": false,
+          "type": "character"
+        }
+      ],
+      "database": "",
+      "indexs": [
+        {
+          "col_names": [
+            "p_partkey"
+          ],
+          "col_types": [
+            1
+          ],
+          "hash": -1789951363,
+          "name": "",
+          "table": "part",
+          "unique": true
+        }, 
+	{
+          "col_names": [
+            "p_size"
+          ],
+          "col_types": [
+            1
+          ],
+          "hash": -1789951363,
+          "name": "",
+          "table": "part",
+          "unique": false
+        }, 
+	{
+          "col_names": [
+            "p_retailprice"
+          ],
+          "col_types": [
+            1
+          ],
+          "hash": -1789951363,
+          "name": "",
+          "table": "part",
+          "unique": false
+        }	
+	
+
+      ],
+      "numOfRows": 200000,
+      "table_name": "part"
+    },
+    {
+      "columns": [
+        {
+          "name": "ps_partkey",
+          "primary_key_or_unique": false,
+          "type": "integer"
+        },
+        {
+          "name": "ps_suppkey",
+          "primary_key_or_unique": false,
+          "type": "integer"
+        },
+        {
+          "name": "ps_availqty",
+          "primary_key_or_unique": false,
+          "type": "integer"
+        },
+        {
+          "name": "ps_supplycost",
+          "primary_key_or_unique": false,
+          "type": "numeric"
+        },
+        {
+          "name": "ps_comment",
+          "primary_key_or_unique": false,
+          "type": "character"
+        }
+      ],
+      "database": "",
+      "indexs": [
+        {
+          "col_names": [
+            "ps_partkey",
+            "ps_suppkey"
+          ],
+          "col_types": [
+            1,
+            1
+          ],
+          "hash": -606056621,
+          "name": "",
+          "table": "partsupp",
+          "unique": true
+        }, 
+	{
+          "col_names": [
+            "ps_partkey"
+          ],
+          "col_types": [
+            1
+          ],
+          "hash": -606056621,
+          "name": "",
+          "table": "partsupp",
+          "unique": false
+        }, 
+	{
+          "col_names": [
+            "ps_suppkey"
+          ],
+          "col_types": [
+            1
+          ],
+          "hash": -606056621,
+          "name": "",
+          "table": "partsupp",
+          "unique": false
+        }, 
+	{
+          "col_names": [
+            "ps_availqty"
+          ],
+          "col_types": [
+            1
+          ],
+          "hash": -606056621,
+          "name": "",
+          "table": "partsupp",
+          "unique": false
+        }
+
+
+      ],
+      "numOfRows": 800000,
+      "table_name": "partsupp"
+    },
+    {
+      "columns": [
+        {
+          "name": "r_regionkey",
+          "primary_key_or_unique": false,
+          "type": "integer"
+        },
+        {
+          "name": "r_name",
+          "primary_key_or_unique": false,
+          "type": "character"
+        },
+        {
+          "name": "r_comment",
+          "primary_key_or_unique": false,
+          "type": "character"
+        }
+      ],
+      "database": "",
+      "indexs": [
+        {
+          "col_names": [
+            "r_regionkey"
+          ],
+          "col_types": [
+            1
+          ],
+          "hash": 1751149758,
+          "name": "",
+          "table": "region",
+          "unique": true
+        }
+      ],
+      "numOfRows": 5,
+      "table_name": "region"
+    },
+    {
+      "columns": [
+        {
+          "name": "s_suppkey",
+          "primary_key_or_unique": false,
+          "type": "integer"
+        },
+        {
+          "name": "s_name",
+          "primary_key_or_unique": false,
+          "type": "character"
+        },
+        {
+          "name": "s_address",
+          "primary_key_or_unique": false,
+          "type": "character"
+        },
+        {
+          "name": "s_nationkey",
+          "primary_key_or_unique": false,
+          "type": "integer"
+        },
+        {
+          "name": "s_phone",
+          "primary_key_or_unique": false,
+          "type": "character"
+        },
+        {
+          "name": "s_acctbal",
+          "primary_key_or_unique": false,
+          "type": "numeric"
+        },
+        {
+          "name": "s_comment",
+          "primary_key_or_unique": false,
+          "type": "character"
+        }
+      ],
+      "database": "",
+      "indexs": [
+        {
+          "col_names": [
+            "s_suppkey"
+          ],
+          "col_types": [
+            1
+          ],
+          "hash": 1597051393,
+          "name": "",
+          "table": "supplier",
+          "unique": true
+        }, 
+	{
+          "col_names": [
+            "s_nationkey"
+          ],
+          "col_types": [
+            1
+          ],
+          "hash": 1597051393,
+          "name": "",
+          "table": "supplier",
+          "unique": false
+        }, 
+	{
+          "col_names": [
+            "s_acctbal"
+          ],
+          "col_types": [
+            1
+          ],
+          "hash": 1597051393,
+          "name": "",
+          "table": "supplier",
+          "unique": false
+        }
+
+
+      ],
+      "numOfRows": 10000,
+      "table_name": "supplier"
+    }
+  ],
+  "username": "postgres"
+}

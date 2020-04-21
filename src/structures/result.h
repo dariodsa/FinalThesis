@@ -4,13 +4,18 @@
 #include <string.h>
 #include <vector>
 #include <set>
+#include <utility>
+#include <cstdint>
 #include <tuple>
+#include "database.h"
 #include "index.h"
 
-class Database;
+
+//class Database;
 
 class Operation;
 class Column;
+class Table;
 
 extern char AND_STR[4];
 extern char NOT_STR[4];
@@ -52,7 +57,7 @@ class Result{
 class Select{
     public: 
         Select();
-        Select(Database* database, node* root, std::vector<table_name*>* tables, std::vector<variable>* variables);
+        Select(Database* database, node* root, std::vector<table_name*>* tables, std::vector<variable>* variables, Operation *root_like);
 
         double getFinalCost(Database *database);
         
@@ -64,7 +69,7 @@ class Select{
         std::pair<long, long> getProcessResult();
         char *getQuery();
 
-        static bool compare_index_pointer(pair<Index*, pair<int, int> > a, pair<Index*, pair<int, int> > b);
+        static bool compare_index_pointer(pair<Index*, std::pair<int, int> > a, std::pair<Index*, std::pair<int, int> > b);
         static resursi mergeResource(resursi A, resursi B);
 
         void addSort(int numOfVariables);
@@ -80,14 +85,22 @@ class Select{
 
         resursi getResource();
 
-        static std::vector<pair<bool, int> > numOfFilter(std::vector<Table*> tables, std::vector<expression_info*> area);
+        static std::vector<std::pair<bool, int> > numOfFilter(Select* s, std::vector<Table*> tables1, std::vector<Table*> tables2, std::vector<expression_info*> area);
         static void setNewOperation(Operation* old_operation , Operation* new_operation, std::map<std::string, Operation*> *operations);
         static std::vector<Table*> getTables(Database* database, std::map<std::string, Operation*> tables_operations, Operation* operation);
+    
+        Operation* root;
+
+        double _cost;
+        long long int created;
+    
     private:
         void dfs(node *root);
-        vector<vector<expression_info*> > getAreas(node *root);
+        std::vector<std::vector<expression_info*> > getAreas(node *root);
         double getCost(Database *database);
         double getLoadingCost(Database* database);
+
+        void initResources();
 
         int sumOperations(node *root);
 
@@ -102,7 +115,7 @@ class Select{
         resursi resouce;
         Database* database;
 
-        Operation* root;
+        std::map<intptr_t, bool> used_exp;
 
         std::set<Table> tables_set;
         int or_node;

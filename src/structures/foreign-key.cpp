@@ -81,7 +81,7 @@ bool ForeignKey::contains(vector<char*> col1, vector<char*> col2) {
     }    
     
     printf("Foreign key %d %d\n", cnt, columns_table1.size());
-    return cnt == columns_table1.size();
+    return cnt > 0;
 }
 
 json::value ForeignKey::getJSON() {

@@ -14,7 +14,7 @@ Index::Index(web::json::value json) : Index(){
     this->setTable(json["table"].as_string().c_str());
     
     this->setUnique(json["unique"].as_bool());
-    this->hash = json["hash"].as_integer();
+    
 
     web::json::array col_names = json["col_names"].as_array();
     web::json::array col_types = json["col_types"].as_array();
@@ -115,7 +115,10 @@ TYPE_COL Index::getColType(int index) {
 }
 
 long long Index::getSize() {
-    return (long long) this->getColNumber() * (long long) Program::AVERAGE_DATA_SIZE;
+    int col_n = this->getColNumber();
+    if(col_n == 0) col_n = 1;
+    
+    return (long long) col_n * (long long) Program::AVERAGE_DATA_SIZE;
 }
 
 float Index::getCost(Database* database, int len, bool isScan) {

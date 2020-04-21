@@ -1,6 +1,7 @@
 #include "merge-join.h"
 
 MergeJoin::MergeJoin(bool foreign_key) {
+    printf("MERGE JOIN %d\n", foreign_key);
     if(foreign_key) {
         this->nt = 0;
     } else {
@@ -33,15 +34,16 @@ double MergeJoin::getRuntimeCost(Database* database) {
 
     int N = children[0]->getNt();
     int M = children[1]->getNt();
-    
-    double cost = ( N + M) * (database->CPU_TUPLE_COST + database->CPU_OPERATOR_COST);
+    double c1 = children[0]->getTotalCost(database);
+    double c2 = children[1]->getTotalCost(database);
+    double cost = c1 + c2 + ( N + M) * (database->CPU_TUPLE_COST + database->CPU_OPERATOR_COST);
     return cost;
 }
 
 double MergeJoin::getNt() {
     if(children.size() != 2) return 0;
     if(nt == -1) {
-        return children[0]->getNt() * children[1]->getNt();
+        return children[0]->getNt() + children[1]->getNt() * 3;
     } else {
         return children[0]->getNt();
     }

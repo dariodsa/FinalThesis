@@ -6,6 +6,7 @@
 #include "structures/strategies/round-robin.h"
 #include "structures/strategies/smart.h"
 #include "structures/result.h"
+#include "structures/table.h"
 
 #include <libpq-fe.h>
 #include <vector>
@@ -81,17 +82,19 @@ int main(int argc, char* argv[]) {
         printf("Unknown strategy.\n");
         return 0;
     }
+    /*
+    //50
+    Select* sa = process_query(replicas[0], "select  	n_name,  	sum(l_extendedprice * (1 - l_discount)) as revenue  from  	customer,  	orders,  	lineitem,  	supplier,  	nation,  	region  where        c_custkey = o_custkey  	and l_orderkey = o_orderkey  	and l_suppkey = s_suppkey  	and c_nationkey = s_nationkey  	and s_nationkey = n_nationkey  	and n_regionkey = r_regionkey  	and r_name = 'ASIA'  	and o_orderdate >= date '1994-01-01'  	and o_orderdate < date '1994-01-01' + interval '1' year  group by  	n_name  order by  	revenue desc;");
+    printf("50: Cost: %lf\n\n\n\n", sa->getFinalCost(replicas[0]) / 1000);
 
-    /*Select* sa = process_query(replicas[0], "select * from nation; ");
-    sa->getFinalCost(replicas[0]);
+    //90
+    Select* sa2 = process_query(replicas[0], "select 	nation, 	o_year, 	sum(amount) as sum_profit from 	( 		select 			n_name as nation, 			extract(year from o_orderdate) as o_year, 			l_extendedprice * (1 - l_discount) - ps_supplycost * l_quantity as amount 		from 			part, 			supplier, 			lineitem, 			partsupp, 			orders, 			nation 		where 			s_suppkey = l_suppkey 			and ps_suppkey = l_suppkey 			and ps_partkey = l_partkey 			and p_partkey = l_partkey 			and o_orderkey = l_orderkey 			and s_nationkey = n_nationkey 			and p_name like '%green%' 	)  as t group by 	nation, 	o_year order by 	nation, 	o_year desc;");
+    printf("90: Cost: %lf\n", sa2->getFinalCost(replicas[0]) / 1000);
     
-    printf("\n\n\n\n\n\n");
-    replicas[0]->addRequest(sa);
 
-    Select* sa2 = process_query(replicas[0], "select * from lineitem; ");
-    sa2->getFinalCost(replicas[0]);
-    replicas[0]->addRequest(sa2);
-    return 0;*/
+    printf("\n\n\n\n\n\n");
+    return 0;
+    */
     //Proxy* p = new Proxy(55432, replicas[0]);
 
     vector<pair<const char*, int>> queries;    
@@ -111,22 +114,26 @@ int main(int argc, char* argv[]) {
     queries.push_back(make_pair("select  	n_name,  	sum(l_extendedprice * (1 - l_discount)) as revenue  from  	customer,  	orders,  	lineitem,  	supplier,  	nation,  	region  where        c_custkey = o_custkey  	and l_orderkey = o_orderkey  	and l_suppkey = s_suppkey  	and c_nationkey = s_nationkey  	and s_nationkey = n_nationkey  	and n_regionkey = r_regionkey  	and r_name = 'ASIA'  	and o_orderdate >= date '1994-01-01'  	and o_orderdate < date '1994-01-01' + interval '1' year  group by  	n_name  order by  	revenue desc;", 50));
     //6
     //queries.push_back(make_pair("select 	sum(l_extendedprice * l_discount) as revenue from 	lineitem where 	l_shipdate >= date '1994-01-01' 	and l_shipdate < date '1994-01-01' + interval '1' year 	and l_discount between .06 - 0.01 and .06 + 0.01 	and l_quantity < 24; ", 60));
-    
+    //*
+    queries.push_back(make_pair("select 	c_name, 	c_custkey, 	o_orderkey, 	o_orderdate, 	o_totalprice, 	sum(l_quantity) from 	customer, 	orders, 	lineitem where 	o_orderkey in ( 		select 			l_orderkey 		from 			lineitem 		group by 			l_orderkey having 				sum(l_quantity) > 300 	) 	and c_custkey = o_custkey 	and o_orderkey = l_orderkey group by 	c_name, 	c_custkey, 	o_orderkey, 	o_orderdate, 	o_totalprice order by 	o_totalprice desc, 	o_orderdate;", 180));
     //7
-    //queries.push_back(make_pair("select 	supp_nation, 	cust_nation, 	l_year, 	sum(volume) as revenue from 	( 		select 			n1.n_name , 			n2.n_name, 			extract(year from l_shipdate) , 			l_extendedprice * (1 - l_discount) 		from 			supplier, 			lineitem, 			orders, 			customer, 			nation n1, 			nation n2 		where 			s_suppkey = l_suppkey 			and o_orderkey = l_orderkey 			and c_custkey = o_custkey 			and s_nationkey = n1.n_nationkey 			and c_nationkey = n2.n_nationkey 			and ( 				(n1.n_name = 'FRANCE' and n2.n_name = 'GERMANY') 				or (n1.n_name = 'GERMANY' and n2.n_name = 'FRANCE') 			) 			and l_shipdate between date '1995-01-01' and date '1996-12-31' 	)  group by 	supp_nation, 	cust_nation, 	l_year order by 	supp_nation, 	cust_nation, 	l_year;", 70));
-    queries.push_back(make_pair("select n1.n_name as supp_nation, n2.n_name as cust_nation, extract(year from l_shipdate) as l_year, l_extendedprice * (1 - l_discount) as volume from supplier, lineitem, orders, customer, nation n1, nation n2 where s_suppkey = l_suppkey and o_orderkey = l_orderkey and c_custkey = o_custkey and s_nationkey = n1.n_nationkey and c_nationkey = n2.n_nationkey and ( (n1.n_name = 'FRANCE' and n2.n_name = 'GERMANY') or (n1.n_name = 'GERMANY' and n2.n_name = 'FRANCE') ) and l_shipdate between date '1995-01-01' and date '1996-12-31';", 71));
+    //queries.push_back(make_pair("select 	supp_nation, 	cust_nation, 	l_year, 	sum(volume) as revenue from 	( 		select 			n1.n_name , 			n2.n_name, 			extract(year from l_shipdate) , 			l_extendedprice * (1 - l_discount) 		from 			supplier, 			lineitem, 			orders, 			customer, 			nation n1, 			nation n2 		where 			s_suppkey = l_suppkey 			and o_orderkey = l_orderkey 			and c_custkey = o_custkey 			and s_nationkey = n1.n_nationkey 			and c_nationkey = n2.n_nationkey 			and ( 				(n1.n_name = 'FRANCE' and n2.n_name = 'GERMANY') 				or (n1.n_name = 'GERMANY' and n2.n_name = 'FRANCE') 			) 			and l_shipdate between date '1995-01-01' and date '1996-12-31' 	) as t  group by 	supp_nation, 	cust_nation, 	l_year order by 	supp_nation, 	cust_nation, 	l_year;", 70));
 
     //8
-    //queries.push_back(make_pair("select 	o_year, 	sum(case 		when nation = 'BRAZIL' then volume 		else 0 	end) / sum(volume) as mkt_share from 	( 		select 			extract(year from o_orderdate) as o_year, 			l_extendedprice * (1 - l_discount) as volume, 			n2.n_name as nation 		from 			part, 			supplier, 			lineitem, 			orders, 			customer, 			nation n1, 			nation n2, 			region 		where 			p_partkey = l_partkey 			and s_suppkey = l_suppkey 			and l_orderkey = o_orderkey 			and o_custkey = c_custkey 			and c_nationkey = n1.n_nationkey 			and n1.n_regionkey = r_regionkey 			and r_name = 'AMERICA' 			and s_nationkey = n2.n_nationkey 			and o_orderdate between date '1995-01-01' and date '1996-12-31' 			and p_type = 'ECONOMY ANODIZED STEEL' 	)  group by 	o_year order by 	o_year;", 80));
+    queries.push_back(make_pair("select 	o_year, 	sum(case 		when nation = 'BRAZIL' then volume 		else 0 	end) / sum(volume) as mkt_share from 	( 		select 			extract(year from o_orderdate) as o_year, 			l_extendedprice * (1 - l_discount) as volume, 			n2.n_name as nation 		from 			part, 			supplier, 			lineitem, 			orders, 			customer, 			nation n1, 			nation n2, 			region 		where 			p_partkey = l_partkey 			and s_suppkey = l_suppkey 			and l_orderkey = o_orderkey 			and o_custkey = c_custkey 			and c_nationkey = n1.n_nationkey 			and n1.n_regionkey = r_regionkey 			and r_name = 'AMERICA' 			and s_nationkey = n2.n_nationkey 			and o_orderdate between date '1995-01-01' and date '1996-12-31' 			and p_type = 'ECONOMY ANODIZED STEEL' 	) as t  group by 	o_year order by 	o_year;", 80));
     queries.push_back(make_pair("select 			extract(year from o_orderdate) as o_year, 			l_extendedprice * (1 - l_discount) as volume, 			n2.n_name as nation 		from 			part, 			supplier, 			lineitem, 			orders, 			customer, 			nation n1, 			nation n2, 			region 		where 			p_partkey = l_partkey 			and s_suppkey = l_suppkey 			and l_orderkey = o_orderkey 			and o_custkey = c_custkey 			and c_nationkey = n1.n_nationkey 			and n1.n_regionkey = r_regionkey 			and r_name = 'AMERICA' 			and s_nationkey = n2.n_nationkey 			and o_orderdate between date '1995-01-01' and date '1996-12-31' 			and p_type = 'ECONOMY ANODIZED STEEL';", 81));
 
     //9
-    //queries.push_back(make_pair("select 	nation, 	o_year, 	sum(amount) as sum_profit from 	( 		select 			n_name as nation, 			extract(year from o_orderdate) as o_year, 			l_extendedprice * (1 - l_discount) - ps_supplycost * l_quantity as amount 		from 			part, 			supplier, 			lineitem, 			partsupp, 			orders, 			nation 		where 			s_suppkey = l_suppkey 			and ps_suppkey = l_suppkey 			and ps_partkey = l_partkey 			and p_partkey = l_partkey 			and o_orderkey = l_orderkey 			and s_nationkey = n_nationkey 			and p_name like '%green%' 	) group by 	nation, 	o_year order by 	nation, 	o_year desc;", 90));
-    queries.push_back(make_pair("select 			n_name as nation, 			extract(year from o_orderdate) as o_year, 			l_extendedprice * (1 - l_discount) - ps_supplycost * l_quantity as amount 		from 			part, 			supplier, 			lineitem, 			partsupp, 			orders, 			nation 		where 			s_suppkey = l_suppkey 			and ps_suppkey = l_suppkey 			and ps_partkey = l_partkey 			and p_partkey = l_partkey 			and o_orderkey = l_orderkey 			and s_nationkey = n_nationkey 			and p_name like '%green%';", 91));
+    queries.push_back(make_pair("select 	nation, 	o_year, 	sum(amount) as sum_profit from 	( 		select 			n_name as nation, 			extract(year from o_orderdate) as o_year, 			l_extendedprice * (1 - l_discount) - ps_supplycost * l_quantity as amount 		from 			part, 			supplier, 			lineitem, 			partsupp, 			orders, 			nation 		where 			s_suppkey = l_suppkey 			and ps_suppkey = l_suppkey 			and ps_partkey = l_partkey 			and p_partkey = l_partkey 			and o_orderkey = l_orderkey 			and s_nationkey = n_nationkey 			and p_name like '%green%' 	)  as t group by 	nation, 	o_year order by 	nation, 	o_year desc;", 90));
 
     //10
     queries.push_back(make_pair("select 	c_custkey, 	c_name, 	sum(l_extendedprice * (1 - l_discount)) as revenue, 	c_acctbal, 	n_name, 	c_address, 	c_phone, 	c_comment from 	customer, 	orders, 	lineitem, 	nation where    c_custkey = o_custkey 	and l_orderkey = o_orderkey 	and o_orderdate >= date '1993-10-01' 	and o_orderdate < date '1993-10-01' + interval '3' month 	and l_returnflag = 'R' 	and c_nationkey = n_nationkey group by 	c_custkey, 	c_name, 	c_acctbal, 	c_phone, 	n_name, 	c_address, 	c_comment order by 	revenue desc;", 100));
     
+    queries.push_back(make_pair("select l_tax from lineitem union select ps_suppkey from partsupp;", 5));
+    //queries.push_back(make_pair("select l_shipmode from lineitem union select ps_comment from partsupp;", 5));
+    //*
+    queries.push_back(make_pair("select 	c_name, 	c_custkey, 	o_orderkey, 	o_orderdate, 	o_totalprice, 	sum(l_quantity) from 	customer, 	orders, 	lineitem where 	o_orderkey in ( 		select 			l_orderkey 		from 			lineitem 		group by 			l_orderkey having 				sum(l_quantity) > 300 	) 	and c_custkey = o_custkey 	and o_orderkey = l_orderkey group by 	c_name, 	c_custkey, 	o_orderkey, 	o_orderdate, 	o_totalprice order by 	o_totalprice desc, 	o_orderdate;", 180));
+
     //11
     queries.push_back(make_pair("select 	ps_partkey, 	sum(ps_supplycost * ps_availqty) as value from 	partsupp, 	supplier, 	nation where 	ps_suppkey = s_suppkey 	and s_nationkey = n_nationkey 	and n_name = 'GERMANY' group by 	ps_partkey having 		sum(ps_supplycost * ps_availqty) > ( 			select 				sum(ps_supplycost * ps_availqty) * 0.0001000000 			from 				partsupp, 				supplier, 				nation 			where 				ps_suppkey = s_suppkey 				and s_nationkey = n_nationkey 				and n_name = 'GERMANY' 		) order by 	value desc;", 110));
     queries.push_back(make_pair("select sum(ps_supplycost * ps_availqty) * 0.0001000000 from partsupp, supplier, nation where ps_suppkey = s_suppkey and s_nationkey = n_nationkey and n_name = 'GERMANY';", 111));
@@ -154,6 +161,10 @@ int main(int argc, char* argv[]) {
     
     //18
     queries.push_back(make_pair("select 	c_name, 	c_custkey, 	o_orderkey, 	o_orderdate, 	o_totalprice, 	sum(l_quantity) from 	customer, 	orders, 	lineitem where 	o_orderkey in ( 		select 			l_orderkey 		from 			lineitem 		group by 			l_orderkey having 				sum(l_quantity) > 300 	) 	and c_custkey = o_custkey 	and o_orderkey = l_orderkey group by 	c_name, 	c_custkey, 	o_orderkey, 	o_orderdate, 	o_totalprice order by 	o_totalprice desc, 	o_orderdate;", 180));
+    queries.push_back(make_pair("select 	c_name, 	c_custkey, 	o_orderkey, 	o_orderdate, 	o_totalprice, 	sum(l_quantity) from 	customer, 	orders, 	lineitem where 	o_orderkey in ( 		select 			l_orderkey 		from 			lineitem 		group by 			l_orderkey having 				sum(l_quantity) > 300 	) 	and c_custkey = o_custkey 	and o_orderkey = l_orderkey group by 	c_name, 	c_custkey, 	o_orderkey, 	o_orderdate, 	o_totalprice order by 	o_totalprice desc, 	o_orderdate;", 180));
+    
+    
+    
     
     queries.push_back(make_pair("select l_orderkey from lineitem group by l_orderkey having sum(l_quantity) > 300;", 181));
 
@@ -164,6 +175,8 @@ int main(int argc, char* argv[]) {
     queries.push_back(make_pair("select 	s_name, 	s_address from 	supplier, 	nation where 	s_suppkey in ( 		select 			ps_suppkey 		from 			partsupp 		where 			ps_partkey in ( 				select 					p_partkey 				from 					part 				where 					p_name like 'forest%' 			) 			and ps_availqty > ( 				select 					0.5 * sum(l_quantity) 				from 					lineitem 				where 					l_partkey = ps_partkey 					and l_suppkey = ps_suppkey 					and l_shipdate >= date '1994-01-01' 					and l_shipdate < date '1994-01-01' + interval '1' year 			) 	) 	and s_nationkey = n_nationkey 	and n_name = 'CANADA' order by 	s_name;", 200));
 
 
+    queries.push_back(make_pair("select 	c_name, 	c_custkey, 	o_orderkey, 	o_orderdate, 	o_totalprice, 	sum(l_quantity) from 	customer, 	orders, 	lineitem where 	o_orderkey in ( 		select 			l_orderkey 		from 			lineitem 		group by 			l_orderkey having 				sum(l_quantity) > 300 	) 	and c_custkey = o_custkey 	and o_orderkey = l_orderkey group by 	c_name, 	c_custkey, 	o_orderkey, 	o_orderdate, 	o_totalprice order by 	o_totalprice desc, 	o_orderdate;", 180));
+
     int numOfQueries = queries.size();
     int query = 0;
     int in_query = 0;
@@ -172,7 +185,7 @@ int main(int argc, char* argv[]) {
     
     random_shuffle ( queries.begin(), queries.end(), myrandom);
     
-    while(it < 20) {
+    while(it < 200) {
         usleep(speed * 1000);
         int R = rand() % 100;
         if(R > ratio) {
@@ -187,6 +200,7 @@ int main(int argc, char* argv[]) {
         ++it;
     }
     printf("IT: %d\n", it);
+    for(int i = 0; i < 5; ++i) printf("%lf\n", replicas[i]->totalCost);
     while(true) {
         sleep(1);
         bool ok = true;

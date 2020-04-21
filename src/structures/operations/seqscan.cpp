@@ -5,16 +5,15 @@ SeqScan::SeqScan(Table *table) : Operation(table) {
     strcpy(this->table_name, table->getTableName());
 }
 
-Table* SeqScan::getTable() {
-    return this->table;
-}
 
 double SeqScan::getStartCost(Database* database) {
     return 0;
 }
 
 double SeqScan::getRuntimeCost(Database* database) {
-    return getNt() * database->CPU_TUPLE_COST;
+    double block = (double)table->getSize() / (double)database->BLOCK_SIZE;
+    printf("block %lf  seq page %s cost %lf\n", block , table->getTableName(), database->SEQ_PAGE_COST);
+    return getNt() * database->CPU_TUPLE_COST + (block / 200) * database->SEQ_PAGE_COST;
 }
 
 double SeqScan::getNt() {

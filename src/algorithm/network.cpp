@@ -20,7 +20,7 @@
 
 using namespace std;
 
-Network::Network(Database* database, Table* table, std::vector<Index*> indexes, vector<expression_info*> area, std::map<std::string, Operation*>* tables_operations) {
+Network::Network(Select* s, Database* database, Table* table, std::vector<Index*> indexes, vector<expression_info*> area, std::map<std::string, Operation*>* tables_operations) {
     
     for(expression_info *exp : area) {
         int cnt = 0;
@@ -31,8 +31,8 @@ Network::Network(Database* database, Table* table, std::vector<Index*> indexes, 
             //SEQ SCAN na toj tablici
             Operation* scan = new SeqScan(table);
             vector<Table*> table_list; table_list.push_back(table);
-
-            vector<pair<bool, int> > filter_list = Select::numOfFilter(table_list, area);
+            vector<Table*> t1; 
+            vector<pair<bool, int> > filter_list = Select::numOfFilter(s, table_list, t1, area);
 
             for(int i = 0, len = filter_list.size(); i < len; ++i) {
                 Filter* filter = new Filter(filter_list[i].first, filter_list[i].second);
@@ -104,9 +104,12 @@ bool Network::useIndex(Index* index, vector<expression_info*> expression_infos, 
             if(exp_info->hasVariable(table->getTableName(), index->getColName(col_id))) {
             
                 used_expression[exp_info] = true;
-                for(variable var : *exp_info->variables) {
-                    if(strcmp(var.table, table->getTableName()) != 0) {
-                        seq_scan.insert(*database->getTable(var.table));
+                if(exp_info->equal == 1 && exp_info->variables->size() == 2) {}
+                else {
+                    for(variable var : *exp_info->variables) {
+                        if(strcmp(var.table, table->getTableName()) != 0) {
+                            seq_scan.insert(*database->getTable(var.table));
+                        }
                     }
                 }
                 found = true;

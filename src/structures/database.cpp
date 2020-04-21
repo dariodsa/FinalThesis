@@ -19,7 +19,15 @@ using namespace web;
 
 pthread_t Database::threads[100];
 
+struct cmp_select_pointer { 
+    bool operator()(Select* A, Select* B) 
+    { 
+        return A->_cost > B->_cost;
+    } 
+}; 
+
 Database::Database() {
+
 }
 
 Database::Database(const char *ipAddress, const char* dbName, int port, const char* username, const char* password) {
@@ -42,11 +50,17 @@ Database::Database(const char *ipAddress, const char* dbName, int port, const ch
     //printf("%lf %lf %lf %lf %lf\n", CPU_TUPLE_COST, CPU_INDEX_TUPLE_COST, CPU_OPERATOR_COST, SEQ_PAGE_COST, RANDOM_PAGE_COST);
     //0.232150 0.749760 0.151315 1581.436827 15.676298
     
-    CPU_TUPLE_COST = 0.219334;
-    CPU_INDEX_TUPLE_COST = 0.653808;
-    CPU_OPERATOR_COST = 0.09249;
-    SEQ_PAGE_COST = 1581.766656;
-    RANDOM_PAGE_COST = 10.8;
+    /*CPU_TUPLE_COST = 0.0909334;
+    CPU_INDEX_TUPLE_COST = 0.060808;
+    CPU_OPERATOR_COST = 0.0220249;
+    SEQ_PAGE_COST = 0.32956;
+    RANDOM_PAGE_COST = 10.8;*/
+
+    CPU_TUPLE_COST = 0.1025;
+    CPU_INDEX_TUPLE_COST = 0.060972;
+    CPU_OPERATOR_COST = 0.0364;
+    SEQ_PAGE_COST = 10;
+    
 
     
     //set one worker per query
@@ -107,23 +121,29 @@ Database::Database(web::json::value _json, int id) : Database(
         return;
     } 
     printf("Mutex_init::%d\n", &mutex);
+    
+    //this->Q = new priority_queue<Select*, vector<Select*>, cmp_select_pointer>();
+    
     pthread_create(&Database::threads[id], NULL, &(Database::threadFun), (void*)this);
+
+
 }
 
 void *Database::threadFun(void *arg) {
     Database* database = (Database*)arg;
+    //auto P = database->Q2;//(priority_queue<Select*, vector<Select*>, cmp_select_pointer>*) database->Q;
     while(true) {
         usleep(10);
         pthread_mutex_lock(&(database->mutex));
         //printf("Database %d: %d\n", database->id, database->Q.size());
-        if(database->Q.size() == 0) {
+        if(database->Q2.size() == 0) {
             pthread_mutex_unlock(&(database->mutex));
             continue;
         }
-        auto top = (database->Q).front();
+        auto top = database->Q2.front();
         pthread_mutex_unlock(&(database->mutex));
-        get<0>(top)->startProcess();
-        PGresult *res = database->executeQuery(get<0>(top)->getQuery());
+        top->startProcess();
+        PGresult *res = database->executeQuery(top->getQuery());
         database->removeQueryFromQueue();
     }
 }
@@ -220,8 +240,9 @@ Table* Database::getTable(const char* name) {
     transform(table_name.begin(), table_name.end(), table_name.begin(), ::tolower);
 
     if(this->tables.find(table_name) == this->tables.end()) {
-        cout << "Table: " << table_name << endl;
-        throw std::invalid_argument("Table doesn't exsist.\n");
+       return 0;
+       // cout << "Table: " << table_name << endl;
+     //   throw std::invalid_argument("Table doesn't exsist.\n");
     }
     return this->tables[table_name];
 }
@@ -303,7 +324,7 @@ long long Database::getCurrRamLoaded(vector<Table*> full_table
     }
     for(Table* table : retr_data) {
         printf("retr %s %lld, %lld\n", table->getTableName(), statusLoaded(table->getTableName()), cache_size);
-        ans += statusLoaded(table->getTableName());
+        ans += statusLoaded(table->getTableName()) / 100000;
     }
 
     return ans;
@@ -437,17 +458,18 @@ void Database::removeQueryFromQueue() {
 
     Program* program = Program::getInstance();
     pthread_mutex_lock(&mutex);
-    auto top = Q.front();
-    totalCost -= (get<3>(top) / 1000) ;
-    Q.pop();
+    //auto P = Q2;//(priority_queue<Select*, vector<Select*>, cmp_select_pointer>*) Q;
+    auto top = Q2.front();
+    totalCost -= (top->_cost / 1000) ;
+    Q2.pop();
     pthread_mutex_unlock(&mutex);
     char buff[200];
     unsigned long long current_time = std::chrono::system_clock::now().time_since_epoch() / std::chrono::milliseconds(1);
     
-    long long time_wait = get<0>(top)->getTimeStartProcess() - get<1>(top);
+    long long time_wait = top->getTimeStartProcess() - top->created;
     
-    long long time_process = current_time - get<0>(top)->getTimeStartProcess();
-    sprintf(buff, "Query %d is done from replica %d - (%llu,%llu,%lld)", get<0>(top)->getType(), this->id, time_wait, time_process, get<3>(top) / 1000);
+    long long time_process = current_time - top->getTimeStartProcess();
+    sprintf(buff, "Query %d is done from replica %d - (%lld,%lld,%lf)", top->getType(), this->id, time_wait, time_process, top->_cost / 1000);
     program->log(LOG_EMERG, buff);
     
 }
@@ -456,15 +478,17 @@ void Database::addRequest(Select* select) {
     Program* program = Program::getInstance();
     pthread_mutex_lock(&(this->mutex));
     unsigned long long start = std::chrono::system_clock::now().time_since_epoch() / std::chrono::milliseconds(1);
-    long long cost = select->getFinalCost(this);
+    long long cost = select->_cost;
 	//select startInLine startToProcess cost
-    Q.push(make_tuple(select, start, 0, cost));   
-    
+    //auto P = (priority_queue<Select*, vector<Select*>, cmp_select_pointer>*) Q;
+
+    Q2.push(select);   
+    select->created = start;
     totalCost += cost / 1000;
 
     char buff[200];
     sprintf(buff, "Added query %d in list of replica %d", select->getType(), this->id);
-    printf("%d => %d\n", id, Q.size());
+    
     program->log(LOG_EMERG, buff);
     
     resursi reources = select->getResource();
@@ -484,11 +508,11 @@ void Database::addRequest(Select* select) {
 
 long long Database::getTimeToProcess(Select *select) {
     pthread_mutex_lock(&mutex);
-    
+    //auto P = (priority_queue<Select*, vector<Select*>, cmp_select_pointer>*) Q;
     double answer = 0;
-    if(Q.size() > 0) {
-        unsigned long long startedToProcess = get<2>(Q.front());
-        long long cost = get<3>(Q.front());
+    if(Q2.size() > 0) {
+        unsigned long long startedToProcess = Q2.front()->getTimeStartProcess();
+        long long cost = Q2.front()->_cost;
         unsigned long long currentTime = std::chrono::system_clock::now().time_since_epoch() / std::chrono::milliseconds(1);
 
         if(startedToProcess + cost > currentTime) {
@@ -504,9 +528,9 @@ long long Database::getTimeToProcess(Select *select) {
 }
 
 int Database::getNumOfActiveRequests() {
-
+    //auto P = (priority_queue<Select*, vector<Select*>, cmp_select_pointer>*) Q;
     pthread_mutex_lock(&mutex);
-    int size = Q.size();
+    int size = Q2.size();
     pthread_mutex_unlock(&mutex);
     return size;
 }

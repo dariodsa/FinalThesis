@@ -13,7 +13,6 @@ class Operation{
         float getTotalCost(Database* database) {
             float startCost = getStartCost(database);
             float runTimeCost = getRuntimeCost(database);
-            printf("Start %f Runtime %f\n", startCost, runTimeCost);
             return startCost + runTimeCost;
         }
 
@@ -24,6 +23,8 @@ class Operation{
         bool isSeqScan() { return false; }
         bool isIndexScan() { return false; }
         bool isIndexCon() { return false; }
+
+        Table* getTable() { return this->table;}
 
         std::vector<Operation*> children;
         Table *table;

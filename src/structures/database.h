@@ -13,6 +13,7 @@
 #include <pqxx/pqxx> 
 #include <stdio.h>
 #include <map>
+#include <set>
 #include <string>
 #include <vector>
 #include <queue>
@@ -26,11 +27,12 @@
 using namespace pqxx;
 using namespace std;
 
+
 class Cache;
-class Index;
+class Select;
 class Table;
 class ForeignKey;
-class Select;
+class Index;
 
 struct variable {
 
@@ -97,6 +99,7 @@ struct expression_info {
         locked = false;
     }
     bool hasFromTables(vector<string> tables) {
+        if(tables.size() == 0) return true;
         for(variable var : *variables) {
             for(string table_name : tables) {
                 if(strcmp(table_name.c_str(), var.table) == 0) {
@@ -107,14 +110,35 @@ struct expression_info {
         return false;
     }
     bool hasOnlyFromTables(vector<string> tables) {
+        std::set<string> tab;
         for(variable var : *variables) {
+            bool found = false;
             for(string table_name : tables) {
-                if(strcmp(table_name.c_str(), var.table) == 0 && variables->size() == 1) {
-                    return true;
+                if(strcmp(table_name.c_str(), var.table) == 0) {
+                    found = true;
+                    tab.insert(table_name);
+                    break;
                 }
             }
+            if(!found) return false;
         }
+        if(tab.size() == tables.size()) return true;
         return false;
+    }
+    bool hasFromMoreTables(vector<string> tables) {
+        std::set<string> tab;
+        for(variable var : *variables) {
+            bool found = false;
+            for(string table_name : tables) {
+                if(strcmp(table_name.c_str(), var.table) == 0) {
+                    found = true;
+                    tab.insert(table_name);
+                    break;
+                }
+            }
+            if(!found) return false;
+        }
+        return true;
     }
     bool hasVariable(const char* table, const char *var) {
         for(variable _var : *variables) {
@@ -137,6 +161,7 @@ struct node {
         memset(name, 0, 5 * sizeof(char));
     }
 };
+  
 
 class Database {
     public:
@@ -199,7 +224,8 @@ class Database {
 
         double totalCost = 0;
 
-        std::queue<std::tuple<Select*, unsigned long long, unsigned long long, long long> >Q;
+        std::queue<Select*>Q2;
+        //void* Q;
         pthread_mutex_t mutex;
         void removeQueryFromQueue();
 

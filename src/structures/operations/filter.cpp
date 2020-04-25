@@ -23,8 +23,8 @@ double Filter::getRuntimeCost(Database* database) {
 
 double Filter::getNt() {
     double nt = children[0]->getNt();
-    if(isEqual) nt *= 0.004;
-    else nt *= 0.1;
+    if(isEqual) nt *= 0.01;
+    else nt *= 0.07;
     if(nt < 1) nt = 1;
     return nt;
 }

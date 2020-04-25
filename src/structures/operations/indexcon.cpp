@@ -15,7 +15,7 @@ double IndexCon::getStartCost(Database* database) {
 
 double IndexCon::getRuntimeCost(Database* database) {
     double nt = getNt();
-    double cost = nt * database->CPU_INDEX_TUPLE_COST;
+    double cost = nt * database->CPU_INDEX_TUPLE_COST + getStartCost(database);
     
     if(retr_data) cost += nt / database->BLOCK_SIZE * database->SEQ_PAGE_COST;
     return cost;

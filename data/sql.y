@@ -1246,9 +1246,9 @@ select_statement:  //Select* s = new Select(database, $2, (*sp)->tables, (*sp)->
                  {
                      $$ = $2;
                      for(Select* select : select_stack[depth]) {
-                        if(select != 0 && select->getCorrelated()) {
+                        if(select != 0) {
                             $$->addKid(select);
-                        } else $$->addSibling(select);
+                        }
                     }
                      select_stack[depth].clear();
                      if(corr_stack[depth])$$->setCorrelated();
@@ -1259,9 +1259,9 @@ select_statement:  //Select* s = new Select(database, $2, (*sp)->tables, (*sp)->
                 {
                     $$ = $2;
                     for(Select* select : select_stack[depth]) {
-                        if(select != 0 && select->getCorrelated()) {
+                        if(select != 0) {
                             $$->addKid(select);
-                        } else $$->addSibling(select);
+                        }
                     }
                     select_stack[depth].clear();
                     $$->addSort($4);
@@ -1275,9 +1275,9 @@ select_statement:  //Select* s = new Select(database, $2, (*sp)->tables, (*sp)->
                 {
                     $$ = $2;
                     for(Select* select : select_stack[depth]) {
-                        if(select != 0 && select->getCorrelated()) {
+                        if(select != 0) {
                             $$->addKid(select);
-                        } else $$->addSibling(select);
+                        }
                     }
                     select_stack[depth].clear();
                     
@@ -1292,9 +1292,9 @@ select_statement:  //Select* s = new Select(database, $2, (*sp)->tables, (*sp)->
                 {
                     $$ = $2;
                     for(Select* select : select_stack[depth]) {
-                        if(select != 0 && select->getCorrelated()) {
+                        if(select != 0) {
                             $$->addKid(select);
-                        } else $$->addSibling(select);
+                        }
                     }
                     select_stack[depth].clear();
                     $$->addSort($4);
@@ -1306,9 +1306,9 @@ select_statement:  //Select* s = new Select(database, $2, (*sp)->tables, (*sp)->
                 | select_word select_options order_by_clause limit_offset_clause
                 {
                     for(Select* select : select_stack[depth]) {
-                        if(select != 0 && select->getCorrelated()) {
+                        if(select != 0) {
                             $2->addKid(select);
-                        } else $2->addSibling(select);
+                        }
                     }
                     select_stack[depth].clear();
                     $2->addSort($3);
@@ -1321,9 +1321,9 @@ select_statement:  //Select* s = new Select(database, $2, (*sp)->tables, (*sp)->
                 | select_word select_options limit_offset_clause
                 {
                     for(Select* select : select_stack[depth]) {
-                        if(select != 0 && select->getCorrelated()) {
+                        if(select != 0) {
                             $2->addKid(select);
-                        } else $2->addSibling(select);
+                        }
                     }
                     select_stack[depth].clear();
                     $2->addLimit($3);
@@ -1335,9 +1335,9 @@ select_statement:  //Select* s = new Select(database, $2, (*sp)->tables, (*sp)->
                 | select_word select_options order_by_clause
                 {
                     for(Select* select : select_stack[depth]) {
-                        if(select != 0 && select->getCorrelated()) {
+                        if(select != 0) {
                             $2->addKid(select);
-                        } else $2->addSibling(select);
+                        }
                     }
                     select_stack[depth].clear();
                     $2->addSort($3);

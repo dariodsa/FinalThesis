@@ -89,13 +89,14 @@ bool Result::hasColumn(char* col_name) {
 
 double Select::getCost(Database* database) {
     double cost = this->root->getTotalCost(database);
-    printf("init cost %lf\n", cost);
+    printf("init cost %lf %d %d\n", cost, siblings.size(), kids.size());
     for(Select* sibling : siblings) {
         if(sibling == 0 ) continue;
         if(sibling->getCorrelated()) {
+            printf("sibling correlated\n");
              cost += sibling->getCost(database);
         } else {
-            if(sibling != 0 ) cost += database->CPU_OPERATOR_COST * (log2(max(sibling->root->getNt(),this->root->getNt()))) * (this->root->getNt() + sibling->root->getNt()) + sibling->getCost(database);
+            if(sibling != 0 ) cost += database->CPU_TUPLE_COST * (this->root->getNt() + sibling->root->getNt()) +  1 * database->CPU_OPERATOR_COST * (log2(sibling->root->getNt() + this->root->getNt())) * (this->root->getNt() + sibling->root->getNt()) + sibling->getCost(database);
         }
     }
     
@@ -104,8 +105,12 @@ double Select::getCost(Database* database) {
         if(kid == 0) continue;
         double select_cost = kid->getCost(database);
         printf("cost in subquery %lf * %lf\n", select_cost,nt);
-        printf("precost %lf nt:%lf\n", cost, nt);
-        cost += (nt * select_cost);
+        printf("precost %lf nt:%lf correlated: %d\n", cost, nt, kid->getCorrelated());
+        if(kid->getCorrelated()) {
+            cost += (nt * select_cost);
+        } else {
+            cost += select_cost;
+        }
         printf("fin cost %lf\n", cost);
     }
 
@@ -152,12 +157,12 @@ double Select::getLoadingCost(Database* database) {
 double Select::getFinalCost(Database* database) {
     double loadingCost = this->getLoadingCost(database);
     double cost = this->getCost(database);
-    printf("LoadingCost: %lf\n", loadingCost);
+    printf("LoadingCost: %lf %d\n", loadingCost, this->getType());
     printf("Cost without loading: %lf\n", cost);
     double final_cost = cost * loadingCost;
     if(final_cost < 0) final_cost = 2e4;
     //printf("Final cost %f\n", final_cost);
-    return final_cost;
+    return final_cost / 1000.0;
 }
 
 resursi Select::getResource() {

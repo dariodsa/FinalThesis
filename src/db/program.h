@@ -20,7 +20,7 @@ class Program {
         char* getIP();
         const char *data_location;
 
-        static const signed int AVERAGE_DATA_SIZE = 142;
+        static const signed int AVERAGE_DATA_SIZE = 115;
 
     private:
         static Program* singleton;

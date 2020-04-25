@@ -12,8 +12,11 @@ double SeqScan::getStartCost(Database* database) {
 
 double SeqScan::getRuntimeCost(Database* database) {
     double block = (double)table->getSize() / (double)database->BLOCK_SIZE;
+    double nt = getNt();
     printf("block %lf  seq page %s cost %lf\n", block , table->getTableName(), database->SEQ_PAGE_COST);
-    return getNt() * database->CPU_TUPLE_COST + (block / 200) * database->SEQ_PAGE_COST;
+    double seq_page_cost = nt * database->CPU_TUPLE_COST + (block /160.0) * database->SEQ_PAGE_COST;
+    printf("Total seq cost: %lf\n", seq_page_cost);
+    return seq_page_cost;
 }
 
 double SeqScan::getNt() {

@@ -56,10 +56,10 @@ Database::Database(const char *ipAddress, const char* dbName, int port, const ch
     SEQ_PAGE_COST = 0.32956;
     RANDOM_PAGE_COST = 10.8;*/
 
-    CPU_TUPLE_COST = 0.1025;
-    CPU_INDEX_TUPLE_COST = 0.060972;
-    CPU_OPERATOR_COST = 0.0364;
-    SEQ_PAGE_COST = 10;
+    CPU_TUPLE_COST = 0.1325;
+    CPU_INDEX_TUPLE_COST = 0.092972;
+    CPU_OPERATOR_COST = 0.05504;
+    SEQ_PAGE_COST = 5;
     
 
     
@@ -157,6 +157,7 @@ bool Database::connect() {
             hostaddr = %s port = %d", this->dbName, this->username, this->password, this->ipAddress, this->port);
         printf("%s\n", conn_str);
         this->C = PQconnectdb(conn_str);
+        printf("IP: %s", this->ipAddress);
         if (PQstatus(this->C) == CONNECTION_BAD)   {
             return false;
         } else {   
@@ -460,7 +461,7 @@ void Database::removeQueryFromQueue() {
     pthread_mutex_lock(&mutex);
     //auto P = Q2;//(priority_queue<Select*, vector<Select*>, cmp_select_pointer>*) Q;
     auto top = Q2.front();
-    totalCost -= (top->_cost / 1000) ;
+    totalCost -= (top->_cost);
     Q2.pop();
     pthread_mutex_unlock(&mutex);
     char buff[200];
@@ -478,13 +479,13 @@ void Database::addRequest(Select* select) {
     Program* program = Program::getInstance();
     pthread_mutex_lock(&(this->mutex));
     unsigned long long start = std::chrono::system_clock::now().time_since_epoch() / std::chrono::milliseconds(1);
-    long long cost = select->_cost;
+    double cost = select->_cost;
 	//select startInLine startToProcess cost
     //auto P = (priority_queue<Select*, vector<Select*>, cmp_select_pointer>*) Q;
 
     Q2.push(select);   
     select->created = start;
-    totalCost += cost / 1000;
+    totalCost += cost;
 
     char buff[200];
     sprintf(buff, "Added query %d in list of replica %d", select->getType(), this->id);

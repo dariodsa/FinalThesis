@@ -43,7 +43,7 @@ double MergeJoin::getRuntimeCost(Database* database) {
 double MergeJoin::getNt() {
     if(children.size() != 2) return 0;
     if(nt == -1) {
-        return children[0]->getNt() + children[1]->getNt() * 3;
+        return min(children[0]->getNt(), children[1]->getNt()) * 3;
     } else {
         return children[0]->getNt();
     }

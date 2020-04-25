@@ -9,9 +9,9 @@ double Group::getStartCost(Database* database) {
 }
 
 double Group::getRuntimeCost(Database* database) {
-    return children[0]->getRuntimeCost(database) + numOfVariables * children[0]->getNt() * (database->CPU_OPERATOR_COST + database->CPU_TUPLE_COST);
+    return children[0]->getRuntimeCost(database) + children[0]->getNt() * (numOfVariables * database->CPU_OPERATOR_COST + database->CPU_TUPLE_COST);
 }
 
 double Group::getNt() {
-    return children[0]->getNt() / (numOfVariables + 1);
+    return children[0]->getNt() / (2*numOfVariables + 1);
 }

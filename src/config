@@ -2,28 +2,28 @@
  "replicas": [
 
 {
-              "ipAddress": "161.35.25.228"
+              "ipAddress": "161.35.72.223"
               , "dbName": "tpch"
               , "port": 5432
               , "username": "postgres"
               , "password":"12345"
   },
 { 
-    "ipAddress": "134.209.232.19"
+    "ipAddress": "64.225.108.198"
    , "dbName": "tpch"
    , "port": 5432
    , "username": "postgres"
    , "password": "12345"
   },
 { 
-    "ipAddress": "165.22.92.167"
+    "ipAddress": "161.35.72.168"
    , "dbName": "tpch"
    , "port": 5432
    , "username": "postgres"
    , "password": "12345"
   },
 { 
-    "ipAddress": "64.225.101.148"
+    "ipAddress": "161.35.68.85"
    , "dbName": "tpch"
    , "port": 5432
    , "username": "postgres"
@@ -31,7 +31,7 @@
   }
 ,
 { 
-    "ipAddress": "161.35.31.233"
+    "ipAddress": "161.35.25.228"
    , "dbName": "tpch"
    , "port": 5432
    , "username": "postgres"
